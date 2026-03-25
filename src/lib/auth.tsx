@@ -25,41 +25,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [nurses, setNurses] = useState<User[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('abtc_session');
-    if (saved) {
-      try {
+    try {
+      const saved = localStorage.getItem('abtc_session');
+      if (saved) {
         const { user: u, token: t } = JSON.parse(saved);
         setUser(u);
         setToken(t);
-        if (u.role === 'nurse') loadNurses();
-      } catch {}
-    }
+        if (u?.role === 'nurse') loadNurses();
+      }
+    } catch {}
   }, []);
 
-  async function login(username: string, password: string) {
-    const res = await api.login(username, password);
-    if (res.status === 'ok') {
-      setUser(res.data.user);
-      setToken(res.data.token);
-      localStorage.setItem('abtc_session', JSON.stringify({ user: res.data.user, token: res.data.token }));
-      if (res.data.user.role === 'nurse') {
-        await loadNurses();
+  async function login(username: string, password: string): Promise<{ ok: boolean; error?: string }> {
+    try {
+      const res = await api.login(username, password);
+      if (res.status === 'ok' && res.data?.user) {
+        const u = res.data.user;
+        const t = res.data.token;
+        setUser(u);
+        setToken(t);
+        localStorage.setItem('abtc_session', JSON.stringify({ user: u, token: t }));
+        if (u.role === 'nurse') {
+          await loadNurses();
+        }
+        return { ok: true };
       }
-      return { ok: true };
+      return { ok: false, error: res.message || 'Invalid username or password' };
+    } catch (err: any) {
+      return { ok: false, error: 'Connection error. Check your internet and try again.' };
     }
-    return { ok: false, error: res.message || 'Login failed' };
   }
 
   function logout() {
     setUser(null);
     setToken(null);
     setActiveNurse(null);
-    localStorage.removeItem('abtc_session');
+    try { localStorage.removeItem('abtc_session'); } catch {}
   }
 
   async function loadNurses() {
-    const res = await api.getNurses();
-    if (res.status === 'ok') setNurses(res.data);
+    try {
+      const res = await api.getNurses();
+      if (res.status === 'ok' && Array.isArray(res.data)) setNurses(res.data);
+    } catch {}
   }
 
   return (
