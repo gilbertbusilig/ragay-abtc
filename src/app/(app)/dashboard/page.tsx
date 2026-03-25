@@ -18,7 +18,7 @@ function BarChart({ data, labels }: { data: number[]; labels: string[] }) {
               width: '100%',
               height: `${(val / max) * 80}px`,
               minHeight: val > 0 ? 4 : 0,
-              background: 'var(--teal-500)',
+              background: 'var(--blue-500)',
               borderRadius: '4px 4px 0 0',
               transition: 'height .4s ease',
             }}
@@ -191,7 +191,7 @@ export default function DashboardPage() {
               <DonutChart
                 segments={[data.animal_counts.dog, data.animal_counts.cat, data.animal_counts.bat, data.animal_counts.other]}
                 labels={['Dog','Cat','Bat','Other']}
-                colors={['#14b8a6','#3b82f6','#8b5cf6','#f59e0b']}
+                colors={['#2563eb','#3b82f6','#8b5cf6','#f59e0b']}
               />
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function DashboardPage() {
               <DonutChart
                 segments={[data.age_lt15, data.age_15, data.age_gt15]}
                 labels={['< 15 yrs','15 yrs','> 15 yrs']}
-                colors={['#a78bfa','#14b8a6','#0d9488']}
+                colors={['#a78bfa','#2563eb','#0d9488']}
               />
             </div>
           </div>
@@ -242,7 +242,7 @@ export default function DashboardPage() {
             <div className="card-body">
               <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
                 {[
-                  { label: 'ERIG (Equine)', count: data.erig_count, color: '#14b8a6', total: data.erig_count + data.hrig_count },
+                  { label: 'ERIG (Equine)', count: data.erig_count, color: '#2563eb', total: data.erig_count + data.hrig_count },
                   { label: 'HRIG (Human)', count: data.hrig_count, color: '#3b82f6', total: data.erig_count + data.hrig_count },
                 ].map(item => (
                   <div key={item.label}>
