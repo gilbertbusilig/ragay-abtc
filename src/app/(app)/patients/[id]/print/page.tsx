@@ -42,8 +42,7 @@ export default function PrintPage() {
         .page:last-child { page-break-after: auto; }
         h2 { font-size: 11pt; text-align: center; margin: 0 0 2px; }
         h3 { font-size: 9pt; text-align: center; margin: 0 0 8px; font-weight: normal; }
-        .logo-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 6px; }
-        .logo-cross { font-size: 28pt; color: #cc0000; line-height: 1; }
+        .logo-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
         .section { border: 1px solid #333; margin-bottom: 6px; }
         .section-title { background: #e8e8e8; border-bottom: 1px solid #333; padding: 2px 6px; font-weight: bold; font-size: 9pt; }
         .section-body { padding: 4px 6px; }
@@ -77,12 +76,13 @@ export default function PrintPage() {
       <div className="page">
         {/* Header */}
         <div className="logo-row">
-          <span className="logo-cross">✚</span>
-          <div style={{ textAlign:'center' }}>
+          <img src="/logos/bagong_pilipinas.jpg" alt="Bagong Pilipinas" style={{ width:52, height:52, objectFit:'contain' }} />
+          <img src="/logos/lgu_logo.jpg" alt="LGU Ragay" style={{ width:52, height:52, objectFit:'contain' }} />
+          <div style={{ textAlign:'center', flex:1 }}>
             <h2>RAGAY ANIMAL BITE TREATMENT CENTER</h2>
             <h3>Población, Ragay, Camarines Sur · Municipal Health Office</h3>
           </div>
-          <span className="logo-cross">✚</span>
+          <img src="/logos/rhu_logo.png" alt="RHU" style={{ width:52, height:52, objectFit:'contain' }} />
         </div>
 
         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6, fontSize:'9pt' }}>
