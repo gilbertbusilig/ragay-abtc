@@ -1,0 +1,171 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
+import { Dose } from '@/types';
+
+export default function VaccineSchedulePage() {
+  const router = useRouter();
+  const [doses, setDoses] = useState<(Dose & { patient_name?: string })[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+  const today = new Date().toISOString().split('T')[0];
+
+  useEffect(() => { load(); }, []);
+
+  async function load() {
+    setLoading(true);
+    const [dosesRes, patientsRes] = await Promise.all([
+      api.getDoses(),
+      api.getPatients(),
+    ]);
+    if (dosesRes.status === 'ok' && patientsRes.status === 'ok') {
+      const patMap: Record<string, string> = {};
+      patientsRes.data.forEach((p: any) => { patMap[p.patient_id] = p.full_name; });
+      setDoses(dosesRes.data.map((d: Dose) => ({ ...d, patient_name: patMap[d.patient_id] || d.patient_id })));
+    }
+    setLoading(false);
+  }
+
+  const filtered = doses.filter(d => {
+    if (filter === 'due_today') return d.scheduled_date === today && d.status === 'scheduled';
+    if (filter === 'due_week') {
+      const wk = new Date(); wk.setDate(wk.getDate() + 7);
+      return d.scheduled_date >= today && d.scheduled_date <= wk.toISOString().split('T')[0] && d.status === 'scheduled';
+    }
+    if (filter === 'overdue') return d.status === 'overdue';
+    if (filter === 'done') return d.status === 'done';
+    if (filter === 'scheduled') return d.status === 'scheduled';
+    return true;
+  }).sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''));
+
+  const counts = {
+    due_today: doses.filter(d => d.scheduled_date === today && d.status === 'scheduled').length,
+    overdue: doses.filter(d => d.status === 'overdue').length,
+    done: doses.filter(d => d.status === 'done').length,
+  };
+
+  const statusBadge = (s: string, optional: boolean) => {
+    if (optional && s === 'scheduled') return <span className="badge" style={{ background:'#f1f5f9', color:'var(--slate-400)' }}>Optional</span>;
+    const map: Record<string, string> = { done:'badge-done', scheduled:'badge-scheduled', overdue:'badge-overdue' };
+    return <span className={`badge ${map[s] || ''}`}>{s}</span>;
+  };
+
+  const isUrgent = (d: Dose) => d.status === 'overdue' || (d.status === 'scheduled' && d.scheduled_date <= today);
+
+  return (
+    <div>
+      <div className="page-header">
+        <div>
+          <h1 className="page-title">Vaccine Schedule</h1>
+          <p className="page-subtitle">PEP & PrEP dose tracking for all patients</p>
+        </div>
+        <button className="btn btn-secondary btn-sm" onClick={load}>↻ Refresh</button>
+      </div>
+
+      <div className="page-body">
+        {/* Summary cards */}
+        <div className="stat-grid" style={{ marginBottom:16 }}>
+          <div className="stat-card red">
+            <div className="stat-value">{counts.overdue}</div>
+            <div className="stat-label">Overdue Doses</div>
+            <div className="stat-icon">⚠️</div>
+          </div>
+          <div className="stat-card amber">
+            <div className="stat-value">{counts.due_today}</div>
+            <div className="stat-label">Due Today</div>
+            <div className="stat-icon">📅</div>
+          </div>
+          <div className="stat-card green">
+            <div className="stat-value">{counts.done}</div>
+            <div className="stat-label">Doses Given</div>
+            <div className="stat-icon">✅</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{doses.length}</div>
+            <div className="stat-label">Total Scheduled</div>
+            <div className="stat-icon">💉</div>
+          </div>
+        </div>
+
+        {/* Filter tabs */}
+        <div style={{ display:'flex', gap:8, marginBottom:14, flexWrap:'wrap' }}>
+          {[
+            { val:'all', label:'All Doses' },
+            { val:'due_today', label:'Due Today', urgent: counts.due_today > 0 },
+            { val:'due_week', label:'Due This Week' },
+            { val:'overdue', label:'Overdue', urgent: counts.overdue > 0 },
+            { val:'scheduled', label:'Upcoming' },
+            { val:'done', label:'Completed' },
+          ].map(tab => (
+            <button key={tab.val}
+              className={`btn btn-sm ${filter === tab.val ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => setFilter(tab.val)}
+              style={{ position:'relative' }}>
+              {tab.label}
+              {(tab as any).urgent && <span style={{ position:'absolute', top:-4, right:-4, width:8, height:8, background:'var(--red-500)', borderRadius:'50%' }} />}
+            </button>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div className="card">
+          {loading ? (
+            <div className="page-loader" style={{ minHeight:300 }}>
+              <div className="spinner" style={{ width:28, height:28 }} />
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon">💉</div>
+              <div className="empty-text">No doses in this category</div>
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table className="data-table">
+                <thead><tr>
+                  <th>Patient</th>
+                  <th>Patient ID</th>
+                  <th>Day</th>
+                  <th>Scheduled Date</th>
+                  <th>Status</th>
+                  <th>Vaccine</th>
+                  <th>Brand</th>
+                  <th>Date Given</th>
+                  <th>Given By</th>
+                </tr></thead>
+                <tbody>
+                  {filtered.map(d => (
+                    <tr key={d.dose_id}
+                      style={{ background: isUrgent(d) ? '#fff8f8' : undefined, cursor:'pointer' }}
+                      onClick={() => router.push(`/patients/${d.patient_id}`)}>
+                      <td>
+                        <span style={{ fontWeight:500, color: isUrgent(d) ? 'var(--red-700)' : undefined }}>
+                          {(d as any).patient_name}
+                        </span>
+                      </td>
+                      <td><span style={{ fontFamily:'monospace', fontSize:12, color:'var(--teal-700)' }}>{d.patient_id}</span></td>
+                      <td><span style={{ fontWeight:700, color:'var(--teal-700)' }}>{d.dose_day}</span></td>
+                      <td style={{ fontSize:13 }}>
+                        {d.scheduled_date}
+                        {d.scheduled_date < today && d.status !== 'done' && (
+                          <span style={{ marginLeft:6, fontSize:11, color:'var(--red-600)', fontWeight:600 }}>
+                            ({Math.abs(Math.round((new Date(d.scheduled_date).getTime() - new Date(today).getTime()) / 86400000))}d late)
+                          </span>
+                        )}
+                      </td>
+                      <td>{statusBadge(d.status, d.is_optional)}</td>
+                      <td style={{ fontSize:13 }}>{d.vaccine_type || '—'}</td>
+                      <td style={{ fontSize:13 }}>{d.brand_name || '—'}</td>
+                      <td style={{ fontSize:13 }}>{d.administered_date || '—'}</td>
+                      <td style={{ fontSize:13 }}>{d.administered_by || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
