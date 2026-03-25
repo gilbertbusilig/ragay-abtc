@@ -4,23 +4,38 @@ const GAS_URL = process.env.NEXT_PUBLIC_GAS_URL!;
 const GAS_SECRET = process.env.NEXT_PUBLIC_GAS_SECRET!;
 
 async function gasGet(action: string, params: Record<string, string> = {}) {
-  const url = new URL(GAS_URL);
-  url.searchParams.set('action', action);
-  url.searchParams.set('secret', GAS_SECRET);
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString());
-  return res.json();
+  try {
+    const url = new URL(GAS_URL);
+    url.searchParams.set('action', action);
+    url.searchParams.set('secret', GAS_SECRET);
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+    });
+    const res = await fetch(url.toString(), { redirect: 'follow' });
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
+  } catch (err: any) {
+    return { status: 'error', message: err?.message || 'Network error' };
+  }
 }
 
 async function gasPost(action: string, body: Record<string, unknown>) {
-  const url = new URL(GAS_URL);
-  url.searchParams.set('secret', GAS_SECRET);
-  const res = await fetch(url.toString(), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, ...body }),
-  });
-  return res.json();
+  try {
+    const url = new URL(GAS_URL);
+    url.searchParams.set('secret', GAS_SECRET);
+    // No Content-Type header — avoids CORS preflight with Google Apps Script
+    const res = await fetch(url.toString(), {
+      method: 'POST',
+      redirect: 'follow',
+      body: JSON.stringify({ action, ...body }),
+    });
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
+  } catch (err: any) {
+    return { status: 'error', message: err?.message || 'Network error' };
+  }
 }
 
 export const api = {
@@ -34,7 +49,7 @@ export const api = {
 
   // Patients
   getPatients: (params?: { search?: string; status?: string; category?: string }) =>
-    gasGet('get_patients', params as Record<string, string>),
+    gasGet('get_patients', (params || {}) as Record<string, string>),
   getPatient: (patient_id: string) =>
     gasGet('get_patient', { patient_id }),
   createPatient: (data: Record<string, unknown>) =>
@@ -50,7 +65,7 @@ export const api = {
 
   // Doses
   getDoses: (params?: { patient_id?: string; incident_id?: string; status?: string }) =>
-    gasGet('get_doses', params as Record<string, string>),
+    gasGet('get_doses', (params || {}) as Record<string, string>),
   administerDose: (data: Record<string, unknown>) =>
     gasPost('administer_dose', data),
 
