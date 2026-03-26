@@ -30,22 +30,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <aside className="sidebar no-print">
-        <div className="sidebar-logo">
-          <div className="sidebar-logo-row">
-            <img src="/logos/rhu_logo.png" alt="RHU" />
-            <div>
-              <div className="org-name">Ragay ABTC</div>
-              <div className="org-sub">Animal Bite Treatment Center</div>
-            </div>
+
+        {/* Three logos row */}
+        <div style={{ padding:'14px 12px 10px', background:'#172554', borderBottom:'1px solid rgba(255,255,255,.08)', display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+          <div style={{ display:'flex', gap:10, alignItems:'center', justifyContent:'center' }}>
+            {[
+              { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
+              { src:'/logos/lgu_logo.jpg',         alt:'Municipality of Ragay' },
+              { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
+            ].map(logo => (
+              <div key={logo.alt} style={{ width:40, height:40, background:'white', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', padding:3, flexShrink:0, boxShadow:'0 2px 6px rgba(0,0,0,.25)' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:5 }} />
+              </div>
+            ))}
+          </div>
+          <div style={{ textAlign:'center' }}>
+            <div style={{ fontSize:12, fontWeight:700, color:'white', lineHeight:1.3 }}>Ragay ABTC</div>
+            <div style={{ fontSize:10, color:'#93c5fd', lineHeight:1.3, marginTop:2 }}>Animal Bite Treatment Center</div>
           </div>
         </div>
 
-        <div className="sidebar-gov-logos">
-          <img src="/logos/bagong_pilipinas.jpg" alt="Bagong Pilipinas" />
-          <img src="/logos/lgu_logo.jpg" alt="Ragay LGU" />
-          <span>Ragay · CamSur</span>
-        </div>
-
+        {/* Nav */}
         <nav className="sidebar-nav">
           {NAV.map(section => (
             <div key={section.section}>
@@ -55,7 +61,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 const active = pathname === item.href || pathname.startsWith(item.href + '/');
                 return (
                   <button key={item.href}
-                    className={`nav-item ${active ? "active" : ""}`}
+                    className={active ? 'nav-item active' : 'nav-item'}
                     onClick={() => router.push(item.href)}>
                     <span className="nav-icon">{item.icon}</span>
                     {item.label}
@@ -66,6 +72,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
 
+        {/* Footer */}
         <div className="sidebar-footer">
           {user.role === 'nurse' && nurses.length > 0 && (
             <div className="nurse-selector">
@@ -75,7 +82,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 if (n) setActiveNurse(n);
               }}>
                 {nurses.map(n => (
-                  <option key={n.user_id} value={n.user_id}>{n.full_name}</option>
+                  <option key={n.user_id} value={n.user_id}>
+                    {n.full_name}{n.credential ? `, ${n.credential}` : ''}
+                  </option>
                 ))}
               </select>
             </div>
@@ -83,8 +92,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="user-badge">
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
-              <div className="name">{displayUser.full_name}</div>
-              <div className="role">{user.role}{displayUser.credential ? ` · ${displayUser.credential}` : ""}</div>
+              <div className="name">{displayUser.full_name}{displayUser.credential ? `, ${displayUser.credential}` : ''}</div>
+              <div className="role" style={{ textTransform:'capitalize' }}>{user.role}</div>
             </div>
             <button className="logout-btn" onClick={logout} title="Sign out">⏻</button>
           </div>

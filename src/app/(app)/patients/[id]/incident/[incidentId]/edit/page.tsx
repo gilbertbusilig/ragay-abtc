@@ -429,7 +429,7 @@ export default function IncidentEditPage() {
           {/* Submit */}
           <div style={{ display:'flex', gap:12, justifyContent:'flex-end', marginTop:8 }}>
             <button type="button" className="btn btn-secondary" onClick={() => router.push(`/patients/${patient_id}`)}>Cancel</button>
-            <button type="button" className="btn btn-secondary" onClick={() => router.push(`/patients/${patient_id}/print`)}>🖨 Print Blank Form</button>
+            <button type="button" className="btn btn-secondary" onClick={() => router.push(`/patients/${patient_id}/print`)}>🖨 Print Form</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? <><span className="spinner" style={{ width:16, height:16 }} /> Saving…</> : '✓ Save Clinical Data'}
             </button>

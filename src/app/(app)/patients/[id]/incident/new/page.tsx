@@ -125,16 +125,23 @@ export default function NewIncidentPage() {
 
           <div className="section-box">
             <div className="section-box-title">PEP Doses Required</div>
-            <div className="checkbox-group">
-              <label className="checkbox-item">
-                <input type="radio" name="pep_doses" value="5" checked={form.pep_doses_needed===5} onChange={() => set('pep_doses_needed', 5)} />
-                5 doses — Standard (D0, D3, D7, D14, D28)
-              </label>
-              <label className="checkbox-item">
-                <input type="radio" name="pep_doses" value="3" checked={form.pep_doses_needed===3} onChange={() => set('pep_doses_needed', 3)} />
-                3 doses — Reduced regimen (D0, D7, D21)
-              </label>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              {[
+                { val:5, label:'5 doses — Standard PEP (D0, D3, D7, D14, D28)' },
+                { val:3, label:'3 doses — Reduced regimen (D0, D7, D21)' },
+                { val:2, label:'Booster only (D0, D3) — Patient previously completed 3-dose regimen within 5 years, animal confirmed healthy after 6–12 months' },
+              ].map(opt => (
+                <label key={opt.val} style={{ display:'flex', gap:10, padding:'10px 12px', borderRadius:'var(--radius-md)', border:'1.5px solid', cursor:'pointer', transition:'all .12s', borderColor: form.pep_doses_needed===opt.val ? 'var(--blue-500)' : 'var(--slate-200)', background: form.pep_doses_needed===opt.val ? 'var(--blue-50)' : 'white' }}>
+                  <input type="radio" name="pep_doses" value={opt.val} checked={form.pep_doses_needed===opt.val} onChange={() => set('pep_doses_needed', opt.val)} style={{ accentColor:'var(--blue-600)', marginTop:2, flexShrink:0 }} />
+                  <span style={{ fontSize:13 }}>{opt.label}</span>
+                </label>
+              ))}
             </div>
+            {form.pep_doses_needed === 2 && (
+              <div className="alert alert-amber" style={{ marginTop:10, fontSize:12 }}>
+                <span>ℹ</span> Booster applies only if: (1) patient previously completed full 3-dose regimen, (2) more than 6 months have passed, and (3) the responsible animal is confirmed healthy/alive. Confirm with the attending physician.
+              </div>
+            )}
           </div>
 
           <div style={{ display:'flex', gap:12, justifyContent:'flex-end' }}>

@@ -81,6 +81,12 @@ export const api = {
   updatePetMonitor: (data: Record<string, unknown>) =>
     gasPost('update_pet_monitor', data),
 
+  // Delete (admin only)
+  deletePatient: (patient_id: string) =>
+    gasPost('delete_patient', { patient_id }),
+  deleteIncident: (incident_id: string) =>
+    gasPost('delete_incident', { incident_id }),
+
   // Export
   exportCSV: (params?: { status?: string }) => {
     const url = new URL(GAS_URL);
