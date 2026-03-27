@@ -204,8 +204,10 @@ export default function PatientDetailPage() {
     const today = new Date().toISOString().split('T')[0];
     const res = await api.administerDose({
       dose_id:         adminModal.dose_id || '',
+      patient_id:      adminModal.patient_id,
       incident_id:     adminModal.incident_id,
       dose_day:        adminModal.dose_day,
+      scheduled_date:  adminModal.scheduled_date,
       vaccine_type:    doseForm.vaccine_type,
       brand_name:      doseForm.brand_name,
       batch_no:        doseForm.batch_no,
