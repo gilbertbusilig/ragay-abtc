@@ -329,47 +329,40 @@ export default function PrintPage() {
         <div className="section">
           <div className="section-title">VI. Treatment</div>
 
-          {/* Anti-Rabies Vaccine (PVRV/PCEC) — 5 rows */}
+          {/* Anti-Rabies Vaccine — PEP doses as ROWS (D0–D28 are columns) */}
           <div style={{ padding:'3px 5px 2px' }}>
+            <div style={{ fontSize:'7.5pt', fontWeight:'bold', marginBottom:2 }}>Anti-Rabies Vaccine (PEP)</div>
             <table>
               <thead>
                 <tr>
-                  <th rowSpan={2} style={{ width:'9%' }}>Generic Name</th>
-                  <th rowSpan={2} style={{ width:'12%' }}>Brand Name</th>
-                  <th rowSpan={2} style={{ width:'10%' }}>Batch No.</th>
-                  <th colSpan={5}>PEP Dose</th>
-                  <th rowSpan={2} style={{ width:'12%' }}>Administered By</th>
-                </tr>
-                <tr>
-                  {dayKeys.map(day => {
-                    const schedDate = doseDateMap[day] ? fullDate(doseDateMap[day]) : '';
-                    return (
-                      <th key={day} style={{ fontSize:'6pt', width:'11%' }}>
-                        {day.replace('D','D ')}<br/>
-                        <span style={{ fontWeight:'normal', fontSize:'5.5pt' }}>{schedDate||'—'}</span>
-                      </th>
-                    );
-                  })}
+                  <th style={{ width:'14%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'10%' }}>Generic Name</th>
+                  <th style={{ width:'13%' }}>Brand Name</th>
+                  <th style={{ width:'11%' }}>Batch No.</th>
+                  <th style={{ width:'17%' }}>Scheduled Date</th>
+                  <th style={{ width:'17%' }}>Date Given</th>
+                  <th>Administered By</th>
                 </tr>
               </thead>
               <tbody>
                 {doseRows.map((d: any, i: number) => (
-                  <tr key={i} style={{ background: i%2===0 ? 'white' : '#f8fafc' }}>
+                  <tr key={i} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
+                    <td style={{ fontWeight:'bold', fontSize:'8pt', paddingLeft:4 }}>
+                      {d.dose_day.replace('D','D ')}
+                    </td>
                     <td style={{ fontSize:'7.5pt' }}>
                       <Cb checked={d.vaccine_type==='PVRV'} /> PVRV<br/>
                       <Cb checked={d.vaccine_type==='PCEC'} /> PCEC
                     </td>
                     <td style={{ fontSize:'7.5pt' }}>{d.brand_name||''}</td>
                     <td style={{ fontSize:'7.5pt' }}>{d.batch_no||''}</td>
-                    {dayKeys.map(day => {
-                      const thisDose = incDoses.find((dd: any) => dd.dose_day === day);
-                      return (
-                        <td key={day} style={{ textAlign:'center', fontSize:'7pt' }}>
-                          {thisDose?.administered_date && day === d.dose_day ? '✓' : ''}
-                        </td>
-                      );
-                    })}
-                    <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
+                    <td style={{ fontSize:'7pt' }}>{doseDateMap[d.dose_day] ? fullDate(doseDateMap[d.dose_day]) : ''}</td>
+                    <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>
+                      {d.administered_date ? fullDate(d.administered_date) : '—'}
+                    </td>
+                    <td style={{ fontSize:'7pt' }}>
+                      {getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}
+                    </td>
                   </tr>
                 ))}
               </tbody>

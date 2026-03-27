@@ -66,7 +66,7 @@ export default function AccountsPage() {
 
   function showToast(msg: string, type = '') { setToast(msg); setTimeout(() => setToast(''), 3000); }
 
-  const roleColor: Record<string, string> = { admin: 'var(--red-600)', doctor:'var(--teal-700)', nurse:'#7c3aed' };
+  const roleColor: Record<string, string> = { admin: 'var(--red-600)', doctor:'var(--blue-700)', nurse:'#7c3aed' };
 
   return (
     <div>
@@ -80,7 +80,7 @@ export default function AccountsPage() {
 
       <div className="page-body">
         {/* Nurse note */}
-        <div style={{ background:'var(--teal-50)', border:'1px solid var(--teal-200)', borderRadius:'var(--radius-md)', padding:'10px 16px', marginBottom:16, fontSize:13, color:'var(--teal-800)' }}>
+        <div style={{ background:'var(--blue-50)', border:'1px solid var(--blue-200)', borderRadius:'var(--radius-md)', padding:'10px 16px', marginBottom:16, fontSize:13, color:'var(--blue-800)' }}>
           <strong>ℹ️ Nurse Accounts:</strong> All nurses share one login account. Add up to 10 nurse names here. When nurses log in, they select their name from a dropdown on the login screen and sidebar.
         </div>
 
@@ -101,7 +101,7 @@ export default function AccountsPage() {
                       <td style={{ fontWeight:500 }}>{a.full_name || '—'}</td>
                       <td><span style={{ fontFamily:'monospace', fontSize:13 }}>{a.username}</span></td>
                       <td>
-                        <span style={{ display:'inline-block', padding:'2px 10px', borderRadius:12, fontSize:11, fontWeight:700, textTransform:'uppercase', background: a.role === 'admin' ? '#fee2e2' : a.role === 'doctor' ? 'var(--teal-50)' : '#f3e8ff', color: roleColor[a.role] || 'var(--slate-600)', letterSpacing:'.04em' }}>
+                        <span style={{ display:'inline-block', padding:'2px 10px', borderRadius:12, fontSize:11, fontWeight:700, textTransform:'uppercase', background: a.role === 'admin' ? '#fee2e2' : a.role === 'doctor' ? 'var(--blue-50)' : '#f3e8ff', color: roleColor[a.role] || 'var(--slate-600)', letterSpacing:'.04em' }}>
                           {a.role}
                         </span>
                       </td>

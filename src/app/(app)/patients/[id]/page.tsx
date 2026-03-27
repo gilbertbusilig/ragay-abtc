@@ -106,6 +106,8 @@ export default function PatientDetailPage() {
   const [petOutcomeModal, setPetOutcomeModal] = useState<PetMonitor | null>(null);
   const [petOutcome, setPetOutcome] = useState<'healthy' | 'perished'>('healthy');
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'patient' | 'incident'; id: string } | null>(null);
+  const [editPatientOpen, setEditPatientOpen] = useState(false);
+  const [editPatientForm, setEditPatientForm] = useState({ weight:'', contact_no:'', address:'' });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
 
@@ -133,8 +135,29 @@ export default function PatientDetailPage() {
     setLoading(false);
   }
 
+  async function savePatientInfo() {
+    if (!patient) return;
+    setSaving(true);
+    const by = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
+    const updates: Record<string, string> = { patient_id: patient.patient_id, updated_by: by || '' };
+    if (editPatientForm.weight)     updates.weight     = editPatientForm.weight;
+    if (editPatientForm.contact_no) updates.contact_no = editPatientForm.contact_no;
+    if (editPatientForm.address)    updates.address    = editPatientForm.address;
+    const res = await api.updatePatient(updates);
+    setSaving(false);
+    setEditPatientOpen(false);
+    if (res.status === 'ok') { showToast('Patient info updated ✓', 'success'); load(); }
+    else showToast('Error: ' + res.message, 'error');
+  }
+
   async function submitDose() {
     if (!adminModal) return;
+    // Explicit null check — dose_id must exist
+    if (!adminModal.dose_id) {
+      showToast('Error: dose_id is missing. Please reload the page and try again.', 'error');
+      setSaving(false);
+      return;
+    }
     setSaving(true);
     const by = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
     const res = await api.administerDose({
@@ -233,7 +256,15 @@ export default function PatientDetailPage() {
           {/* Left col */}
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             <div className="card">
-              <div className="card-header"><span className="card-title">Patient Information</span></div>
+              <div className="card-header">
+                <span className="card-title">Patient Information</span>
+                {(user?.role === 'nurse' || user?.role === 'admin' || user?.role === 'doctor') && (
+                  <button className="btn btn-secondary btn-sm"
+                    onClick={() => setEditPatientOpen(true)}>
+                    ✏️ Update
+                  </button>
+                )}
+              </div>
               <div className="card-body" style={{ display:'flex', flexDirection:'column', gap:9 }}>
                 {[
                   { label:'Patient ID',    val: patient.patient_id, mono: true },
@@ -242,6 +273,7 @@ export default function PatientDetailPage() {
                   { label:'Age',           val: patient.age ? `${patient.age} yrs` : '—' },
                   { label:'Date of Birth', val: formatDate(patient.date_of_birth) },
                   { label:'Weight',        val: patient.weight ? `${patient.weight} kg` : '—' },
+                  { label:'Height',        val: (patient as any).height ? `${(patient as any).height} cm` : '—' },
                   { label:'Address',       val: patient.address || '—' },
                   { label:'Contact',       val: patient.contact_no || '—' },
                 ].map(row => (
@@ -412,6 +444,61 @@ export default function PatientDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Edit patient info modal — for incident 2+ */}
+      {editPatientOpen && patient && (
+        <div className="modal-overlay" onClick={() => setEditPatientOpen(false)}>
+          <div className="modal" style={{ maxWidth:460 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Update Patient Information</h2>
+              <button className="btn btn-ghost btn-icon" style={{ color:'white' }} onClick={() => setEditPatientOpen(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize:13, color:'var(--slate-500)', marginBottom:16 }}>
+                Update contact details for <strong>{patient.full_name}</strong>. Leave blank to keep current value.
+              </p>
+              <div className="form-grid">
+                <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                  <div className="form-group">
+                    <label className="form-label">Weight (kg) <span style={{ fontWeight:400, color:'var(--slate-400)' }}>now: {patient.weight || '—'}</span></label>
+                    <input className="form-input" type="number" step="0.1" min="0"
+                      value={editPatientForm.weight}
+                      onChange={e => setEditPatientForm(p => ({...p, weight: e.target.value}))}
+                      placeholder={String(patient.weight || '')} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Height (cm) <span style={{ fontWeight:400, color:'var(--slate-400)' }}>now: {(patient as any).height || '—'}</span></label>
+                    <input className="form-input" type="number" step="0.5" min="0"
+                      value={(editPatientForm as any).height || ''}
+                      onChange={e => setEditPatientForm(p => ({...p, height: e.target.value} as any))}
+                      placeholder={String((patient as any).height || '')} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Contact No. <span style={{ fontWeight:400, color:'var(--slate-400)' }}>now: {patient.contact_no || '—'}</span></label>
+                  <input className="form-input" type="tel"
+                    value={editPatientForm.contact_no}
+                    onChange={e => setEditPatientForm(p => ({...p, contact_no: e.target.value}))}
+                    placeholder={patient.contact_no || '09XX-XXX-XXXX'} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Address <span style={{ fontWeight:400, color:'var(--slate-400)' }}>now: {patient.address || '—'}</span></label>
+                  <input className="form-input" type="text"
+                    value={editPatientForm.address}
+                    onChange={e => setEditPatientForm(p => ({...p, address: e.target.value}))}
+                    placeholder={patient.address || 'Barangay, Municipality…'} />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setEditPatientOpen(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={savePatientInfo} disabled={saving}>
+                {saving ? <><span className="spinner" /> Saving…</> : '✓ Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Administer dose modal */}
       {adminModal && (

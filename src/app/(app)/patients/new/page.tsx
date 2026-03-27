@@ -12,7 +12,7 @@ export default function NewPatientPage() {
 
   // Section I
   const [form, setForm] = useState({
-    full_name: '', address: '', date_of_birth: '', sex: '', age: '', weight: '', contact_no: '',
+    full_name: '', address: '', date_of_birth: '', sex: '', age: '', weight: '', height: '', contact_no: '',
     // Section II
     bite_datetime: '', place_of_exposure: '',
     animal_type: 'dog', animal_other: '',
@@ -46,6 +46,7 @@ export default function NewPatientPage() {
       sex: form.sex,
       age: form.age,
       weight: form.weight,
+      height: form.height,
       contact_no: form.contact_no,
       created_by: creator,
     });
@@ -148,6 +149,10 @@ export default function NewPatientPage() {
                 <label className="form-label">F. Weight (kg)</label>
                 <input className="form-input" type="number" value={form.weight} onChange={e => set('weight', e.target.value)} min="0" step="0.1" placeholder="kg" />
               </div>
+              <div className="form-group">
+                <label className="form-label">Height (cm)</label>
+                <input className="form-input" type="number" value={form.height} onChange={e => set('height', e.target.value)} min="0" step="0.5" placeholder="cm" />
+              </div>
             </div>
           </div>
 
@@ -220,7 +225,7 @@ export default function NewPatientPage() {
           </div>
 
           {/* Info note */}
-          <div style={{ background:'var(--teal-50)', border:'1px solid var(--teal-200)', borderRadius:'var(--radius-md)', padding:'12px 16px', marginBottom:20, fontSize:14, color:'var(--teal-800)' }}>
+          <div style={{ background:'var(--blue-50)', border:'1px solid var(--blue-200)', borderRadius:'var(--radius-md)', padding:'12px 16px', marginBottom:20, fontSize:14, color:'var(--blue-800)' }}>
             <strong>ℹ️ Note:</strong> Sections III–VII (Wound Description, History, Treatment) can be filled in after saving, by the doctor or nurse. The form can be printed blank for manual input, or updated directly in the system.
           </div>
 

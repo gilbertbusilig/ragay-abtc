@@ -143,8 +143,8 @@ export default function VaccineSchedulePage() {
                           {(d as any).patient_name}
                         </span>
                       </td>
-                      <td><span style={{ fontFamily:'monospace', fontSize:12, color:'var(--teal-700)' }}>{d.patient_id}</span></td>
-                      <td><span style={{ fontWeight:700, color:'var(--teal-700)' }}>{d.dose_day}</span></td>
+                      <td><span style={{ fontFamily:'monospace', fontSize:12, color:'var(--blue-700)' }}>{d.patient_id}</span></td>
+                      <td><span style={{ fontWeight:700, color:'var(--blue-700)' }}>{d.dose_day}</span></td>
                       <td style={{ fontSize:13 }}>
                         {d.scheduled_date}
                         {d.scheduled_date < today && d.status !== 'done' && (

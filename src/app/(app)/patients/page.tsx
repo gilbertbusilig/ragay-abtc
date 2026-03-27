@@ -127,7 +127,7 @@ export default function PatientsPage() {
                   {patients.map(p => (
                     <tr key={p.patient_id} style={{ cursor:'pointer' }} onClick={() => router.push(`/patients/${p.patient_id}`)}>
                       <td>
-                        <span style={{ fontFamily:'monospace', fontSize:13, color:'var(--teal-700)', fontWeight:600 }}>{p.patient_id}</span>
+                        <span style={{ fontFamily:'monospace', fontSize:13, color:'var(--blue-700)', fontWeight:600 }}>{p.patient_id}</span>
                       </td>
                       <td>
                         <span style={{ fontWeight:500 }}>{p.full_name}</span>
@@ -138,7 +138,7 @@ export default function PatientsPage() {
                         {p.address || '—'}
                       </td>
                       <td>
-                        <span style={{ background:'var(--teal-50)', color:'var(--teal-700)', padding:'2px 8px', borderRadius:12, fontSize:12, fontWeight:600 }}>
+                        <span style={{ background:'var(--blue-50)', color:'var(--blue-700)', padding:'2px 8px', borderRadius:12, fontSize:12, fontWeight:600 }}>
                           {p.incident_count || 0}
                         </span>
                       </td>
