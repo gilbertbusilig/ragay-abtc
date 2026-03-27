@@ -9,6 +9,7 @@ export default function NewIncidentPage() {
   const router = useRouter();
   const params = useParams();
   const patient_id = params.id as string;
+  const today = new Date().toISOString().split('T')[0];
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
 
@@ -24,8 +25,7 @@ export default function NewIncidentPage() {
     d0_date: today, // Day 0 is always today (consultation date) by default, nurse can change
   });
 
-  const set = (k: string, v: any) => setForm(prev => ({ ...prev, [k]: v }));
-  const today = new Date().toISOString().split('T')[0];
+  const set = (k: string, v: string | number) => setForm(prev => ({ ...prev, [k]: v }));
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
