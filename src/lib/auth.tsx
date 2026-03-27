@@ -65,8 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function loadNurses() {
     try {
+      // Check session cache first
+      const cached = sessionStorage.getItem('abtc_nurses');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) { setNurses(parsed); return; }
+      }
       const res = await api.getNurses();
-      if (res.status === 'ok' && Array.isArray(res.data)) setNurses(res.data);
+      if (res.status === 'ok' && Array.isArray(res.data)) {
+        setNurses(res.data);
+        sessionStorage.setItem('abtc_nurses', JSON.stringify(res.data));
+      }
     } catch {}
   }
 

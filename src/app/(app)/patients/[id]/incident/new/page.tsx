@@ -21,6 +21,7 @@ export default function NewIncidentPage() {
     pet_vaccine_date: '',
     circumstance: '',
     pep_doses_needed: 5,
+    d0_date: today, // Day 0 is always today (consultation date) by default, nurse can change
   });
 
   const set = (k: string, v: any) => setForm(prev => ({ ...prev, [k]: v }));
@@ -32,7 +33,8 @@ export default function NewIncidentPage() {
     const creator = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
     const res = await api.createIncident({
       patient_id,
-      consult_date: today,
+      consult_date: form.d0_date || today,
+      d0_date: form.d0_date || today,
       ...form,
       created_by: creator,
     });
@@ -142,6 +144,17 @@ export default function NewIncidentPage() {
                 <span>ℹ</span> Booster applies only if: (1) patient previously completed full 3-dose regimen, (2) more than 6 months have passed, and (3) the responsible animal is confirmed healthy/alive. Confirm with the attending physician.
               </div>
             )}
+          </div>
+
+          <div className="section-box">
+            <div className="section-box-title">Day 0 Date (Consultation / First Dose)</div>
+            <div className="form-group">
+              <label className="form-label">Day 0 Date <span style={{ fontWeight:400, color:'var(--slate-400)' }}>— other doses are auto-calculated from this date, but can be changed manually later</span></label>
+              <input className="form-input" type="date" value={form.d0_date}
+                onChange={e => set('d0_date', e.target.value)}
+                max={today}
+                style={{ maxWidth:220 }} />
+            </div>
           </div>
 
           <div style={{ display:'flex', gap:12, justifyContent:'flex-end' }}>

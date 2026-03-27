@@ -1,11 +1,30 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Patient, Incident, Dose, PetMonitor, User } from '@/types';
 import { useAuth } from '@/lib/auth';
 
 const BODY_SITES = ['Head','Face','Neck','R.Arm','L.Arm','R.Hand','L.Hand','Chest','Abdomen','Upper Back','Lower Back','R.Leg','L.Leg','R.Foot','L.Foot'];
+
+// Date helpers
+function toMMDDYYYY(iso: string) {
+  if (!iso) return '—';
+  const d = iso.includes('T') ? iso.split('T')[0] : iso;
+  const [y, m, dd] = d.split('-');
+  return `${m}/${dd}/${y}`;
+}
+function toISO(mmddyyyy: string) {
+  if (!mmddyyyy) return '';
+  const [m, d, y] = mmddyyyy.split('/');
+  return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+}
+function addDays(isoDate: string, days: number) {
+  const d = new Date(isoDate + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+}
+const DAY_OFFSETS: Record<string,number> = { D0:0, D3:3, D7:7, D14:14, D21:21, D28:28 };
 
 function BodyDiagram({ selected, onChange }: { selected: string[]; onChange?: (s: string[]) => void }) {
   const toggle = (site: string) => {
@@ -19,14 +38,11 @@ function BodyDiagram({ selected, onChange }: { selected: string[]; onChange?: (s
         {BODY_SITES.map(site => (
           <button key={site} type="button" onClick={() => toggle(site)}
             style={{
-              padding:'4px 10px', borderRadius:20, fontSize:12,
-              border:'1.5px solid',
+              padding:'4px 10px', borderRadius:20, fontSize:12, border:'1.5px solid', cursor: onChange ? 'pointer' : 'default', transition:'all .12s',
               borderColor: selected.includes(site) ? 'var(--red-500)' : 'var(--slate-200)',
               background: selected.includes(site) ? '#fee2e2' : 'white',
               color: selected.includes(site) ? 'var(--red-700)' : 'var(--slate-500)',
-              cursor: onChange ? 'pointer' : 'default',
               fontWeight: selected.includes(site) ? 600 : 400,
-              transition:'all .12s',
             }}>
             {site}
           </button>
@@ -36,10 +52,12 @@ function BodyDiagram({ selected, onChange }: { selected: string[]; onChange?: (s
   );
 }
 
-function DoseTable({ doses, allUsers, onAdminister, userRole }: {
+function DoseTable({ doses, allUsers, incidentId, onAdminister, onDateChange, userRole }: {
   doses: Dose[];
   allUsers: Record<string, User>;
+  incidentId: string;
   onAdminister: (dose: Dose) => void;
+  onDateChange: (dose: Dose, newDate: string) => void;
   userRole: string;
 }) {
   const statusBadge = (s: string, optional: boolean) => {
@@ -52,31 +70,53 @@ function DoseTable({ doses, allUsers, onAdminister, userRole }: {
     const u = allUsers[id];
     return u ? `${u.full_name}${u.credential ? `, ${u.credential}` : ''}` : id;
   };
+  const canEdit = userRole === 'nurse' || userRole === 'admin';
+
   return (
     <div className="table-wrap">
       <table className="data-table">
         <thead><tr>
-          <th>Day</th><th>Scheduled</th><th>Status</th><th>Vaccine</th><th>Brand</th><th>Batch</th><th>Administered By</th><th>Date Given</th>
-          {(userRole === 'nurse' || userRole === 'admin') && <th></th>}
+          <th>Day</th>
+          <th>Scheduled Date</th>
+          <th>Status</th>
+          <th>Vaccine</th>
+          <th>Brand</th>
+          <th>Batch</th>
+          <th>Administered By</th>
+          <th>Date Given</th>
+          {canEdit && <th></th>}
         </tr></thead>
         <tbody>
           {doses.map(d => (
-            <tr key={d.dose_id} style={{ opacity: d.is_optional && d.status === 'scheduled' ? .55 : 1, background: d.is_optional && d.status === 'scheduled' ? '#fafafa' : undefined }}>
-              <td><span style={{ fontWeight:700, color:'var(--blue-700)' }}>{d.dose_day}</span></td>
-              <td style={{ fontSize:12 }}>{d.scheduled_date}</td>
-              <td>{statusBadge(d.status, d.is_optional)}</td>
+            <tr key={d.dose_id || d.dose_day} style={{ opacity: d.is_optional && d.status === 'scheduled' ? .55 : 1 }}>
+              <td><span style={{ fontWeight:700, color:'var(--blue-700)', fontSize:13 }}>{d.dose_day}</span></td>
+              <td>
+                {canEdit && d.status !== 'done' ? (
+                  <input
+                    type="date"
+                    defaultValue={d.scheduled_date || ''}
+                    style={{ border:'1px solid var(--slate-200)', borderRadius:6, padding:'3px 7px', fontSize:12, fontFamily:'var(--font-sans)', width:130 }}
+                    onBlur={e => {
+                      const newDate = e.target.value;
+                      if (newDate && newDate !== d.scheduled_date) onDateChange(d, newDate);
+                    }}
+                  />
+                ) : (
+                  <span style={{ fontSize:12 }}>{toMMDDYYYY(d.scheduled_date)}</span>
+                )}
+              </td>
+              <td>{statusBadge(d.status, !!d.is_optional)}</td>
               <td style={{ fontSize:12 }}>{d.vaccine_type || '—'}</td>
               <td style={{ fontSize:12 }}>{d.brand_name || '—'}</td>
               <td style={{ fontSize:12 }}>{d.batch_no || '—'}</td>
               <td style={{ fontSize:12 }}>{userName(d.administered_by)}</td>
-              <td style={{ fontSize:12 }}>{d.administered_date || '—'}</td>
-              {(userRole === 'nurse' || userRole === 'admin') && (
+              <td style={{ fontSize:12 }}>{d.administered_date ? toMMDDYYYY(d.administered_date) : '—'}</td>
+              {canEdit && (
                 <td>
-                  {d.status !== 'done' && !d.is_optional && (
-                    <button className="btn btn-primary btn-sm" onClick={() => onAdminister(d)}>Administer</button>
-                  )}
-                  {d.is_optional && d.status !== 'done' && (
-                    <button className="btn btn-secondary btn-sm" onClick={() => onAdminister(d)}>Give</button>
+                  {d.status !== 'done' && (
+                    <button className="btn btn-primary btn-sm" onClick={() => onAdminister(d)}>
+                      Give Dose
+                    </button>
                   )}
                 </td>
               )}
@@ -87,6 +127,10 @@ function DoseTable({ doses, allUsers, onAdminister, userRole }: {
     </div>
   );
 }
+
+// Session cache for accounts - avoid refetching on every page visit
+const accountsCache: { data: Record<string,User> | null; ts: number } = { data: null, ts: 0 };
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export default function PatientDetailPage() {
   const { user, activeNurse } = useAuth();
@@ -102,23 +146,34 @@ export default function PatientDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeIncident, setActiveIncident] = useState<Incident | null>(null);
   const [adminModal, setAdminModal] = useState<Dose | null>(null);
-  const [doseForm, setDoseForm] = useState({ vaccine_type: 'PVRV', brand_name: '', batch_no: '' });
+  const [doseForm, setDoseForm] = useState({ vaccine_type: 'PVRV', brand_name: '', batch_no: '', administered_date: '' });
   const [petOutcomeModal, setPetOutcomeModal] = useState<PetMonitor | null>(null);
   const [petOutcome, setPetOutcome] = useState<'healthy' | 'perished'>('healthy');
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'patient' | 'incident'; id: string } | null>(null);
   const [editPatientOpen, setEditPatientOpen] = useState(false);
   const [editPatientForm, setEditPatientForm] = useState({ weight:'', contact_no:'', address:'' });
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState('');
+  const [toast, setToast] = useState({ msg:'', type:'' });
+
+  const showToast = useCallback((msg: string, type = 'success') => {
+    setToast({ msg, type });
+    setTimeout(() => setToast({ msg:'', type:'' }), 4000);
+  }, []);
 
   useEffect(() => { load(); }, [patient_id]);
 
   async function load() {
     setLoading(true);
-    const [patRes, usersRes] = await Promise.all([
-      api.getPatient(patient_id),
-      api.getAccounts(),
-    ]);
+    // Load patient data + use cached accounts if fresh
+    const now = Date.now();
+    const useCached = accountsCache.data && (now - accountsCache.ts) < CACHE_TTL;
+
+    const requests: Promise<any>[] = [api.getPatient(patient_id)];
+    if (!useCached) requests.push(api.getInitData());
+
+    const results = await Promise.all(requests);
+    const patRes = results[0];
+
     if (patRes.status === 'ok') {
       setPatient(patRes.data.patient);
       setIncidents(patRes.data.incidents || []);
@@ -127,51 +182,54 @@ export default function PatientDetailPage() {
       const incs = patRes.data.incidents || [];
       if (incs.length > 0) setActiveIncident(incs[incs.length - 1]);
     }
-    if (usersRes.status === 'ok') {
-      const map: Record<string, User> = {};
-      usersRes.data.forEach((u: any) => { map[u.user_id] = u; });
-      setAllUsers(map);
-    }
-    setLoading(false);
-  }
 
-  async function savePatientInfo() {
-    if (!patient) return;
-    setSaving(true);
-    const by = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
-    const updates: Record<string, string> = { patient_id: patient.patient_id, updated_by: by || '' };
-    if (editPatientForm.weight)     updates.weight     = editPatientForm.weight;
-    if (editPatientForm.contact_no) updates.contact_no = editPatientForm.contact_no;
-    if (editPatientForm.address)    updates.address    = editPatientForm.address;
-    const res = await api.updatePatient(updates);
-    setSaving(false);
-    setEditPatientOpen(false);
-    if (res.status === 'ok') { showToast('Patient info updated ✓', 'success'); load(); }
-    else showToast('Error: ' + res.message, 'error');
+    if (!useCached && results[1]?.status === 'ok') {
+      const map: Record<string, User> = {};
+      (results[1].data.accounts || []).forEach((u: any) => { map[u.user_id] = u; });
+      accountsCache.data = map;
+      accountsCache.ts = Date.now();
+      setAllUsers(map);
+    } else if (useCached && accountsCache.data) {
+      setAllUsers(accountsCache.data);
+    }
+
+    setLoading(false);
   }
 
   async function submitDose() {
     if (!adminModal) return;
-    // Explicit null check — dose_id must exist
-    if (!adminModal.dose_id) {
-      showToast('Error: dose_id is missing. Please reload the page and try again.', 'error');
-      setSaving(false);
-      return;
-    }
     setSaving(true);
     const by = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
+    const today = new Date().toISOString().split('T')[0];
     const res = await api.administerDose({
-      dose_id: adminModal.dose_id,
-      vaccine_type: doseForm.vaccine_type,
-      brand_name: doseForm.brand_name,
-      batch_no: doseForm.batch_no,
+      dose_id:         adminModal.dose_id || '',
+      incident_id:     adminModal.incident_id,
+      dose_day:        adminModal.dose_day,
+      vaccine_type:    doseForm.vaccine_type,
+      brand_name:      doseForm.brand_name,
+      batch_no:        doseForm.batch_no,
       administered_by: by,
-      administered_date: new Date().toISOString().split('T')[0],
+      administered_date: doseForm.administered_date || today,
     });
     setSaving(false);
     setAdminModal(null);
-    if (res.status === 'ok') { showToast('Dose recorded ✓', 'success'); load(); }
+    if (res.status === 'ok') { showToast('Dose recorded ✓'); load(); }
     else showToast('Error: ' + res.message, 'error');
+  }
+
+  async function handleDoseDateChange(dose: Dose, newDate: string) {
+    await api.updateDoseDate({
+      dose_id:     dose.dose_id || '',
+      incident_id: dose.incident_id,
+      dose_day:    dose.dose_day,
+      scheduled_date: newDate,
+    });
+    // Update local state immediately - no full reload needed
+    setDoses(prev => prev.map(d =>
+      (d.dose_id ? d.dose_id === dose.dose_id : d.dose_day === dose.dose_day && d.incident_id === dose.incident_id)
+        ? { ...d, scheduled_date: newDate }
+        : d
+    ));
   }
 
   async function submitPetOutcome() {
@@ -187,9 +245,24 @@ export default function PatientDetailPage() {
     setSaving(false);
     setPetOutcomeModal(null);
     if (res.status === 'ok') {
-      showToast(petOutcome === 'perished' ? 'Pet perished — continue full treatment.' : 'Pet healthy — treatment may be discontinued per doctor.', 'success');
+      showToast(petOutcome === 'perished' ? '⚠️ Pet perished — continue full treatment' : '✅ Pet healthy — inform doctor');
       load();
     }
+  }
+
+  async function savePatientInfo() {
+    if (!patient) return;
+    setSaving(true);
+    const by = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
+    const updates: Record<string, string> = { patient_id: patient.patient_id, updated_by: by || '' };
+    if (editPatientForm.weight)     updates.weight     = editPatientForm.weight;
+    if (editPatientForm.contact_no) updates.contact_no = editPatientForm.contact_no;
+    if (editPatientForm.address)    updates.address    = editPatientForm.address;
+    const res = await api.updatePatient(updates);
+    setSaving(false);
+    setEditPatientOpen(false);
+    if (res.status === 'ok') { showToast('Patient info updated ✓'); load(); }
+    else showToast('Error: ' + res.message, 'error');
   }
 
   async function handleDelete() {
@@ -198,34 +271,26 @@ export default function PatientDetailPage() {
     let res;
     if (deleteConfirm.type === 'patient') {
       res = await api.deletePatient(patient_id);
-      if (res.status === 'ok') { router.push('/patients'); return; }
+      if (res?.status === 'ok') { router.push('/patients'); return; }
     } else {
       res = await api.deleteIncident(deleteConfirm.id);
-      if (res.status === 'ok') { showToast('Incident deleted', 'success'); load(); }
+      if (res?.status === 'ok') { showToast('Incident deleted'); load(); }
     }
     setSaving(false);
     setDeleteConfirm(null);
     if (res?.status !== 'ok') showToast('Error: ' + res?.message, 'error');
   }
 
-  function showToast(msg: string, type = '') {
-    setToast(msg + (type === 'error' ? '' : ''));
-    setTimeout(() => setToast(''), 4000);
-  }
-
   const incidentDoses = activeIncident ? doses.filter(d => d.incident_id === activeIncident.incident_id) : [];
-  const formatDate = (d: string) => d ? new Date(d).toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' }) : '—';
+  const formatDate = (d: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' }) : '—';
   const getUserName = (id: string) => {
     if (!id) return '—';
     const u = allUsers[id];
     return u ? `${u.full_name}${u.credential ? `, ${u.credential}` : ''}` : id;
   };
 
-  // Pet monitor for active incident
   const activeMonitor = activeIncident ? monitors.find(m => m.incident_id === activeIncident.incident_id) : null;
-  const monitorEnd = activeMonitor ? new Date(activeMonitor.monitor_end) : null;
-  const today = new Date();
-  const monitorReady = monitorEnd ? today >= monitorEnd : false;
+  const monitorReady = activeMonitor ? new Date() >= new Date(activeMonitor.monitor_end + 'T00:00:00') : false;
 
   if (loading) return <div className="page-loader"><div className="spinner dark" style={{ width:28, height:28 }} /></div>;
   if (!patient) return <div className="page-body"><div className="card"><div className="empty-state"><div className="empty-text">Patient not found</div></div></div></div>;
@@ -241,11 +306,11 @@ export default function PatientDetailPage() {
             <span className={`badge badge-${patient.status}`}>{patient.status}</span>
           </p>
         </div>
-        <div style={{ display:'flex', gap:8 }}>
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
           <button className="btn btn-secondary btn-sm" onClick={() => router.push(`/patients/${patient_id}/print`)}>🖨 Print Form</button>
           <button className="btn btn-primary" onClick={() => router.push(`/patients/${patient_id}/incident/new`)}>+ New Incident</button>
           {user?.role === 'admin' && (
-            <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm({ type:'patient', id: patient_id })}>🗑 Delete Patient</button>
+            <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm({ type:'patient', id:patient_id })}>🗑 Delete Patient</button>
           )}
         </div>
       </div>
@@ -253,19 +318,19 @@ export default function PatientDetailPage() {
       <div className="page-body">
         <div style={{ display:'grid', gridTemplateColumns:'300px 1fr', gap:18 }}>
 
-          {/* Left col */}
+          {/* Left — Patient info */}
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             <div className="card">
               <div className="card-header">
                 <span className="card-title">Patient Information</span>
                 {(user?.role === 'nurse' || user?.role === 'admin' || user?.role === 'doctor') && (
-                  <button className="btn btn-secondary btn-sm"
-                    onClick={() => setEditPatientOpen(true)}>
-                    ✏️ Update
-                  </button>
+                  <button className="btn btn-secondary btn-sm" onClick={() => {
+                    setEditPatientForm({ weight: String(patient.weight||''), contact_no: patient.contact_no||'', address: patient.address||'' });
+                    setEditPatientOpen(true);
+                  }}>✏️ Edit</button>
                 )}
               </div>
-              <div className="card-body" style={{ display:'flex', flexDirection:'column', gap:9 }}>
+              <div className="card-body" style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 {[
                   { label:'Patient ID',    val: patient.patient_id, mono: true },
                   { label:'Full Name',     val: patient.full_name },
@@ -277,9 +342,9 @@ export default function PatientDetailPage() {
                   { label:'Address',       val: patient.address || '—' },
                   { label:'Contact',       val: patient.contact_no || '—' },
                 ].map(row => (
-                  <div key={row.label} style={{ display:'flex', justifyContent:'space-between', fontSize:13, gap:8, paddingBottom:7, borderBottom:'1px solid #f1f5f9' }}>
+                  <div key={row.label} style={{ display:'flex', justifyContent:'space-between', fontSize:13, gap:8, paddingBottom:6, borderBottom:'1px solid #f1f5f9' }}>
                     <span style={{ color:'var(--slate-400)', flexShrink:0, fontSize:12 }}>{row.label}</span>
-                    <span style={{ fontWeight:500, textAlign:'right', fontFamily:(row as any).mono ? 'monospace' : undefined, color:(row as any).mono ? 'var(--blue-700)' : undefined, fontSize:13 }}>
+                    <span style={{ fontWeight:500, textAlign:'right', fontFamily:(row as any).mono ? 'monospace' : undefined, color:(row as any).mono ? 'var(--blue-700)' : undefined }}>
                       {row.val}
                     </span>
                   </div>
@@ -292,44 +357,36 @@ export default function PatientDetailPage() {
               <div className="card">
                 <div className="card-header">
                   <span className="card-title">🐾 Pet Monitor (14-day)</span>
-                  <span className={`badge ${activeMonitor.outcome === 'perished' ? 'badge-overdue' : activeMonitor.outcome === 'healthy' ? 'badge-done' : 'badge-scheduled'}`}>
+                  <span className={`badge ${activeMonitor.outcome==='perished'?'badge-overdue':activeMonitor.outcome==='healthy'?'badge-done':'badge-scheduled'}`}>
                     {activeMonitor.outcome}
                   </span>
                 </div>
                 <div className="card-body" style={{ display:'flex', flexDirection:'column', gap:8 }}>
                   <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}>
-                    <span style={{ color:'var(--slate-500)' }}>Start</span>
-                    <span>{formatDate(activeMonitor.monitor_start)}</span>
-                  </div>
-                  <div style={{ display:'flex', justifyContent:'space-between', fontSize:13 }}>
-                    <span style={{ color:'var(--slate-500)' }}>End</span>
-                    <span style={{ fontWeight:600 }}>{formatDate(activeMonitor.monitor_end)}</span>
+                    <span style={{ color:'var(--slate-500)' }}>Period</span>
+                    <span>{toMMDDYYYY(activeMonitor.monitor_start)} – {toMMDDYYYY(activeMonitor.monitor_end)}</span>
                   </div>
                   {activeMonitor.outcome === 'unknown' && !monitorReady && (
                     <div className="alert alert-blue" style={{ fontSize:12, marginBottom:0 }}>
-                      ⏳ Monitoring period ends {formatDate(activeMonitor.monitor_end)}
+                      ⏳ Monitoring ends {formatDate(activeMonitor.monitor_end)}
                     </div>
                   )}
                   {activeMonitor.outcome === 'unknown' && monitorReady && (user?.role === 'nurse' || user?.role === 'admin') && (
-                    <button className="btn btn-primary btn-sm" style={{ marginTop:4 }}
-                      onClick={() => { setPetOutcomeModal(activeMonitor); setPetOutcome('healthy'); }}>
+                    <button className="btn btn-primary btn-sm" onClick={() => { setPetOutcomeModal(activeMonitor); setPetOutcome('healthy'); }}>
                       Record Pet Outcome
                     </button>
                   )}
                   {activeMonitor.outcome !== 'unknown' && (
-                    <div style={{ fontSize:12, color:'var(--slate-500)' }}>
-                      Recorded: {formatDate(activeMonitor.outcome_date)}
-                    </div>
+                    <div style={{ fontSize:12, color:'var(--slate-500)' }}>Recorded: {formatDate(activeMonitor.outcome_date)}</div>
                   )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Right col */}
+          {/* Right — Incidents + Doses */}
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
-            {/* Incidents */}
             {incidents.length > 0 ? (
               <div className="card">
                 <div className="card-header">
@@ -340,8 +397,12 @@ export default function PatientDetailPage() {
                     <button key={inc.incident_id}
                       className={activeIncident?.incident_id === inc.incident_id ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}
                       onClick={() => setActiveIncident(inc)}>
-                      Incident #{i+1} — {inc.consult_date ? new Date(inc.consult_date).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}) : ''}
-                      {inc.wound_category && <span className={`badge badge-cat${inc.wound_category === 'I' ? '1' : inc.wound_category === 'II' ? '2' : '3'}`} style={{ marginLeft:6 }}>Cat {inc.wound_category}</span>}
+                      Incident #{i+1} — {inc.consult_date ? toMMDDYYYY(inc.consult_date) : ''}
+                      {inc.wound_category && (
+                        <span className={`badge badge-cat${inc.wound_category==='I'?'1':inc.wound_category==='II'?'2':'3'}`} style={{ marginLeft:6 }}>
+                          Cat {inc.wound_category}
+                        </span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -352,7 +413,7 @@ export default function PatientDetailPage() {
                       <div>
                         <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--slate-400)', fontWeight:700, marginBottom:8 }}>Exposure Detail</div>
                         {[
-                          { l:'Date of Bite', v: activeIncident.bite_datetime ? new Date(activeIncident.bite_datetime).toLocaleString('en-PH') : '—' },
+                          { l:'Date of Bite', v: activeIncident.bite_datetime ? new Date(activeIncident.bite_datetime).toLocaleDateString('en-PH') : '—' },
                           { l:'Animal', v: activeIncident.animal_type ? (activeIncident.animal_type.charAt(0).toUpperCase()+activeIncident.animal_type.slice(1)) + (activeIncident.animal_other ? ` (${activeIncident.animal_other})` : '') : '—' },
                           { l:'Ownership', v: activeIncident.ownership?.replace(/_/g,' ') || '—' },
                           { l:'Circumstance', v: activeIncident.circumstance || '—' },
@@ -360,7 +421,7 @@ export default function PatientDetailPage() {
                         ].map(r => (
                           <div key={r.l} style={{ display:'flex', justifyContent:'space-between', fontSize:12, padding:'5px 0', borderBottom:'1px solid #f8fafc' }}>
                             <span style={{ color:'var(--slate-400)' }}>{r.l}</span>
-                            <span style={{ fontWeight:500, textTransform:'capitalize', textAlign:'right', maxWidth:160 }}>{r.v}</span>
+                            <span style={{ fontWeight:500, textTransform:'capitalize', textAlign:'right', maxWidth:180 }}>{r.v}</span>
                           </div>
                         ))}
                       </div>
@@ -370,13 +431,13 @@ export default function PatientDetailPage() {
                           { l:'Category', v: activeIncident.wound_category ? `Category ${activeIncident.wound_category}` : '—' },
                           { l:'Wound Status', v: activeIncident.wound_status?.replace(/_/g,' ') || '—' },
                           { l:'ERIG/HRIG', v: activeIncident.erig_hrig || 'None' },
-                          { l:'Tetanus', v: activeIncident.tetanus_vaccine_status === 'Y' ? `Yes (${activeIncident.tetanus_date || 'date not set'})` : activeIncident.tetanus_vaccine_status === 'N' ? `No → ${activeIncident.tetanus_type || '?'}` : '—' },
+                          { l:'Tetanus', v: activeIncident.tetanus_vaccine_status === 'Y' ? `Yes (${activeIncident.tetanus_date||'not set'})` : activeIncident.tetanus_vaccine_status === 'N' ? `No → ${activeIncident.tetanus_type||'?'}` : '—' },
                           { l:'Assessed by', v: getUserName(activeIncident.referring_doctor) },
                           { l:'Status', v: activeIncident.status },
                         ].map(r => (
                           <div key={r.l} style={{ display:'flex', justifyContent:'space-between', fontSize:12, padding:'5px 0', borderBottom:'1px solid #f8fafc' }}>
                             <span style={{ color:'var(--slate-400)' }}>{r.l}</span>
-                            <span style={{ fontWeight:500, textTransform:'capitalize', textAlign:'right', maxWidth:160 }}>{r.v}</span>
+                            <span style={{ fontWeight:500, textTransform:'capitalize', textAlign:'right', maxWidth:180 }}>{r.v}</span>
                           </div>
                         ))}
                       </div>
@@ -384,7 +445,7 @@ export default function PatientDetailPage() {
 
                     {activeIncident.anatomical_positions && (
                       <div style={{ marginBottom:14 }}>
-                        <BodyDiagram selected={(() => { try { return JSON.parse(activeIncident.anatomical_positions); } catch { return []; }})() } />
+                        <BodyDiagram selected={(() => { try { return JSON.parse(activeIncident.anatomical_positions); } catch { return []; } })()} />
                       </div>
                     )}
 
@@ -396,19 +457,17 @@ export default function PatientDetailPage() {
                     )}
 
                     <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-                      {(user?.role === 'doctor' || user?.role === 'admin') && (
+                      {(user?.role === 'doctor' || user?.role === 'admin' || user?.role === 'nurse') && (
                         <button className="btn btn-secondary btn-sm"
                           onClick={() => router.push(`/patients/${patient_id}/incident/${activeIncident.incident_id}/edit`)}>
                           ✏️ Update Clinical Data
                         </button>
                       )}
-                      <button className="btn btn-secondary btn-sm"
-                        onClick={() => router.push(`/patients/${patient_id}/print`)}>
+                      <button className="btn btn-secondary btn-sm" onClick={() => router.push(`/patients/${patient_id}/print`)}>
                         🖨 Print Form
                       </button>
                       {user?.role === 'admin' && (
-                        <button className="btn btn-danger btn-sm"
-                          onClick={() => setDeleteConfirm({ type:'incident', id: activeIncident.incident_id })}>
+                        <button className="btn btn-danger btn-sm" onClick={() => setDeleteConfirm({ type:'incident', id:activeIncident.incident_id })}>
                           🗑 Delete Incident
                         </button>
                       )}
@@ -421,7 +480,6 @@ export default function PatientDetailPage() {
                 <div className="empty-state">
                   <div className="empty-icon">🩺</div>
                   <div className="empty-text">No incidents recorded</div>
-                  <div className="empty-sub">Add the first bite incident for this patient</div>
                 </div>
               </div>
             )}
@@ -432,95 +490,56 @@ export default function PatientDetailPage() {
                 <div className="card-header">
                   <span className="card-title">💉 Vaccine Schedule</span>
                   <span style={{ fontSize:12, color:'var(--slate-500)' }}>
-                    {incidentDoses.filter(d => d.status === 'done').length} / {incidentDoses.filter(d => !d.is_optional).length} required doses given
+                    {incidentDoses.filter(d => d.status === 'done').length} / {incidentDoses.filter(d => !d.is_optional).length} required doses
                   </span>
                 </div>
-                <DoseTable doses={incidentDoses} allUsers={allUsers} onAdminister={d => {
-                  setAdminModal(d);
-                  setDoseForm({ vaccine_type:'PVRV', brand_name:'', batch_no:'' });
-                }} userRole={user?.role || ''} />
+                <div className="alert alert-blue" style={{ margin:'8px 16px 0', fontSize:12 }}>
+                  <span>ℹ</span> Scheduled dates are editable — click any date to change it. Each dose is independent.
+                </div>
+                <DoseTable
+                  doses={incidentDoses}
+                  allUsers={allUsers}
+                  incidentId={activeIncident.incident_id}
+                  onAdminister={d => {
+                    setAdminModal(d);
+                    setDoseForm({ vaccine_type:'PVRV', brand_name:'', batch_no:'', administered_date: new Date().toISOString().split('T')[0] });
+                  }}
+                  onDateChange={handleDoseDateChange}
+                  userRole={user?.role || ''}
+                />
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Edit patient info modal — for incident 2+ */}
-      {editPatientOpen && patient && (
-        <div className="modal-overlay" onClick={() => setEditPatientOpen(false)}>
-          <div className="modal" style={{ maxWidth:460 }} onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2 className="modal-title">Update Patient Information</h2>
-              <button className="btn btn-ghost btn-icon" style={{ color:'white' }} onClick={() => setEditPatientOpen(false)}>✕</button>
-            </div>
-            <div className="modal-body">
-              <p style={{ fontSize:13, color:'var(--slate-500)', marginBottom:16 }}>
-                Update contact details for <strong>{patient.full_name}</strong>. Leave blank to keep current value.
-              </p>
-              <div className="form-grid">
-                <div className="form-grid-2" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                  <div className="form-group">
-                    <label className="form-label">Weight (kg) <span style={{ fontWeight:400, color:'var(--slate-400)' }}>now: {patient.weight || '—'}</span></label>
-                    <input className="form-input" type="number" step="0.1" min="0"
-                      value={editPatientForm.weight}
-                      onChange={e => setEditPatientForm(p => ({...p, weight: e.target.value}))}
-                      placeholder={String(patient.weight || '')} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Height (cm) <span style={{ fontWeight:400, color:'var(--slate-400)' }}>now: {(patient as any).height || '—'}</span></label>
-                    <input className="form-input" type="number" step="0.5" min="0"
-                      value={(editPatientForm as any).height || ''}
-                      onChange={e => setEditPatientForm(p => ({...p, height: e.target.value} as any))}
-                      placeholder={String((patient as any).height || '')} />
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Contact No. <span style={{ fontWeight:400, color:'var(--slate-400)' }}>now: {patient.contact_no || '—'}</span></label>
-                  <input className="form-input" type="tel"
-                    value={editPatientForm.contact_no}
-                    onChange={e => setEditPatientForm(p => ({...p, contact_no: e.target.value}))}
-                    placeholder={patient.contact_no || '09XX-XXX-XXXX'} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Address <span style={{ fontWeight:400, color:'var(--slate-400)' }}>now: {patient.address || '—'}</span></label>
-                  <input className="form-input" type="text"
-                    value={editPatientForm.address}
-                    onChange={e => setEditPatientForm(p => ({...p, address: e.target.value}))}
-                    placeholder={patient.address || 'Barangay, Municipality…'} />
-                </div>
-              </div>
-            </div>
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setEditPatientOpen(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={savePatientInfo} disabled={saving}>
-                {saving ? <><span className="spinner" /> Saving…</> : '✓ Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Administer dose modal */}
+      {/* ── Administer dose modal ── */}
       {adminModal && (
         <div className="modal-overlay" onClick={() => setAdminModal(null)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
+          <div className="modal" style={{ maxWidth:500 }} onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">Administer Dose — {adminModal.dose_day}</h2>
               <button className="btn btn-ghost btn-icon" style={{ color:'white' }} onClick={() => setAdminModal(null)}>✕</button>
             </div>
             <div className="modal-body">
               <div style={{ background:'var(--blue-50)', borderRadius:'var(--radius-md)', padding:'10px 14px', marginBottom:16, fontSize:13, color:'var(--blue-700)' }}>
-                Scheduled: <strong>{adminModal.scheduled_date}</strong> · Day: <strong>{adminModal.dose_day}</strong>
+                Scheduled: <strong>{toMMDDYYYY(adminModal.scheduled_date)}</strong> · Day: <strong>{adminModal.dose_day}</strong>
               </div>
               <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Date Administered</label>
+                  <input className="form-input" type="date"
+                    value={doseForm.administered_date}
+                    onChange={e => setDoseForm(p => ({...p, administered_date: e.target.value}))}
+                  />
+                </div>
                 <div className="form-group">
                   <label className="form-label">Vaccine Type *</label>
                   <div className="checkbox-group">
                     {['PVRV','PCEC'].map(v => (
                       <label key={v} className="checkbox-item">
-                        <input type="radio" name="vtype" value={v}
-                          checked={doseForm.vaccine_type === v}
-                          onChange={() => setDoseForm(p => ({...p, vaccine_type: v}))} />
+                        <input type="radio" name="vtype" value={v} checked={doseForm.vaccine_type===v}
+                          onChange={() => setDoseForm(p => ({...p, vaccine_type:v}))} />
                         {v}
                       </label>
                     ))}
@@ -529,13 +548,13 @@ export default function PatientDetailPage() {
                 <div className="form-group">
                   <label className="form-label">Brand Name</label>
                   <input className="form-input" type="text" value={doseForm.brand_name}
-                    onChange={e => setDoseForm(p => ({...p, brand_name: e.target.value}))}
+                    onChange={e => setDoseForm(p => ({...p, brand_name:e.target.value}))}
                     placeholder="e.g. Verorab, Rabipur…" />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Batch / Lot Number</label>
                   <input className="form-input" type="text" value={doseForm.batch_no}
-                    onChange={e => setDoseForm(p => ({...p, batch_no: e.target.value}))}
+                    onChange={e => setDoseForm(p => ({...p, batch_no:e.target.value}))}
                     placeholder="Batch No." />
                 </div>
               </div>
@@ -543,14 +562,14 @@ export default function PatientDetailPage() {
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setAdminModal(null)}>Cancel</button>
               <button className="btn btn-primary" onClick={submitDose} disabled={saving}>
-                {saving ? <><span className="spinner" /> Saving…</> : '✓ Record Dose'}
+                {saving ? <><span className="spinner"/>  Saving…</> : '✓ Record Dose'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Pet outcome modal */}
+      {/* ── Pet outcome modal ── */}
       {petOutcomeModal && (
         <div className="modal-overlay" onClick={() => setPetOutcomeModal(null)}>
           <div className="modal" style={{ maxWidth:440 }} onClick={e => e.stopPropagation()}>
@@ -559,37 +578,81 @@ export default function PatientDetailPage() {
               <button className="btn btn-ghost btn-icon" style={{ color:'white' }} onClick={() => setPetOutcomeModal(null)}>✕</button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize:14, color:'var(--slate-600)', marginBottom:16 }}>
-                The 14-day monitoring period has ended. What is the condition of the patient's pet?
-              </p>
+              <p style={{ fontSize:14, color:'var(--slate-600)', marginBottom:16 }}>The 14-day monitoring period has ended. What is the condition of the patient's pet?</p>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                <label style={{ display:'flex', gap:12, padding:'12px 16px', borderRadius:'var(--radius-md)', border:'2px solid', borderColor: petOutcome === 'healthy' ? 'var(--blue-500)' : 'var(--slate-200)', background: petOutcome === 'healthy' ? 'var(--blue-50)' : 'white', cursor:'pointer', transition:'all .12s' }}>
-                  <input type="radio" name="pet_out" checked={petOutcome === 'healthy'} onChange={() => setPetOutcome('healthy')} style={{ accentColor:'var(--blue-600)', marginTop:2 }} />
-                  <div>
-                    <div style={{ fontWeight:700, color:'var(--green-700)' }}>✅ Pet is Healthy / Alive</div>
-                    <div style={{ fontSize:12, color:'var(--slate-500)', marginTop:2 }}>Doctor may consider discontinuing treatment</div>
-                  </div>
-                </label>
-                <label style={{ display:'flex', gap:12, padding:'12px 16px', borderRadius:'var(--radius-md)', border:'2px solid', borderColor: petOutcome === 'perished' ? 'var(--red-500)' : 'var(--slate-200)', background: petOutcome === 'perished' ? '#fff5f5' : 'white', cursor:'pointer', transition:'all .12s' }}>
-                  <input type="radio" name="pet_out" checked={petOutcome === 'perished'} onChange={() => setPetOutcome('perished')} style={{ accentColor:'var(--red-600)', marginTop:2 }} />
-                  <div>
-                    <div style={{ fontWeight:700, color:'var(--red-700)' }}>⚠️ Pet Perished / Died</div>
-                    <div style={{ fontSize:12, color:'var(--slate-500)', marginTop:2 }}>Continue full anti-rabies treatment immediately</div>
-                  </div>
-                </label>
+                {[
+                  { val:'healthy' as const, icon:'✅', title:'Pet is Healthy / Alive', desc:'Doctor may consider discontinuing treatment', color:'var(--green-700)', borderColor: petOutcome==='healthy' ? 'var(--blue-500)' : 'var(--slate-200)', bg: petOutcome==='healthy' ? 'var(--blue-50)' : 'white' },
+                  { val:'perished' as const, icon:'⚠️', title:'Pet Perished / Died', desc:'Continue full anti-rabies treatment immediately', color:'var(--red-700)', borderColor: petOutcome==='perished' ? 'var(--red-500)' : 'var(--slate-200)', bg: petOutcome==='perished' ? '#fff5f5' : 'white' },
+                ].map(opt => (
+                  <label key={opt.val} style={{ display:'flex', gap:12, padding:'12px 16px', borderRadius:'var(--radius-md)', border:'2px solid', borderColor: opt.borderColor, background: opt.bg, cursor:'pointer', transition:'all .12s' }}>
+                    <input type="radio" name="pet_out" checked={petOutcome===opt.val} onChange={() => setPetOutcome(opt.val)} style={{ accentColor:'var(--blue-600)', marginTop:3 }} />
+                    <div>
+                      <div style={{ fontWeight:700, color: opt.color }}>{opt.icon} {opt.title}</div>
+                      <div style={{ fontSize:12, color:'var(--slate-500)', marginTop:2 }}>{opt.desc}</div>
+                    </div>
+                  </label>
+                ))}
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setPetOutcomeModal(null)}>Cancel</button>
               <button className="btn btn-primary" onClick={submitPetOutcome} disabled={saving}>
-                {saving ? <><span className="spinner" /> Saving…</> : '✓ Record Outcome'}
+                {saving ? <><span className="spinner"/>  Saving…</> : '✓ Record Outcome'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete confirm modal */}
+      {/* ── Edit patient info modal ── */}
+      {editPatientOpen && patient && (
+        <div className="modal-overlay" onClick={() => setEditPatientOpen(false)}>
+          <div className="modal" style={{ maxWidth:480 }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2 className="modal-title">Update Patient Information</h2>
+              <button className="btn btn-ghost btn-icon" style={{ color:'white' }} onClick={() => setEditPatientOpen(false)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                  <div className="form-group">
+                    <label className="form-label">Weight (kg)</label>
+                    <input className="form-input" type="number" step="0.1" min="0"
+                      value={editPatientForm.weight} placeholder={String(patient.weight||'')}
+                      onChange={e => setEditPatientForm(p => ({...p, weight:e.target.value}))} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Height (cm)</label>
+                    <input className="form-input" type="number" step="0.5" min="0"
+                      value={(editPatientForm as any).height||''} placeholder={String((patient as any).height||'')}
+                      onChange={e => setEditPatientForm(p => ({...p, height:e.target.value} as any))} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Contact No.</label>
+                  <input className="form-input" type="tel"
+                    value={editPatientForm.contact_no} placeholder={patient.contact_no||'09XX-XXX-XXXX'}
+                    onChange={e => setEditPatientForm(p => ({...p, contact_no:e.target.value}))} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Address</label>
+                  <input className="form-input" type="text"
+                    value={editPatientForm.address} placeholder={patient.address||'Barangay, Municipality…'}
+                    onChange={e => setEditPatientForm(p => ({...p, address:e.target.value}))} />
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setEditPatientOpen(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={savePatientInfo} disabled={saving}>
+                {saving ? <><span className="spinner"/>  Saving…</> : '✓ Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirm ── */}
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal" style={{ maxWidth:400 }} onClick={e => e.stopPropagation()}>
@@ -607,16 +670,16 @@ export default function PatientDetailPage() {
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setDeleteConfirm(null)}>Cancel</button>
               <button className="btn btn-danger" onClick={handleDelete} disabled={saving}>
-                {saving ? <><span className="spinner" /> Deleting…</> : '🗑 Delete Permanently'}
+                {saving ? <><span className="spinner"/>  Deleting…</> : '🗑 Delete Permanently'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {toast && (
+      {toast.msg && (
         <div className="toast-container">
-          <div className={`toast ${toast.includes('Error') ? 'error' : 'success'}`}>{toast}</div>
+          <div className={`toast ${toast.type === 'error' ? 'error' : 'success'}`}>{toast.msg}</div>
         </div>
       )}
     </div>

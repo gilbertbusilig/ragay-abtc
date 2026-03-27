@@ -26,7 +26,13 @@ export default function PrintPage() {
   const incident = incidents?.[incidents.length - 1] || {};
   const incDoses = (doses || []).filter((d: any) => d.incident_id === incident.incident_id && d.dose_type === 'PEP');
 
-  const fullDate = (d: string) => d ? new Date(d).toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' }) : '';
+  const fullDate = (d: string) => {
+    if (!d) return '';
+    // Strip time component to avoid timezone issues
+    const clean = String(d).includes('T') ? d.split('T')[0] : d;
+    if (!clean || clean === 'undefined') return '';
+    return new Date(clean + 'T00:00:00').toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' });
+  };
   const fmtDateTime = (d: string) => d ? new Date(d).toLocaleString('en-PH', { month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
 
   const Cb = ({ checked }: { checked?: boolean }) => (
@@ -67,11 +73,23 @@ export default function PrintPage() {
   const nurseId = incDoses.find((d: any) => d.administered_by)?.administered_by || '';
   const doctorId = incident.referring_doctor || '';
 
+  // Percentage positions [left%, top%] on the anatomical image (front left half, back right half)
   const BODY_SITE_COORDS: Record<string, [number,number]> = {
-    'Head': [70,14], 'Neck': [70,32], 'R.Arm': [44,62], 'L.Arm': [96,62],
-    'R.Hand': [36,92], 'L.Hand': [104,92], 'Chest': [70,54], 'Abdomen': [70,72],
-    'Upper Back': [70,54], 'Lower Back': [70,68],
-    'R.Leg': [56,108], 'L.Leg': [84,108], 'R.Foot': [54,138], 'L.Foot': [86,138],
+    'Head':       [23, 6],
+    'Face':       [23, 9],
+    'Neck':       [23, 14],
+    'Chest':      [23, 28],
+    'Abdomen':    [23, 40],
+    'R.Arm':      [12, 30],
+    'L.Arm':      [34, 30],
+    'R.Hand':     [9,  48],
+    'L.Hand':     [37, 48],
+    'R.Leg':      [18, 62],
+    'L.Leg':      [27, 62],
+    'R.Foot':     [18, 90],
+    'L.Foot':     [27, 90],
+    'Upper Back': [73, 22],
+    'Lower Back': [73, 37],
   };
 
   return (
@@ -185,57 +203,33 @@ export default function PrintPage() {
             {/* Left */}
             <div className="col">
               <strong style={{ fontSize:'8pt' }}>A. Anatomical Position</strong>
-              <div style={{ border:'1px solid #aaa', padding:6, marginTop:3, display:'flex', gap:8, alignItems:'flex-start' }}>
-                {/* Realistic human body SVG */}
-                <svg width="120" height="160" viewBox="0 0 120 160" style={{ flexShrink:0 }}>
-                  {/* Head */}
-                  <ellipse cx="60" cy="16" rx="12" ry="14" fill="none" stroke="#333" strokeWidth="1.2"/>
-                  {/* Neck */}
-                  <rect x="55" y="29" width="10" height="10" rx="2" fill="none" stroke="#333" strokeWidth="1"/>
-                  {/* Torso */}
-                  <path d="M38 39 Q35 42 34 60 Q33 75 36 88 L84 88 Q87 75 86 60 Q85 42 82 39 Q72 36 60 36 Q48 36 38 39Z" fill="none" stroke="#333" strokeWidth="1.2"/>
-                  {/* Shoulders line */}
-                  <line x1="38" y1="42" x2="82" y2="42" stroke="#333" strokeWidth=".5" strokeDasharray="2,2"/>
-                  {/* Chest detail */}
-                  <path d="M47 50 Q60 55 73 50" fill="none" stroke="#aaa" strokeWidth=".8"/>
-                  {/* Belly button */}
-                  <circle cx="60" cy="78" r="1.5" fill="#aaa"/>
-                  {/* Left upper arm */}
-                  <path d="M38 42 Q28 48 24 65" fill="none" stroke="#333" strokeWidth="1.2"/>
-                  {/* Left forearm */}
-                  <path d="M24 65 Q20 80 18 94" fill="none" stroke="#333" strokeWidth="1.1"/>
-                  {/* Left hand */}
-                  <ellipse cx="17" cy="98" rx="5" ry="6" fill="none" stroke="#333" strokeWidth="1"/>
-                  {/* Right upper arm */}
-                  <path d="M82 42 Q92 48 96 65" fill="none" stroke="#333" strokeWidth="1.2"/>
-                  {/* Right forearm */}
-                  <path d="M96 65 Q100 80 102 94" fill="none" stroke="#333" strokeWidth="1.1"/>
-                  {/* Right hand */}
-                  <ellipse cx="103" cy="98" rx="5" ry="6" fill="none" stroke="#333" strokeWidth="1"/>
-                  {/* Left thigh */}
-                  <path d="M44 88 Q40 105 39 122" fill="none" stroke="#333" strokeWidth="1.2"/>
-                  {/* Left shin */}
-                  <path d="M39 122 Q38 136 38 148" fill="none" stroke="#333" strokeWidth="1.1"/>
-                  {/* Left foot */}
-                  <ellipse cx="38" cy="153" rx="7" ry="4" fill="none" stroke="#333" strokeWidth="1"/>
-                  {/* Right thigh */}
-                  <path d="M76 88 Q80 105 81 122" fill="none" stroke="#333" strokeWidth="1.2"/>
-                  {/* Right shin */}
-                  <path d="M81 122 Q82 136 82 148" fill="none" stroke="#333" strokeWidth="1.1"/>
-                  {/* Right foot */}
-                  <ellipse cx="82" cy="153" rx="7" ry="4" fill="none" stroke="#333" strokeWidth="1"/>
-                  {/* Highlight marked sites */}
-                  {anatomicalSites.map(site => {
-                    const coords = BODY_SITE_COORDS[site];
-                    if (!coords) return null;
-                    return <circle key={site} cx={coords[0]} cy={coords[1]} r="6" fill="rgba(220,0,0,.25)" stroke="#cc0000" strokeWidth="1.2"/>;
-                  })}
-                  {/* Labels */}
-                  <text x="60" y="157" textAnchor="middle" fontSize="6" fill="#666">Front view</text>
-                </svg>
-                <div style={{ fontSize:'7.5pt', flex:1 }}>
-                  <strong>Marked sites:</strong><br/>
-                  {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
+              <div style={{ border:'1px solid #aaa', padding:4, marginTop:3 }}>
+                {/* Anatomical position image - front and back */}
+                <div style={{ position:'relative', display:'inline-block', width:'100%' }}>
+                  <img src="/logos/anatomical.png" alt="Anatomical Position"
+                    style={{ width:'100%', maxHeight:160, objectFit:'contain', display:'block' }} />
+                  {/* Overlay red markers for marked sites using percentage positions */}
+                  <div style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', pointerEvents:'none' }}>
+                    {anatomicalSites.map(site => {
+                      const coords = BODY_SITE_COORDS[site];
+                      if (!coords) return null;
+                      return (
+                        <div key={site} style={{
+                          position:'absolute',
+                          left: `${coords[0]}%`,
+                          top: `${coords[1]}%`,
+                          width:10, height:10,
+                          borderRadius:'50%',
+                          background:'rgba(220,0,0,.45)',
+                          border:'1.5px solid #cc0000',
+                          transform:'translate(-50%,-50%)',
+                        }}/>
+                      );
+                    })}
+                  </div>
+                </div>
+                <div style={{ fontSize:'7.5pt', marginTop:3 }}>
+                  <strong>Marked:</strong> {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
                 </div>
               </div>
               <div style={{ marginTop:5 }}>

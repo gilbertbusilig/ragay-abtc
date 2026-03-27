@@ -4,6 +4,14 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Dose } from '@/types';
 
+function fmtDate(d: string) {
+  if (!d) return '—';
+  const clean = String(d).includes('T') ? d.split('T')[0] : d;
+  if (!clean) return '—';
+  const [y, m, dd] = clean.split('-');
+  return `${m}/${dd}/${y}`;
+}
+
 export default function VaccineSchedulePage() {
   const router = useRouter();
   const [doses, setDoses] = useState<(Dose & { patient_name?: string })[]>([]);
@@ -146,7 +154,7 @@ export default function VaccineSchedulePage() {
                       <td><span style={{ fontFamily:'monospace', fontSize:12, color:'var(--blue-700)' }}>{d.patient_id}</span></td>
                       <td><span style={{ fontWeight:700, color:'var(--blue-700)' }}>{d.dose_day}</span></td>
                       <td style={{ fontSize:13 }}>
-                        {d.scheduled_date}
+                        {fmtDate(d.scheduled_date)}
                         {d.scheduled_date < today && d.status !== 'done' && (
                           <span style={{ marginLeft:6, fontSize:11, color:'var(--red-600)', fontWeight:600 }}>
                             ({Math.abs(Math.round((new Date(d.scheduled_date).getTime() - new Date(today).getTime()) / 86400000))}d late)
@@ -156,7 +164,7 @@ export default function VaccineSchedulePage() {
                       <td>{statusBadge(d.status, d.is_optional)}</td>
                       <td style={{ fontSize:13 }}>{d.vaccine_type || '—'}</td>
                       <td style={{ fontSize:13 }}>{d.brand_name || '—'}</td>
-                      <td style={{ fontSize:13 }}>{d.administered_date || '—'}</td>
+                      <td style={{ fontSize:13 }}>{fmtDate(d.administered_date)}</td>
                       <td style={{ fontSize:13 }}>{d.administered_by || '—'}</td>
                     </tr>
                   ))}

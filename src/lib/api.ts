@@ -2,9 +2,26 @@
 
 const GAS_URL = process.env.NEXT_PUBLIC_GAS_URL!;
 const GAS_SECRET = process.env.NEXT_PUBLIC_GAS_SECRET!;
+const GET_CACHE_TTL = 15000;
+const getCache = new Map<string, { expiresAt: number; value: unknown }>();
+
+function buildCacheKey(action: string, params: Record<string, string>) {
+  const pairs = Object.entries(params)
+    .filter(([, v]) => v !== undefined && v !== null && v !== '')
+    .sort(([a], [b]) => a.localeCompare(b));
+  return `${action}:${JSON.stringify(pairs)}`;
+}
+
+function clearGetCache() {
+  getCache.clear();
+}
 
 async function gasGet(action: string, params: Record<string, string> = {}) {
   try {
+    const cacheKey = buildCacheKey(action, params);
+    const cached = getCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
+
     const url = new URL(GAS_URL);
     url.searchParams.set('action', action);
     url.searchParams.set('secret', GAS_SECRET);
@@ -13,8 +30,13 @@ async function gasGet(action: string, params: Record<string, string> = {}) {
     });
     const res = await fetch(url.toString(), { redirect: 'follow' });
     const text = await res.text();
-    try { return JSON.parse(text); }
-    catch { return { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
+    let payload;
+    try { payload = JSON.parse(text); }
+    catch { payload = { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
+    if (payload?.status === 'ok') {
+      getCache.set(cacheKey, { expiresAt: Date.now() + GET_CACHE_TTL, value: payload });
+    }
+    return payload;
   } catch (err: any) {
     return { status: 'error', message: err?.message || 'Network error' };
   }
@@ -31,8 +53,11 @@ async function gasPost(action: string, body: Record<string, unknown>) {
       body: JSON.stringify({ action, ...body }),
     });
     const text = await res.text();
-    try { return JSON.parse(text); }
-    catch { return { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
+    let payload;
+    try { payload = JSON.parse(text); }
+    catch { payload = { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
+    if (payload?.status === 'ok') clearGetCache();
+    return payload;
   } catch (err: any) {
     return { status: 'error', message: err?.message || 'Network error' };
   }
@@ -69,6 +94,8 @@ export const api = {
   administerDose: (data: Record<string, unknown>) =>
     gasPost('administer_dose', data),
 
+  // Init data (accounts + nurses in one call for performance)
+  getInitData: () => gasGet('init_data'),
   // Accounts
   getAccounts: () => gasGet('get_accounts'),
   getNurses: () => gasGet('get_nurses'),
@@ -80,6 +107,10 @@ export const api = {
   // Pet monitor
   updatePetMonitor: (data: Record<string, unknown>) =>
     gasPost('update_pet_monitor', data),
+
+  // Dose scheduling
+  updateDoseDate: (data: Record<string, unknown>) =>
+    gasPost('update_dose_date', data),
 
   // Delete (admin only)
   deletePatient: (patient_id: string) =>

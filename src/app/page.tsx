@@ -54,10 +54,6 @@ export default function LoginPage() {
         padding: '48px 40px',
         position: 'relative', overflow: 'hidden',
       }}>
-        {/* Decorative circles */}
-        <div style={{ position:'absolute', top:-100, right:-100, width:360, height:360, borderRadius:'50%', background:'rgba(255,255,255,.04)', pointerEvents:'none' }} />
-        <div style={{ position:'absolute', bottom:-80, left:-80, width:280, height:280, borderRadius:'50%', background:'rgba(255,255,255,.04)', pointerEvents:'none' }} />
-
         {/* Three logos in a row — equal size */}
         <div style={{ display:'flex', gap:20, alignItems:'center', justifyContent:'center', marginBottom:28 }}>
           {[
@@ -70,7 +66,7 @@ export default function LoginPage() {
               background: 'white', borderRadius: 14,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: 5,
-              boxShadow: '0 6px 20px rgba(0,0,0,.25)',
+              border: '1px solid rgba(15,23,42,.08)',
               flexShrink: 0,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -120,7 +116,7 @@ export default function LoginPage() {
         alignItems: 'center', justifyContent: 'center',
         padding: '40px 36px',
         background: 'white',
-        boxShadow: '-4px 0 24px rgba(0,0,0,.08)',
+        borderLeft: '1px solid var(--slate-200)',
       }}>
         <div style={{ width:'100%', maxWidth: 340 }}>
 

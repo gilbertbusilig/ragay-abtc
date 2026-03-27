@@ -85,7 +85,7 @@ export default function NewPatientPage() {
   }
 
   const today = new Date().toISOString().split('T')[0];
-  const genId = `${new Date().getFullYear()}-XXXXX (auto-generated)`;
+  const genId = `${new Date().getFullYear()}-00000`;
 
   return (
     <div>

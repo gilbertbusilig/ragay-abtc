@@ -69,14 +69,13 @@ export default function IncidentEditPage() {
 
   async function load() {
     setLoading(true);
-    const [patRes, nursesRes, accountsRes] = await Promise.all([
+    const [patRes, initRes] = await Promise.all([
       api.getPatient(patient_id),
-      api.getNurses(),
-      api.getAccounts(),
+      api.getInitData(),
     ]);
-    if (nursesRes.status === 'ok') setNurses(nursesRes.data);
-    if (accountsRes.status === 'ok') {
-      setDoctors(accountsRes.data.filter((u: any) => u.role === 'doctor' || u.role === 'admin'));
+    if (initRes.status === 'ok') {
+      setNurses(initRes.data.nurses || []);
+      setDoctors((initRes.data.accounts || []).filter((u: any) => u.role === 'doctor' || u.role === 'admin'));
     }
     if (patRes.status === 'ok') {
       const inc = patRes.data.incidents?.find((i: any) => i.incident_id === incident_id);
