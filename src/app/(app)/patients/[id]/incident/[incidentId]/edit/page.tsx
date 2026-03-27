@@ -28,6 +28,7 @@ export default function IncidentEditPage() {
   const [doctors, setDoctors] = useState<any[]>([]);
 
   const [f, setF] = useState<Record<string, any>>({
+    consult_date: '',
     wound_category: '',
     wound_status: '',
     wound_type: '',
@@ -112,6 +113,7 @@ export default function IncidentEditPage() {
           physician_notes: inc.physician_notes || '',
           pep_doses_needed: inc.pep_doses_needed || 5,
           referring_doctor: inc.referring_doctor || '',
+          consult_date: inc.consult_date || '',
         });
       }
     }
@@ -398,6 +400,13 @@ export default function IncidentEditPage() {
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
               <div>
+                <div className="form-group" style={{ marginBottom:14 }}>
+                  <label className="form-label">Day 0 Date / Consultation Date</label>
+                  <input className="form-input" type="date" value={f.consult_date} onChange={e => set('consult_date', e.target.value)} />
+                  <div style={{ fontSize:12, color:'var(--slate-500)', marginTop:6 }}>
+                    Updating Day 0 will automatically recalculate the remaining vaccine schedule dates.
+                  </div>
+                </div>
                 {/* ERIG / HRIG — mutual exclusive */}
                 <div className="form-label" style={{ marginBottom:8 }}>Anti-Rabies Immunoglobulin (ERIG or HRIG — choose one)</div>
                 <div className="checkbox-group" style={{ marginBottom:12 }}>

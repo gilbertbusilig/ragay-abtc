@@ -4,15 +4,36 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 
+function calculateAge(dateOfBirth: string) {
+  if (!dateOfBirth) return '';
+  const dob = new Date(`${dateOfBirth}T00:00:00`);
+  if (Number.isNaN(dob.getTime())) return '';
+  const now = new Date();
+  let years = now.getFullYear() - dob.getFullYear();
+  const hasNotHadBirthday =
+    now.getMonth() < dob.getMonth() ||
+    (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate());
+  if (hasNotHadBirthday) years -= 1;
+  return String(Math.max(years, 0));
+}
+
+function formatPhilippineContact(value: string) {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 7) return `${digits.slice(0, 4)} ${digits.slice(4)}`;
+  return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+}
+
 export default function NewPatientPage() {
   const { user, activeNurse } = useAuth();
   const router = useRouter();
+  const today = new Date().toISOString().split('T')[0];
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
 
   // Section I
   const [form, setForm] = useState({
-    full_name: '', address: '', date_of_birth: '', sex: '', age: '', weight: '', height: '', contact_no: '',
+    full_name: '', address: '', date_of_birth: '', sex: '', age: '', weight: '', contact_no: '', consult_date: today,
     // Section II
     bite_datetime: '', place_of_exposure: '',
     animal_type: 'dog', animal_other: '',
@@ -21,15 +42,6 @@ export default function NewPatientPage() {
   });
 
   const set = (k: string, v: string) => setForm(prev => ({ ...prev, [k]: v }));
-
-  function calcAge() {
-    if (!form.date_of_birth) return;
-    const dob = new Date(form.date_of_birth);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    if (today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) age--;
-    set('age', String(age));
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,7 +58,6 @@ export default function NewPatientPage() {
       sex: form.sex,
       age: form.age,
       weight: form.weight,
-      height: form.height,
       contact_no: form.contact_no,
       created_by: creator,
     });
@@ -62,7 +73,8 @@ export default function NewPatientPage() {
     // 2. Create incident
     const incRes = await api.createIncident({
       patient_id,
-      consult_date: new Date().toISOString().split('T')[0],
+      consult_date: form.consult_date || today,
+      d0_date: form.consult_date || today,
       bite_datetime: form.bite_datetime,
       place_of_exposure: form.place_of_exposure,
       animal_type: form.animal_type,
@@ -83,8 +95,6 @@ export default function NewPatientPage() {
       setTimeout(() => router.push(`/patients/${patient_id}`), 2000);
     }
   }
-
-  const today = new Date().toISOString().split('T')[0];
   const genId = `${new Date().getFullYear()}-00000`;
 
   return (
@@ -102,7 +112,7 @@ export default function NewPatientPage() {
           <div style={{ display:'flex', gap:16, marginBottom:20, flexWrap:'wrap' }}>
             <div className="form-group" style={{ flex:1 }}>
               <label className="form-label">Date of Consultation</label>
-              <input className="form-input" type="date" defaultValue={today} readOnly style={{ background:'var(--slate-50)' }} />
+              <input className="form-input" type="date" value={form.consult_date} onChange={e => set('consult_date', e.target.value)} max={today} />
             </div>
             <div className="form-group" style={{ flex:1 }}>
               <label className="form-label">Patient ID No.</label>
@@ -124,7 +134,10 @@ export default function NewPatientPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">C. Date of Birth</label>
-                <input className="form-input" type="date" value={form.date_of_birth} onChange={e => { set('date_of_birth', e.target.value); setTimeout(calcAge, 0); }} max={today} />
+                <input className="form-input" type="date" value={form.date_of_birth} onChange={e => {
+                  const value = e.target.value;
+                  setForm(prev => ({ ...prev, date_of_birth: value, age: calculateAge(value) }));
+                }} max={today} />
               </div>
               <div className="form-group">
                 <label className="form-label">D. Sex</label>
@@ -139,19 +152,15 @@ export default function NewPatientPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">G. Contact No.</label>
-                <input className="form-input" type="tel" value={form.contact_no} onChange={e => set('contact_no', e.target.value)} placeholder="09XX-XXX-XXXX" />
+                <input className="form-input" type="tel" inputMode="numeric" maxLength={13} value={form.contact_no} onChange={e => set('contact_no', formatPhilippineContact(e.target.value))} placeholder="09XX XXX XXXX" />
               </div>
               <div className="form-group">
                 <label className="form-label">E. Age</label>
-                <input className="form-input" type="number" value={form.age} onChange={e => set('age', e.target.value)} min="0" max="120" placeholder="Years" />
+                <input className="form-input" type="text" value={form.age} readOnly placeholder="Auto-calculated" style={{ background:'var(--slate-50)' }} />
               </div>
               <div className="form-group">
                 <label className="form-label">F. Weight (kg)</label>
                 <input className="form-input" type="number" value={form.weight} onChange={e => set('weight', e.target.value)} min="0" step="0.1" placeholder="kg" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Height (cm)</label>
-                <input className="form-input" type="number" value={form.height} onChange={e => set('height', e.target.value)} min="0" step="0.5" placeholder="cm" />
               </div>
             </div>
           </div>

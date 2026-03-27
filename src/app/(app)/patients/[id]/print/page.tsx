@@ -203,11 +203,11 @@ export default function PrintPage() {
             {/* Left */}
             <div className="col">
               <strong style={{ fontSize:'8pt' }}>A. Anatomical Position</strong>
-              <div style={{ border:'1px solid #aaa', padding:4, marginTop:3 }}>
+              <div style={{ border:'1px solid #aaa', padding:4, marginTop:3, background:'#fff' }}>
                 {/* Anatomical position image - front and back */}
-                <div style={{ position:'relative', display:'inline-block', width:'100%' }}>
+                <div style={{ position:'relative', display:'inline-block', width:'100%', background:'#fff' }}>
                   <img src="/logos/anatomical.png" alt="Anatomical Position"
-                    style={{ width:'100%', maxHeight:160, objectFit:'contain', display:'block' }} />
+                    style={{ width:'100%', maxHeight:160, objectFit:'contain', display:'block', background:'#fff' }} />
                   {/* Overlay red markers for marked sites using percentage positions */}
                   <div style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', pointerEvents:'none' }}>
                     {anatomicalSites.map(site => {

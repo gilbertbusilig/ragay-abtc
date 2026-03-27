@@ -154,6 +154,7 @@ export default function PatientDetailPage() {
   const [editPatientForm, setEditPatientForm] = useState({ weight:'', contact_no:'', address:'' });
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState({ msg:'', type:'' });
+  const currentActor = user?.role === 'nurse' && activeNurse ? activeNurse : user;
 
   const showToast = useCallback((msg: string, type = 'success') => {
     setToast({ msg, type });
@@ -213,7 +214,20 @@ export default function PatientDetailPage() {
     });
     setSaving(false);
     setAdminModal(null);
-    if (res.status === 'ok') { showToast('Dose recorded ✓'); load(); }
+    if (res.status === 'ok') {
+      if (res.data?.dose) {
+        const updatedDose = res.data.dose as Dose;
+        setDoses(prev => prev.map(d =>
+          (d.dose_id && updatedDose.dose_id && d.dose_id === updatedDose.dose_id) ||
+          (d.incident_id === updatedDose.incident_id && d.dose_day === updatedDose.dose_day)
+            ? { ...d, ...updatedDose }
+            : d
+        ));
+      } else {
+        load();
+      }
+      showToast('Dose recorded ✓');
+    }
     else showToast('Error: ' + res.message, 'error');
   }
 
@@ -338,7 +352,6 @@ export default function PatientDetailPage() {
                   { label:'Age',           val: patient.age ? `${patient.age} yrs` : '—' },
                   { label:'Date of Birth', val: formatDate(patient.date_of_birth) },
                   { label:'Weight',        val: patient.weight ? `${patient.weight} kg` : '—' },
-                  { label:'Height',        val: (patient as any).height ? `${(patient as any).height} cm` : '—' },
                   { label:'Address',       val: patient.address || '—' },
                   { label:'Contact',       val: patient.contact_no || '—' },
                 ].map(row => (
@@ -449,6 +462,10 @@ export default function PatientDetailPage() {
                       </div>
                     )}
 
+                    <div className="alert alert-blue" style={{ marginBottom:12, fontSize:12 }}>
+                      <span>ℹ</span> Update clinical data first, then review and record entries in the vaccine schedule below.
+                    </div>
+
                     {activeIncident.physician_notes && (
                       <div style={{ background:'var(--blue-50)', border:'1px solid var(--blue-200)', borderRadius:'var(--radius-md)', padding:'10px 12px', fontSize:13, marginBottom:12 }}>
                         <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'.08em', color:'var(--blue-600)', fontWeight:700, marginBottom:5 }}>Physician Notes</div>
@@ -526,6 +543,10 @@ export default function PatientDetailPage() {
                 Scheduled: <strong>{toMMDDYYYY(adminModal.scheduled_date)}</strong> · Day: <strong>{adminModal.dose_day}</strong>
               </div>
               <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Administered By</label>
+                  <input className="form-input" type="text" readOnly value={currentActor ? `${currentActor.full_name}${currentActor.credential ? `, ${currentActor.credential}` : ''}` : ''} style={{ background:'var(--slate-50)' }} />
+                </div>
                 <div className="form-group">
                   <label className="form-label">Date Administered</label>
                   <input className="form-input" type="date"
@@ -614,18 +635,12 @@ export default function PatientDetailPage() {
             </div>
             <div className="modal-body">
               <div className="form-grid">
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:12 }}>
                   <div className="form-group">
                     <label className="form-label">Weight (kg)</label>
                     <input className="form-input" type="number" step="0.1" min="0"
                       value={editPatientForm.weight} placeholder={String(patient.weight||'')}
                       onChange={e => setEditPatientForm(p => ({...p, weight:e.target.value}))} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Height (cm)</label>
-                    <input className="form-input" type="number" step="0.5" min="0"
-                      value={(editPatientForm as any).height||''} placeholder={String((patient as any).height||'')}
-                      onChange={e => setEditPatientForm(p => ({...p, height:e.target.value} as any))} />
                   </div>
                 </div>
                 <div className="form-group">
