@@ -226,9 +226,13 @@ export default function DashboardPage() {
                 <tbody>
                   {(data.recent_activity as any[]).map((log,i) => {
                     let details = '';
+                    let patientName = '';
+                    let patientId = log.patient_id || '';
                     try {
                       const d = JSON.parse(log.details||'{}');
-                      details = d.full_name || (d.wound_category ? `Category ${d.wound_category}` : '') || d.fields?.join(', ') || '';
+                      patientName = d.full_name || '';
+                      patientId = log.patient_id || d.patient_id || '';
+                      details = (d.wound_category ? `Category ${d.wound_category}` : '') || d.fields?.join(', ') || '';
                     } catch { details = String(log.details||''); }
                     return (
                       <tr key={log.log_id||i}>
@@ -241,9 +245,11 @@ export default function DashboardPage() {
                           </span>
                         </td>
                         <td style={{ fontSize:12, fontFamily:'monospace', color:'var(--blue-600)', fontWeight:600 }}>
-                          {log.patient_id || log.target_id || '—'}
+                          {patientId || '—'}
                         </td>
-                        <td style={{ fontSize:12, color:'var(--slate-500)' }}>{details}</td>
+                        <td style={{ fontSize:12, color:'var(--slate-500)' }}>
+                          {patientName ? `${patientName}${details ? ' · ' : ''}` : ''}{details}
+                        </td>
                       </tr>
                     );
                   })}

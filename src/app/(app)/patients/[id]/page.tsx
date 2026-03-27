@@ -6,6 +6,11 @@ import { Patient, Incident, Dose, PetMonitor, User } from '@/types';
 import { useAuth } from '@/lib/auth';
 
 const BODY_SITES = ['Head','Face','Neck','R.Arm','L.Arm','R.Hand','L.Hand','Chest','Abdomen','Upper Back','Lower Back','R.Leg','L.Leg','R.Foot','L.Foot'];
+function getLocalISODate() {
+  const now = new Date();
+  const tzOffsetMs = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - tzOffsetMs).toISOString().split('T')[0];
+}
 
 // Date helpers
 function toMMDDYYYY(iso: string) {
@@ -201,7 +206,7 @@ export default function PatientDetailPage() {
     if (!adminModal) return;
     setSaving(true);
     const by = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalISODate();
     const res = await api.administerDose({
       dose_id:         adminModal.dose_id || '',
       patient_id:      adminModal.patient_id,
@@ -521,7 +526,7 @@ export default function PatientDetailPage() {
                   incidentId={activeIncident.incident_id}
                   onAdminister={d => {
                     setAdminModal(d);
-                    setDoseForm({ vaccine_type:'PVRV', brand_name:'', batch_no:'', administered_date: new Date().toISOString().split('T')[0] });
+                    setDoseForm({ vaccine_type:'PVRV', brand_name:'', batch_no:'', administered_date: getLocalISODate() });
                   }}
                   onDateChange={handleDoseDateChange}
                   userRole={user?.role || ''}

@@ -24,10 +24,16 @@ function formatPhilippineContact(value: string) {
   return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
 }
 
+function getLocalISODate() {
+  const now = new Date();
+  const tzOffsetMs = now.getTimezoneOffset() * 60000;
+  return new Date(now.getTime() - tzOffsetMs).toISOString().split('T')[0];
+}
+
 export default function NewPatientPage() {
   const { user, activeNurse } = useAuth();
   const router = useRouter();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalISODate();
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
 
