@@ -33,9 +33,8 @@ export default function NewIncidentPage() {
     const creator = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
     const res = await api.createIncident({
       patient_id,
-      consult_date: form.d0_date || today,
-      d0_date: form.d0_date || today,
       ...form,
+      consult_date: form.d0_date || today,
       created_by: creator,
     });
     setSaving(false);
