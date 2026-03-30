@@ -309,13 +309,18 @@ export default function PatientDetailPage() {
         dose_day: deleteConfirm.dose.dose_day,
       });
       if (res?.status === 'ok') {
-        setDoses(prev => prev.filter(d =>
-          !(
-            (deleteConfirm.dose?.dose_id && d.dose_id === deleteConfirm.dose.dose_id) ||
-            (d.incident_id === deleteConfirm.dose?.incident_id && d.dose_day === deleteConfirm.dose?.dose_day)
-          )
-        ));
-        showToast('Dose deleted');
+        const clearedDose = res.data?.dose;
+        if (clearedDose) {
+          setDoses(prev => prev.map(d =>
+            ((clearedDose.dose_id && d.dose_id === clearedDose.dose_id) ||
+            (d.incident_id === clearedDose.incident_id && d.dose_day === clearedDose.dose_day))
+              ? { ...d, ...clearedDose }
+              : d
+          ));
+        } else {
+          load();
+        }
+        showToast('Dose data cleared');
       }
     } else {
       res = await api.deleteIncident(deleteConfirm.id);
