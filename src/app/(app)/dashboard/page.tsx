@@ -49,8 +49,15 @@ function BarChart({ data, labels }: { data: number[]; labels: string[] }) {
 
 function SummaryList({ title, items }: { title: string; items: Array<{ label: string; value: number; color: string }> }) {
   return (
-    <div>
-      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 8 }}>{title}</div>
+    <div
+      style={{
+        border: '1px solid rgba(148, 163, 184, 0.18)',
+        borderRadius: 16,
+        padding: 14,
+        background: 'linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(255, 255, 255, 1))',
+      }}
+    >
+      <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--slate-500)', marginBottom: 10, letterSpacing: '.04em', textTransform: 'uppercase' }}>{title}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {items.map(item => (
           <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
@@ -144,17 +151,17 @@ export default function DashboardPage() {
 
       <div className="page-body">
         {data.overdue_doses > 0 && (
-          <div className="alert alert-red" style={{ marginBottom: 8 }}>
+          <div className="alert alert-red" style={{ marginBottom: 8, borderRadius: 16, boxShadow: '0 10px 30px rgba(239, 68, 68, 0.08)' }}>
             <strong>{data.overdue_doses} overdue dose{data.overdue_doses > 1 ? 's' : ''}</strong> patients need immediate follow-up
           </div>
         )}
         {data.due_today > 0 && (
-          <div className="alert alert-amber" style={{ marginBottom: 14 }}>
+          <div className="alert alert-amber" style={{ marginBottom: 18, borderRadius: 16, boxShadow: '0 10px 30px rgba(245, 158, 11, 0.08)' }}>
             <strong>{data.due_today} dose{data.due_today > 1 ? 's' : ''} due today</strong> · {data.due_this_week} due this week
           </div>
         )}
 
-        <div className="stat-grid" style={{ marginBottom: 16 }}>
+        <div className="stat-grid" style={{ marginBottom: 18 }}>
           {[
             { val: data.total_patients, label: 'Total Patients', cls: '' },
             { val: data.active_treatment, label: 'Active Treatment', cls: 'amber' },
@@ -163,28 +170,81 @@ export default function DashboardPage() {
             { val: data.due_today, label: 'Due Today', cls: '' },
             { val: data.pet_monitors_active, label: 'Pet Monitors', cls: '' },
           ].map(s => (
-            <div key={s.label} className={`stat-card ${s.cls}`}>
+            <div
+              key={s.label}
+              className={`stat-card ${s.cls}`}
+              style={{
+                borderRadius: 18,
+                border: '1px solid rgba(148, 163, 184, 0.12)',
+                boxShadow: '0 18px 35px rgba(15, 23, 42, 0.06)',
+                background: 'linear-gradient(180deg, rgba(255,255,255,1), rgba(248,250,252,0.92))',
+              }}
+            >
               <div className="stat-value">{s.val}</div>
               <div className="stat-label">{s.label}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: 14, marginBottom: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginBottom: 16 }}>
           <div className="card">
-            <div className="card-header">
-              <span className="card-title">Monthly Cases - {year}</span>
+            <div
+              className="card-header"
+              style={{
+                paddingBottom: 10,
+                borderBottom: '1px solid rgba(148, 163, 184, 0.12)',
+                marginBottom: 10,
+              }}
+            >
+              <div>
+                <span className="card-title">Monthly Cases - {year}</span>
+                <div style={{ fontSize: 12, color: 'var(--slate-500)', marginTop: 4 }}>Case trend overview for the selected year</div>
+              </div>
             </div>
-            <div className="card-body">
+            <div className="card-body" style={{ paddingTop: 0 }}>
               <BarChart data={data.monthly} labels={MONTHS} />
             </div>
           </div>
 
           <div className="card">
-            <div className="card-header">
-              <span className="card-title">Patient Demographics</span>
+            <div
+              className="card-header"
+              style={{
+                paddingBottom: 10,
+                borderBottom: '1px solid rgba(148, 163, 184, 0.12)',
+                marginBottom: 12,
+                alignItems: 'flex-start',
+              }}
+            >
+              <div>
+                <span className="card-title">Patient Demographics</span>
+                <div style={{ fontSize: 12, color: 'var(--slate-500)', marginTop: 4 }}>
+                  Track patient breakdowns and narrow the count using combined filters
+                </div>
+              </div>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(3, minmax(96px, 1fr))',
+                  gap: 8,
+                  minWidth: 320,
+                }}
+              >
+                {[
+                  { label: 'Filtered', value: filteredRecords.length, tone: 'var(--blue-600)', bg: 'rgba(37, 99, 235, 0.08)' },
+                  { label: 'Overdue', value: data.overdue_doses, tone: 'var(--red-600)', bg: 'rgba(220, 38, 38, 0.08)' },
+                  { label: 'Due Today', value: data.due_today, tone: 'var(--amber-700)', bg: 'rgba(217, 119, 6, 0.08)' },
+                ].map(item => (
+                  <div key={item.label} style={{ padding: '10px 12px', borderRadius: 14, background: item.bg }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                      {item.label}
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: item.tone, lineHeight: 1.1, marginTop: 3 }}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="card-body">
+            <div className="card-body" style={{ paddingTop: 0 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <SummaryList
                   title="Age Groups"
@@ -229,7 +289,18 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 16 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr 1fr',
+                  gap: 10,
+                  marginTop: 18,
+                  padding: 14,
+                  borderRadius: 16,
+                  background: 'linear-gradient(180deg, rgba(241, 245, 249, 0.9), rgba(248, 250, 252, 0.7))',
+                  border: '1px solid rgba(148, 163, 184, 0.14)',
+                }}
+              >
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
                     Age Group
@@ -286,18 +357,32 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div style={{ marginTop: 14, padding: '12px 14px', border: '1px solid var(--slate-200)', borderRadius: 12, background: 'var(--slate-50)' }}>
-                <div style={{ fontSize: 12, color: 'var(--slate-500)' }}>Filtered incident count</div>
-                <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--slate-800)', lineHeight: 1.1 }}>{filteredRecords.length}</div>
-              </div>
             </div>
           </div>
         </div>
 
-        <div className="card">
-          <div className="card-header">
-            <span className="card-title">Due / Overdue Patients</span>
-            <span style={{ fontSize: 12, color: 'var(--slate-400)' }}>Patients needing vaccination follow-up</span>
+        <div
+          className="card"
+          style={{
+            borderRadius: 20,
+            border: '1px solid rgba(148, 163, 184, 0.12)',
+            boxShadow: '0 22px 40px rgba(15, 23, 42, 0.06)',
+            overflow: 'hidden',
+          }}
+        >
+          <div
+            className="card-header"
+            style={{
+              paddingBottom: 10,
+              borderBottom: '1px solid rgba(148, 163, 184, 0.12)',
+              marginBottom: 0,
+              background: 'linear-gradient(180deg, rgba(248,250,252,0.95), rgba(255,255,255,1))',
+            }}
+          >
+            <div>
+              <span className="card-title">Due / Overdue Patients</span>
+              <div style={{ fontSize: 12, color: 'var(--slate-500)', marginTop: 4 }}>Patients needing vaccination follow-up</div>
+            </div>
           </div>
           <div className="table-wrap">
             {!data.due_overdue_patients || data.due_overdue_patients.length === 0 ? (
