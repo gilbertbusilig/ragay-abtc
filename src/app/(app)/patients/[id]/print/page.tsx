@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth';
 
 export default function PrintPage() {
   const router = useRouter();
-  const { user, activeNurse, nurses, loadNurses, setActiveNurse } = useAuth();
+  const { activeNurse } = useAuth();
   const params = useParams();
   const patient_id = params.id as string;
   const [data, setData] = useState<any>(null);
@@ -22,12 +22,6 @@ export default function PrintPage() {
       }
     });
   }, [patient_id]);
-
-  useEffect(() => {
-    if (user?.role === 'admin' && nurses.length === 0) {
-      loadNurses();
-    }
-  }, [user, nurses.length, loadNurses]);
 
   if (!data) return <div style={{ fontFamily:'Arial', padding:40, textAlign:'center' }}>Loading form…</div>;
 
@@ -132,30 +126,8 @@ export default function PrintPage() {
         @media print { .screen-controls { display: none !important; } .print-btn { display: none; } }
       `}</style>
 
-      <div className="screen-controls" style={{ position:'fixed', top:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center', gap:12, zIndex:1000 }}>
-        <div style={{ display:'flex', gap:8, alignItems:'center', background:'rgba(255,255,255,.96)', padding:'8px 10px', borderRadius:10, boxShadow:'0 4px 14px rgba(0,0,0,.12)' }}>
-          <button className="print-btn" onClick={() => router.back()} style={{ position:'static', background:'#475569', boxShadow:'none', padding:'8px 16px' }}>← Back</button>
-          {user?.role === 'admin' && (
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <span style={{ fontSize:13, fontWeight:700, color:'#334155' }}>Nurse</span>
-              <select
-                value={activeNurse?.user_id || ''}
-                onChange={e => {
-                  const nurse = nurses.find(n => n.user_id === e.target.value);
-                  if (nurse) setActiveNurse(nurse);
-                }}
-                style={{ padding:'8px 10px', borderRadius:8, border:'1px solid #cbd5e1', fontSize:13, minWidth:220 }}
-              >
-                <option value="">Select active nurse</option>
-                {nurses.map(n => (
-                  <option key={n.user_id} value={n.user_id}>
-                    {n.full_name}{n.credential ? `, ${n.credential}` : ''}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+      <div className="screen-controls" style={{ position:'fixed', top:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center', zIndex:1000 }}>
+        <button className="print-btn" onClick={() => router.back()} style={{ position:'static', background:'#475569', boxShadow:'0 4px 12px rgba(71,85,105,.28)', padding:'8px 16px' }}>← Back</button>
         <button className="print-btn" onClick={() => window.print()} style={{ position:'static', boxShadow:'0 4px 12px rgba(29,78,216,.4)' }}>🖨 Print</button>
       </div>
 
