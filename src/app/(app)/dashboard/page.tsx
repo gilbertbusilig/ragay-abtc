@@ -128,6 +128,35 @@ export default function DashboardPage() {
     return true;
   });
 
+  const filteredAgeCounts = {
+    under15: filteredRecords.filter(record => record.age_group === 'under15').length,
+    '15': filteredRecords.filter(record => record.age_group === '15').length,
+    over15: filteredRecords.filter(record => record.age_group === 'over15').length,
+  };
+
+  const filteredSexCounts = {
+    male: filteredRecords.filter(record => record.sex === 'male').length,
+    female: filteredRecords.filter(record => record.sex === 'female').length,
+  };
+
+  const filteredAnimalCounts = {
+    dog: filteredRecords.filter(record => record.animal_type === 'dog').length,
+    cat: filteredRecords.filter(record => record.animal_type === 'cat').length,
+    bat: filteredRecords.filter(record => record.animal_type === 'bat').length,
+    other: filteredRecords.filter(record => record.animal_type === 'other').length,
+  };
+
+  const filteredCategoryCounts = {
+    I: filteredRecords.filter(record => record.category === 'I').length,
+    II: filteredRecords.filter(record => record.category === 'II').length,
+    III: filteredRecords.filter(record => record.category === 'III').length,
+  };
+
+  const filteredRigCounts = {
+    ERIG: filteredRecords.filter(record => record.erig_hrig === 'ERIG').length,
+    HRIG: filteredRecords.filter(record => record.erig_hrig === 'HRIG').length,
+  };
+
   return (
     <div>
       <div className="page-header no-print">
@@ -222,68 +251,47 @@ export default function DashboardPage() {
                   Track patient breakdowns and narrow the count using combined filters
                 </div>
               </div>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, minmax(96px, 1fr))',
-                  gap: 8,
-                  minWidth: 320,
-                }}
-              >
-                {[
-                  { label: 'Filtered', value: filteredRecords.length, tone: 'var(--blue-600)', bg: 'rgba(37, 99, 235, 0.08)' },
-                  { label: 'Overdue', value: data.overdue_doses, tone: 'var(--red-600)', bg: 'rgba(220, 38, 38, 0.08)' },
-                  { label: 'Due Today', value: data.due_today, tone: 'var(--amber-700)', bg: 'rgba(217, 119, 6, 0.08)' },
-                ].map(item => (
-                  <div key={item.label} style={{ padding: '10px 12px', borderRadius: 14, background: item.bg }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--slate-500)', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                      {item.label}
-                    </div>
-                    <div style={{ fontSize: 20, fontWeight: 800, color: item.tone, lineHeight: 1.1, marginTop: 3 }}>{item.value}</div>
-                  </div>
-                ))}
-              </div>
             </div>
             <div className="card-body" style={{ paddingTop: 0 }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
                 <SummaryList
                   title="Age Groups"
                   items={[
-                    { label: 'Under 15', value: data.age_lt15, color: '#a78bfa' },
-                    { label: '15 yrs', value: data.age_15, color: '#2563eb' },
-                    { label: 'Over 15', value: data.age_gt15, color: '#1d4ed8' },
+                    { label: 'Under 15', value: filteredAgeCounts.under15, color: '#a78bfa' },
+                    { label: '15 yrs', value: filteredAgeCounts['15'], color: '#2563eb' },
+                    { label: 'Over 15', value: filteredAgeCounts.over15, color: '#1d4ed8' },
                   ]}
                 />
                 <SummaryList
                   title="Sex"
                   items={[
-                    { label: 'Male', value: data.male_count, color: '#2563eb' },
-                    { label: 'Female', value: data.female_count, color: '#ec4899' },
+                    { label: 'Male', value: filteredSexCounts.male, color: '#2563eb' },
+                    { label: 'Female', value: filteredSexCounts.female, color: '#ec4899' },
                   ]}
                 />
                 <SummaryList
                   title="Animal Type"
                   items={[
-                    { label: 'Dog', value: data.animal_counts.dog, color: '#2563eb' },
-                    { label: 'Cat', value: data.animal_counts.cat, color: '#7c3aed' },
-                    { label: 'Bat', value: data.animal_counts.bat, color: '#db2777' },
-                    { label: 'Other', value: data.animal_counts.other, color: '#d97706' },
+                    { label: 'Dog', value: filteredAnimalCounts.dog, color: '#2563eb' },
+                    { label: 'Cat', value: filteredAnimalCounts.cat, color: '#7c3aed' },
+                    { label: 'Bat', value: filteredAnimalCounts.bat, color: '#db2777' },
+                    { label: 'Other', value: filteredAnimalCounts.other, color: '#d97706' },
                   ]}
                 />
                 <SummaryList
                   title="Exposure Category"
                   items={[
-                    { label: 'Category I', value: data.cat1, color: '#22c55e' },
-                    { label: 'Category II', value: data.cat2, color: '#f59e0b' },
-                    { label: 'Category III', value: data.cat3, color: '#ef4444' },
+                    { label: 'Category I', value: filteredCategoryCounts.I, color: '#22c55e' },
+                    { label: 'Category II', value: filteredCategoryCounts.II, color: '#f59e0b' },
+                    { label: 'Category III', value: filteredCategoryCounts.III, color: '#ef4444' },
                   ]}
                 />
                 <div style={{ gridColumn: '1 / -1' }}>
                   <SummaryList
                     title="ERIG / HRIG"
                     items={[
-                      { label: 'ERIG', value: data.erig_count, color: '#2563eb' },
-                      { label: 'HRIG', value: data.hrig_count, color: '#7c3aed' },
+                      { label: 'ERIG', value: filteredRigCounts.ERIG, color: '#2563eb' },
+                      { label: 'HRIG', value: filteredRigCounts.HRIG, color: '#7c3aed' },
                     ]}
                   />
                 </div>
