@@ -24,7 +24,7 @@ export default function PrintPage() {
 
   const { patient, incidents, doses } = data;
   const incident = incidents?.[incidents.length - 1] || {};
-  const incDoses = (doses || []).filter((d: any) => d.incident_id === incident.incident_id && d.dose_type === 'PEP');
+  const incDoses = (doses || []).filter((d: any) => d.incident_id === incident.incident_id);
 
   const fullDate = (d: string) => {
     if (!d) return '';
@@ -62,13 +62,12 @@ export default function PrintPage() {
 
   const anatomicalSites: string[] = (() => { try { return JSON.parse(incident.anatomical_positions || '[]'); } catch { return []; }})();
 
-  // Build 5 dose rows — one per PEP dose
-  const dayKeys = ['D0','D3','D7','D14','D28'];
-  const doseRows = dayKeys.map(day => incDoses.find((d: any) => d.dose_day === day) || { dose_day: day, vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'' });
-
-  // Scheduled dates for display
-  const doseDateMap: Record<string,string> = {};
-  incDoses.forEach((d: any) => { doseDateMap[d.dose_day] = d.scheduled_date || ''; });
+  const pepDoseDays = ['D0','D3','D7','D14','D28'];
+  const prepDoseDays = ['D0','D7','D14','D28'];
+  const pepDoses = incDoses.filter((d: any) => d.dose_type !== 'PrEP');
+  const prepDoses = incDoses.filter((d: any) => d.dose_type === 'PrEP');
+  const pepRows = pepDoseDays.map(day => pepDoses.find((d: any) => d.dose_day === day) || { dose_day: day, vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'', scheduled_date:'' });
+  const prepRows = prepDoseDays.map(day => prepDoses.find((d: any) => d.dose_day === day) || { dose_day: day, vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'', scheduled_date:'' });
 
   const nurseId = incDoses.find((d: any) => d.administered_by)?.administered_by || '';
   const doctorId = incident.referring_doctor || '';
@@ -90,6 +89,7 @@ export default function PrintPage() {
     'L.Foot':     [27, 90],
     'Upper Back': [73, 22],
     'Lower Back': [73, 37],
+    'Genitalia':  [23, 52],
   };
 
   return (
@@ -218,10 +218,10 @@ export default function PrintPage() {
                           position:'absolute',
                           left: `${coords[0]}%`,
                           top: `${coords[1]}%`,
-                          width:10, height:10,
+                          width:12, height:12,
                           borderRadius:'50%',
-                          background:'rgba(220,0,0,.45)',
-                          border:'1.5px solid #cc0000',
+                          background:'#dc2626',
+                          border:'2px solid #991b1b',
                           transform:'translate(-50%,-50%)',
                         }}/>
                       );
@@ -323,34 +323,55 @@ export default function PrintPage() {
         <div className="section">
           <div className="section-title">VI. Treatment</div>
 
-          {/* Anti-Rabies Vaccine — PEP doses as ROWS (D0–D28 are columns) */}
+          {/* Anti-Rabies Vaccine */}
           <div style={{ padding:'3px 5px 2px' }}>
-            <div style={{ fontSize:'7.5pt', fontWeight:'bold', marginBottom:2 }}>Anti-Rabies Vaccine (PEP)</div>
+            <div style={{ fontSize:'7.5pt', fontWeight:'bold', marginBottom:4 }}>PEP Schedule Date</div>
             <table>
               <thead>
                 <tr>
-                  <th style={{ width:'14%', textAlign:'left', paddingLeft:4 }}>Dose</th>
-                  <th style={{ width:'10%' }}>Generic Name</th>
-                  <th style={{ width:'13%' }}>Brand Name</th>
-                  <th style={{ width:'11%' }}>Batch No.</th>
-                  <th style={{ width:'17%' }}>Scheduled Date</th>
-                  <th style={{ width:'17%' }}>Date Given</th>
+                  <th style={{ width:'18%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'22%' }}>Schedule Date</th>
+                  <th style={{ width:'20%' }}>Date Given</th>
                   <th>Administered By</th>
                 </tr>
               </thead>
               <tbody>
-                {doseRows.map((d: any, i: number) => (
+                {pepRows.map((d: any, i: number) => (
                   <tr key={i} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
                     <td style={{ fontWeight:'bold', fontSize:'8pt', paddingLeft:4 }}>
-                      {d.dose_day.replace('D','D ')}
+                      {d.dose_day === 'D28' ? 'D 28/30' : d.dose_day.replace('D','D ')}
                     </td>
-                    <td style={{ fontSize:'7.5pt' }}>
-                      <Cb checked={d.vaccine_type==='PVRV'} /> PVRV<br/>
-                      <Cb checked={d.vaccine_type==='PCEC'} /> PCEC
+                    <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
+                    <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>
+                      {d.administered_date ? fullDate(d.administered_date) : '—'}
                     </td>
-                    <td style={{ fontSize:'7.5pt' }}>{d.brand_name||''}</td>
-                    <td style={{ fontSize:'7.5pt' }}>{d.batch_no||''}</td>
-                    <td style={{ fontSize:'7pt' }}>{doseDateMap[d.dose_day] ? fullDate(doseDateMap[d.dose_day]) : ''}</td>
+                    <td style={{ fontSize:'7pt' }}>
+                      {getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ padding:'2px 5px 4px' }}>
+            <div style={{ fontSize:'7.5pt', fontWeight:'bold', marginBottom:4 }}>PrEP Schedule Date</div>
+            <table>
+              <thead>
+                <tr>
+                  <th style={{ width:'18%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'22%' }}>Schedule Date</th>
+                  <th style={{ width:'20%' }}>Date Given</th>
+                  <th>Administered By</th>
+                </tr>
+              </thead>
+              <tbody>
+                {prepRows.map((d: any, i: number) => (
+                  <tr key={i} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
+                    <td style={{ fontWeight:'bold', fontSize:'8pt', paddingLeft:4 }}>
+                      {d.dose_day === 'D28' ? 'D 28/30' : d.dose_day.replace('D','D ')}
+                    </td>
+                    <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                     <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>
                       {d.administered_date ? fullDate(d.administered_date) : '—'}
                     </td>
@@ -395,6 +416,7 @@ export default function PrintPage() {
                   <Cb checked={incident.tetanus_type==='TT'} /> TT &nbsp;
                   <Cb checked={incident.tetanus_type==='TD'} /> TD &nbsp;
                   <Cb checked={incident.tetanus_type==='ATS'} /> ATS
+                  {incident.tetanus_units ? ` (${incident.tetanus_units})` : ''}
                 </td>
                 <td style={{ fontSize:'7.5pt' }}>{incident.tetanus_brand||''}</td>
                 <td style={{ fontSize:'7.5pt' }}>{incident.tetanus_batch||''}</td>

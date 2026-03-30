@@ -35,8 +35,9 @@ export default function NewIncidentPage() {
     ownership: '',
     pet_vaccine_date: '',
     circumstance: '',
+    dose_type: 'PEP',
     pep_doses_needed: 5,
-    d0_date: today, // Day 0 is always today (consultation date) by default, nurse can change
+    d0_date: '',
   });
 
   const set = (k: string, v: string | number) => setForm(prev => ({ ...prev, [k]: v }));
@@ -182,34 +183,30 @@ export default function NewIncidentPage() {
           </div>
 
           <div className="section-box">
-            <div className="section-box-title">PEP Doses Required</div>
-            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-              {[
-                { val:5, label:'5 doses — Standard PEP (D0, D3, D7, D14, D28)' },
-                { val:3, label:'3 doses — Reduced regimen (D0, D7, D21)' },
-                { val:2, label:'Booster only (D0, D3) — Patient previously completed 3-dose regimen within 5 years, animal confirmed healthy after 6–12 months' },
-              ].map(opt => (
-                <label key={opt.val} style={{ display:'flex', gap:10, padding:'10px 12px', borderRadius:'var(--radius-md)', border:'1.5px solid', cursor:'pointer', transition:'all .12s', borderColor: form.pep_doses_needed===opt.val ? 'var(--blue-500)' : 'var(--slate-200)', background: form.pep_doses_needed===opt.val ? 'var(--blue-50)' : 'white' }}>
-                  <input type="radio" name="pep_doses" value={opt.val} checked={form.pep_doses_needed===opt.val} onChange={() => set('pep_doses_needed', opt.val)} style={{ accentColor:'var(--blue-600)', marginTop:2, flexShrink:0 }} />
-                  <span style={{ fontSize:13 }}>{opt.label}</span>
-                </label>
-              ))}
-            </div>
-            {form.pep_doses_needed === 2 && (
-              <div className="alert alert-amber" style={{ marginTop:10, fontSize:12 }}>
-                <span>ℹ</span> Booster applies only if: (1) patient previously completed full 3-dose regimen, (2) more than 6 months have passed, and (3) the responsible animal is confirmed healthy/alive. Confirm with the attending physician.
-              </div>
-            )}
-          </div>
-
-          <div className="section-box">
-            <div className="section-box-title">Day 0 Date (Consultation / First Dose)</div>
+            <div className="section-box-title">Treatment Plan</div>
             <div className="form-group">
-              <label className="form-label">Day 0 Date <span style={{ fontWeight:400, color:'var(--slate-400)' }}>— other doses are auto-calculated from this date, but can be changed manually later</span></label>
-              <input className="form-input" type="date" value={form.d0_date}
-                onChange={e => set('d0_date', e.target.value)}
-                max={today}
-                style={{ maxWidth:220 }} />
+              <label className="form-label">PEP / PrEP Doses Required</label>
+              <select
+                className="form-select"
+                value={`${form.dose_type}:${form.pep_doses_needed}`}
+                onChange={e => {
+                  const [doseType, doseCount] = e.target.value.split(':');
+                  setForm(prev => ({
+                    ...prev,
+                    dose_type: doseType,
+                    pep_doses_needed: Number(doseCount),
+                  }));
+                }}
+                style={{ maxWidth: 420 }}
+              >
+                <option value="PEP:5">PEP - 5 doses (D0, D3, D7, D14, D28/30)</option>
+                <option value="PEP:3">PEP - 3 doses (D0, D7, D21)</option>
+                <option value="PrEP:4">PrEP - 4 doses (D0, D7, D14, D28/30)</option>
+                <option value="PEP:2">Booster - 2 doses (D0, D3)</option>
+              </select>
+              <div style={{ fontSize:12, color:'var(--slate-500)', marginTop:8 }}>
+                Schedule dates stay blank until the actual date given for D0 is recorded.
+              </div>
             </div>
           </div>
 

@@ -26,6 +26,7 @@ export default function IncidentEditPage() {
   const [toast, setToast] = useState('');
   const [nurses, setNurses] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<any[]>([]);
+  const [customSite, setCustomSite] = useState('');
 
   const [f, setF] = useState<Record<string, any>>({
     consult_date: '',
@@ -46,6 +47,7 @@ export default function IncidentEditPage() {
     tetanus_type: '',
     tetanus_brand: '',
     tetanus_batch: '',
+    tetanus_units: '',
     tetanus_admin_by: '',
     hiv: false,
     immunosuppressant: false,
@@ -62,6 +64,7 @@ export default function IncidentEditPage() {
     smoker: false,
     alcoholic: false,
     physician_notes: '',
+    dose_type: 'PEP',
     pep_doses_needed: 5,
     referring_doctor: '',
   });
@@ -80,6 +83,7 @@ export default function IncidentEditPage() {
     }
     if (patRes.status === 'ok') {
       const inc = patRes.data.incidents?.find((i: any) => i.incident_id === incident_id);
+      const incidentDoses = (patRes.data.doses || []).filter((d: any) => d.incident_id === incident_id);
       if (inc) {
         setF({
           wound_category: inc.wound_category || '',
@@ -99,6 +103,7 @@ export default function IncidentEditPage() {
           tetanus_type: inc.tetanus_type || '',
           tetanus_brand: inc.tetanus_brand || '',
           tetanus_batch: inc.tetanus_batch || '',
+          tetanus_units: inc.tetanus_units || '',
           tetanus_admin_by: inc.tetanus_admin_by || '',
           hiv: !!inc.hiv, immunosuppressant: !!inc.immunosuppressant,
           long_term_steroid: !!inc.long_term_steroid, chloroquine: !!inc.chloroquine,
@@ -111,6 +116,7 @@ export default function IncidentEditPage() {
           folk_remedy_details: inc.folk_remedy_details || '',
           smoker: !!inc.smoker, alcoholic: !!inc.alcoholic,
           physician_notes: inc.physician_notes || '',
+          dose_type: incidentDoses[0]?.dose_type || 'PEP',
           pep_doses_needed: inc.pep_doses_needed || 5,
           referring_doctor: inc.referring_doctor || '',
           consult_date: inc.consult_date || '',
@@ -127,6 +133,15 @@ export default function IncidentEditPage() {
     const idx = sites.indexOf(site);
     if (idx >= 0) sites.splice(idx, 1); else sites.push(site);
     set('anatomical_positions', sites);
+  }
+
+  function addCustomSite() {
+    const value = customSite.trim();
+    if (!value) return;
+    if (!f.anatomical_positions.includes(value)) {
+      set('anatomical_positions', [...f.anatomical_positions, value]);
+    }
+    setCustomSite('');
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -194,6 +209,10 @@ export default function IncidentEditPage() {
                         {f.anatomical_positions.includes(site) ? '✕ ' : ''}{site}
                       </button>
                     ))}
+                  </div>
+                  <div style={{ display:'flex', gap:8, marginTop:10 }}>
+                    <input className="form-input" type="text" value={customSite} onChange={e => setCustomSite(e.target.value)} placeholder="Custom / Others" />
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={addCustomSite}>Add</button>
                   </div>
                   {f.anatomical_positions.length > 0 && (
                     <div style={{ marginTop:8, fontSize:13, color:'var(--red-700)', fontWeight:500 }}>
@@ -317,6 +336,10 @@ export default function IncidentEditPage() {
                     </div>
                     <div style={{ marginTop:10, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                       <div className="form-group">
+                        <label className="form-label">Date Given</label>
+                        <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
+                      </div>
+                      <div className="form-group">
                         <label className="form-label">Brand</label>
                         <input className="form-input" type="text" value={f.tetanus_brand} onChange={e => set('tetanus_brand', e.target.value)} />
                       </div>
@@ -324,6 +347,12 @@ export default function IncidentEditPage() {
                         <label className="form-label">Batch No.</label>
                         <input className="form-input" type="text" value={f.tetanus_batch} onChange={e => set('tetanus_batch', e.target.value)} />
                       </div>
+                      {f.tetanus_type === 'ATS' && (
+                        <div className="form-group">
+                          <label className="form-label">ATS Units</label>
+                          <input className="form-input" type="text" value={f.tetanus_units} onChange={e => set('tetanus_units', e.target.value)} placeholder="e.g. 1500 IU" />
+                        </div>
+                      )}
                       <div className="form-group" style={{ gridColumn:'1 / -1' }}>
                         <label className="form-label">Administered By</label>
                         <select className="form-select" value={f.tetanus_admin_by} onChange={e => set('tetanus_admin_by', e.target.value)}>
@@ -443,21 +472,23 @@ export default function IncidentEditPage() {
               </div>
 
               <div>
-                <div className="form-label" style={{ marginBottom:8 }}>PEP Doses Required</div>
-                <div style={{ background:'var(--slate-50)', border:'1px solid var(--slate-200)', borderRadius:'var(--radius-md)', padding:'12px 14px' }}>
-                  <div className="checkbox-group" style={{ marginBottom:10 }}>
-                    <label className="checkbox-item">
-                      <input type="radio" name="pep_doses" value="5" checked={f.pep_doses_needed===5} onChange={() => set('pep_doses_needed', 5)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
-                      5 doses (D0, D3, D7, D14, D28)
-                    </label>
-                    <label className="checkbox-item" style={{ marginTop:6 }}>
-                      <input type="radio" name="pep_doses" value="3" checked={f.pep_doses_needed===3} onChange={() => set('pep_doses_needed', 3)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
-                      3 doses (D0, D7, D21) — reduced regimen
-                    </label>
-                  </div>
-                  <div style={{ fontSize:12, color:'var(--slate-500)', lineHeight:1.5 }}>
-                    If 3-dose regimen: D3, D14, D28 will be marked as optional (grayed, not required for completion).
-                  </div>
+                <div className="form-label" style={{ marginBottom:8 }}>PEP / PrEP Doses Required</div>
+                <select
+                  className="form-select"
+                  value={`${f.dose_type}:${f.pep_doses_needed}`}
+                  onChange={e => {
+                    const [doseType, doseCount] = e.target.value.split(':');
+                    set('dose_type', doseType);
+                    set('pep_doses_needed', Number(doseCount));
+                  }}
+                >
+                  <option value="PEP:5">PEP - 5 doses (D0, D3, D7, D14, D28/30)</option>
+                  <option value="PEP:3">PEP - 3 doses (D0, D7, D21)</option>
+                  <option value="PrEP:4">PrEP - 4 doses (D0, D7, D14, D28/30)</option>
+                  <option value="PEP:2">Booster - 2 doses (D0, D3)</option>
+                </select>
+                <div style={{ fontSize:12, color:'var(--slate-500)', lineHeight:1.5, marginTop:8 }}>
+                  Schedule dates stay blank until D0 is actually administered. Once D0 is given, the remaining schedule is auto-calculated.
                 </div>
               </div>
             </div>
