@@ -93,6 +93,8 @@ export const api = {
     gasGet('get_doses', (params || {}) as Record<string, string>),
   administerDose: (data: Record<string, unknown>) =>
     gasPost('administer_dose', data),
+  deleteDose: (data: Record<string, unknown>) =>
+    gasPost('delete_dose', data),
 
   // Init data (accounts + nurses in one call for performance)
   getInitData: () => gasGet('init_data'),

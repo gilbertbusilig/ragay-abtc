@@ -57,12 +57,12 @@ function BodyDiagram({ selected, onChange }: { selected: string[]; onChange?: (s
   );
 }
 
-function DoseTable({ doses, allUsers, incidentId, onAdminister, onDateChange, userRole }: {
+function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, userRole }: {
   doses: Dose[];
   allUsers: Record<string, User>;
-  incidentId: string;
   onAdminister: (dose: Dose) => void;
   onDateChange: (dose: Dose, newDate: string) => void;
+  onDeleteDose: (dose: Dose) => void;
   userRole: string;
 }) {
   const statusBadge = (s: string, optional: boolean) => {
@@ -76,6 +76,7 @@ function DoseTable({ doses, allUsers, incidentId, onAdminister, onDateChange, us
     return u ? `${u.full_name}${u.credential ? `, ${u.credential}` : ''}` : id;
   };
   const canEdit = userRole === 'nurse' || userRole === 'admin';
+  const canDelete = userRole === 'admin';
 
   return (
     <div className="table-wrap">
@@ -118,11 +119,18 @@ function DoseTable({ doses, allUsers, incidentId, onAdminister, onDateChange, us
               <td style={{ fontSize:12 }}>{d.administered_date ? toMMDDYYYY(d.administered_date) : '—'}</td>
               {canEdit && (
                 <td>
-                  {d.status !== 'done' && (
-                    <button className="btn btn-primary btn-sm" onClick={() => onAdminister(d)}>
-                      Give Dose
-                    </button>
-                  )}
+                  <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
+                    {d.status !== 'done' && (
+                      <button className="btn btn-primary btn-sm" onClick={() => onAdminister(d)}>
+                        Give Dose
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button className="btn btn-danger btn-sm" onClick={() => onDeleteDose(d)}>
+                        Delete
+                      </button>
+                    )}
+                  </div>
                 </td>
               )}
             </tr>
@@ -154,7 +162,7 @@ export default function PatientDetailPage() {
   const [doseForm, setDoseForm] = useState({ vaccine_type: 'PVRV', brand_name: '', batch_no: '', administered_date: '' });
   const [petOutcomeModal, setPetOutcomeModal] = useState<PetMonitor | null>(null);
   const [petOutcome, setPetOutcome] = useState<'healthy' | 'perished'>('healthy');
-  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'patient' | 'incident'; id: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'patient' | 'incident' | 'dose'; id: string; dose?: Dose } | null>(null);
   const [editPatientOpen, setEditPatientOpen] = useState(false);
   const [editPatientForm, setEditPatientForm] = useState({ weight:'', contact_no:'', address:'' });
   const [saving, setSaving] = useState(false);
@@ -293,6 +301,22 @@ export default function PatientDetailPage() {
     if (deleteConfirm.type === 'patient') {
       res = await api.deletePatient(patient_id);
       if (res?.status === 'ok') { router.push('/patients'); return; }
+    } else if (deleteConfirm.type === 'dose' && deleteConfirm.dose) {
+      res = await api.deleteDose({
+        dose_id: deleteConfirm.dose.dose_id || '',
+        incident_id: deleteConfirm.dose.incident_id,
+        patient_id: deleteConfirm.dose.patient_id,
+        dose_day: deleteConfirm.dose.dose_day,
+      });
+      if (res?.status === 'ok') {
+        setDoses(prev => prev.filter(d =>
+          !(
+            (deleteConfirm.dose?.dose_id && d.dose_id === deleteConfirm.dose.dose_id) ||
+            (d.incident_id === deleteConfirm.dose?.incident_id && d.dose_day === deleteConfirm.dose?.dose_day)
+          )
+        ));
+        showToast('Dose deleted');
+      }
     } else {
       res = await api.deleteIncident(deleteConfirm.id);
       if (res?.status === 'ok') { showToast('Incident deleted'); load(); }
@@ -523,12 +547,12 @@ export default function PatientDetailPage() {
                 <DoseTable
                   doses={incidentDoses}
                   allUsers={allUsers}
-                  incidentId={activeIncident.incident_id}
                   onAdminister={d => {
                     setAdminModal(d);
                     setDoseForm({ vaccine_type:'PVRV', brand_name:'', batch_no:'', administered_date: getLocalISODate() });
                   }}
                   onDateChange={handleDoseDateChange}
+                  onDeleteDose={d => setDeleteConfirm({ type:'dose', id:d.dose_id || `${d.incident_id}:${d.dose_day}`, dose:d })}
                   userRole={user?.role || ''}
                 />
               </div>
@@ -686,6 +710,8 @@ export default function PatientDetailPage() {
               <p style={{ fontSize:14, color:'var(--slate-700)' }}>
                 {deleteConfirm.type === 'patient'
                   ? 'Delete this patient and ALL their incidents, doses, and records? This cannot be undone.'
+                  : deleteConfirm.type === 'dose'
+                  ? `Delete vaccine schedule entry ${deleteConfirm.dose?.dose_day || ''}? This cannot be undone.`
                   : 'Delete this incident and all related dose schedules? This cannot be undone.'}
               </p>
             </div>
