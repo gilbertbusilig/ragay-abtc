@@ -133,15 +133,14 @@ export interface DashboardData {
   monthly: number[];
   due_today: number;
   due_this_week: number;
-  recent_activity: ActivityLog[];
+  due_overdue_patients: DueOverduePatient[];
   pet_monitors_active: number;
 }
 
-export interface ActivityLog {
-  log_id: string;
-  timestamp: string;
-  user_id: string;
-  action: string;
-  target_id: string;
-  details: string;
+export interface DueOverduePatient {
+  patient_id: string;
+  full_name: string;
+  status: 'due' | 'overdue';
+  due_date: string;
+  dose_day: string;
 }
