@@ -133,8 +133,18 @@ export interface DashboardData {
   monthly: number[];
   due_today: number;
   due_this_week: number;
+  demographics_records: DemographicsRecord[];
   due_overdue_patients: DueOverduePatient[];
   pet_monitors_active: number;
+}
+
+export interface DemographicsRecord {
+  patient_id: string;
+  age_group: 'under15' | '15' | 'over15';
+  sex: 'male' | 'female' | 'unknown';
+  animal_type: 'dog' | 'cat' | 'bat' | 'other';
+  category: 'I' | 'II' | 'III' | '';
+  erig_hrig: 'ERIG' | 'HRIG' | '';
 }
 
 export interface DueOverduePatient {

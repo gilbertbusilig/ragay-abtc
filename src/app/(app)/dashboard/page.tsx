@@ -6,6 +6,12 @@ import { DashboardData } from '@/types';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+type AgeFilter = 'all' | 'under15' | '15' | 'over15';
+type SexFilter = 'all' | 'male' | 'female';
+type AnimalFilter = 'all' | 'dog' | 'cat' | 'bat' | 'other';
+type CategoryFilter = 'all' | 'I' | 'II' | 'III';
+type RigFilter = 'all' | 'ERIG' | 'HRIG';
+
 function formatSheetDate(value?: string) {
   if (!value) return '-';
   const [year, month, day] = value.split('-').map(Number);
@@ -41,48 +47,18 @@ function BarChart({ data, labels }: { data: number[]; labels: string[] }) {
   );
 }
 
-function DonutChart({ segments, labels, colors }: { segments: number[]; labels: string[]; colors: string[] }) {
-  const total = segments.reduce((a, b) => a + b, 0) || 1;
-  let cumulative = 0;
-  const r = 36;
-  const circ = 2 * Math.PI * r;
-  const sw = 13;
-
+function SummaryList({ title, items }: { title: string; items: Array<{ label: string; value: number; color: string }> }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-      <svg width="88" height="88" viewBox="0 0 88 88" style={{ flexShrink: 0 }}>
-        <circle cx="44" cy="44" r={r} fill="none" stroke="var(--slate-100)" strokeWidth={sw} />
-        {segments.map((seg, i) => {
-          const pct = seg / total;
-          const offset = circ * (1 - cumulative);
-          const dash = circ * pct;
-          cumulative += pct;
-          return (
-            <circle
-              key={i}
-              cx="44"
-              cy="44"
-              r={r}
-              fill="none"
-              stroke={colors[i]}
-              strokeWidth={sw}
-              strokeDasharray={`${dash} ${circ - dash}`}
-              strokeDashoffset={offset}
-              style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%', transition: 'stroke-dasharray .4s' }}
-            />
-          );
-        })}
-        <text x="44" y="48" textAnchor="middle" fontSize="13" fontWeight="700" fill="var(--slate-700)">
-          {total}
-        </text>
-      </svg>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-        {segments.map((seg, i) => (
-          <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 12 }}>
-            <div style={{ width: 9, height: 9, borderRadius: 2, background: colors[i], flexShrink: 0 }} />
-            <span style={{ color: 'var(--slate-600)' }}>{labels[i]}</span>
-            <span style={{ fontWeight: 700, color: 'var(--slate-800)' }}>{seg}</span>
-            <span style={{ color: 'var(--slate-400)', fontSize: 11 }}>({Math.round((seg / total) * 100)}%)</span>
+    <div>
+      <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 8 }}>{title}</div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {items.map(item => (
+          <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <div style={{ width: 10, height: 10, borderRadius: 999, background: item.color }} />
+              <span style={{ color: 'var(--slate-600)' }}>{item.label}</span>
+            </div>
+            <strong style={{ color: 'var(--slate-800)' }}>{item.value}</strong>
           </div>
         ))}
       </div>
@@ -90,15 +66,15 @@ function DonutChart({ segments, labels, colors }: { segments: number[]; labels: 
   );
 }
 
-type AgeFilter = 'all' | 'under15' | '15' | 'over15';
-type SexFilter = 'all' | 'male' | 'female';
-
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
   const [sexFilter, setSexFilter] = useState<SexFilter>('all');
+  const [animalFilter, setAnimalFilter] = useState<AnimalFilter>('all');
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
+  const [rigFilter, setRigFilter] = useState<RigFilter>('all');
 
   useEffect(() => {
     load();
@@ -136,26 +112,14 @@ export default function DashboardPage() {
     day: 'numeric',
   });
 
-  const ageCounts: Record<Exclude<AgeFilter, 'all'>, number> = {
-    under15: data.age_lt15,
-    '15': data.age_15,
-    over15: data.age_gt15,
-  };
-
-  const sexCounts: Record<Exclude<SexFilter, 'all'>, number> = {
-    male: data.male_count,
-    female: data.female_count,
-  };
-
-  const filteredCount = (() => {
-    const total = data.total_patients || 0;
-    const ageCount = ageFilter === 'all' ? total : ageCounts[ageFilter];
-    const sexCount = sexFilter === 'all' ? total : sexCounts[sexFilter];
-    if (ageFilter === 'all' && sexFilter === 'all') return total;
-    if (ageFilter === 'all') return sexCount;
-    if (sexFilter === 'all') return ageCount;
-    return Math.min(ageCount, sexCount);
-  })();
+  const filteredRecords = (data.demographics_records || []).filter(record => {
+    if (ageFilter !== 'all' && record.age_group !== ageFilter) return false;
+    if (sexFilter !== 'all' && record.sex !== sexFilter) return false;
+    if (animalFilter !== 'all' && record.animal_type !== animalFilter) return false;
+    if (categoryFilter !== 'all' && record.category !== categoryFilter) return false;
+    if (rigFilter !== 'all' && record.erig_hrig !== rigFilter) return false;
+    return true;
+  });
 
   return (
     <div>
@@ -192,57 +156,27 @@ export default function DashboardPage() {
 
         <div className="stat-grid" style={{ marginBottom: 16 }}>
           {[
-            { val: data.total_patients, label: 'Total Patients', icon: 'People', cls: '' },
-            { val: data.active_treatment, label: 'Active Treatment', icon: 'ABTC', cls: 'amber' },
-            { val: data.completed, label: 'Completed', icon: 'Done', cls: 'green' },
-            { val: data.overdue_doses, label: 'Overdue Doses', icon: 'Alert', cls: 'red' },
-            { val: data.erig_count, label: 'ERIG Given', icon: 'ERIG', cls: '' },
-            { val: data.hrig_count, label: 'HRIG Given', icon: 'HRIG', cls: '' },
-            { val: data.due_today, label: 'Due Today', icon: 'Today', cls: '' },
-            { val: data.pet_monitors_active, label: 'Pet Monitors', icon: 'Monitor', cls: '' },
+            { val: data.total_patients, label: 'Total Patients', cls: '' },
+            { val: data.active_treatment, label: 'Active Treatment', cls: 'amber' },
+            { val: data.completed, label: 'Completed', cls: 'green' },
+            { val: data.overdue_doses, label: 'Overdue Doses', cls: 'red' },
+            { val: data.due_today, label: 'Due Today', cls: '' },
+            { val: data.pet_monitors_active, label: 'Pet Monitors', cls: '' },
           ].map(s => (
             <div key={s.label} className={`stat-card ${s.cls}`}>
               <div className="stat-value">{s.val}</div>
               <div className="stat-label">{s.label}</div>
-              <div className="stat-icon">{s.icon}</div>
             </div>
           ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 14, marginBottom: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr', gap: 14, marginBottom: 14 }}>
           <div className="card">
             <div className="card-header">
               <span className="card-title">Monthly Cases - {year}</span>
             </div>
             <div className="card-body">
               <BarChart data={data.monthly} labels={MONTHS} />
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Animal Type</span>
-            </div>
-            <div className="card-body">
-              <DonutChart
-                segments={[data.animal_counts.dog, data.animal_counts.cat, data.animal_counts.bat, data.animal_counts.other]}
-                labels={['Dog', 'Cat', 'Bat', 'Other']}
-                colors={['#2563eb', '#7c3aed', '#db2777', '#d97706']}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: 14, marginBottom: 14 }}>
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">Exposure Category</span>
-            </div>
-            <div className="card-body">
-              <DonutChart
-                segments={[data.cat1, data.cat2, data.cat3]}
-                labels={['Category I', 'Category II', 'Category III']}
-                colors={['#22c55e', '#f59e0b', '#ef4444']}
-              />
             </div>
           </div>
 
@@ -252,48 +186,53 @@ export default function DashboardPage() {
             </div>
             <div className="card-body">
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 8 }}>Age Groups</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {[
-                      ['Under 15', data.age_lt15, '#a78bfa'],
-                      ['15 yrs', data.age_15, '#2563eb'],
-                      ['Over 15', data.age_gt15, '#1d4ed8'],
-                    ].map(([label, count, color]) => (
-                      <div key={String(label)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 999, background: String(color) }} />
-                          <span style={{ color: 'var(--slate-600)' }}>{label}</span>
-                        </div>
-                        <strong style={{ color: 'var(--slate-800)' }}>{count}</strong>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 8 }}>Sex</div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {[
-                      ['Male', data.male_count, '#2563eb'],
-                      ['Female', data.female_count, '#ec4899'],
-                    ].map(([label, count, color]) => (
-                      <div key={String(label)} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 13 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                          <div style={{ width: 10, height: 10, borderRadius: 999, background: String(color) }} />
-                          <span style={{ color: 'var(--slate-600)' }}>{label}</span>
-                        </div>
-                        <strong style={{ color: 'var(--slate-800)' }}>{count}</strong>
-                      </div>
-                    ))}
-                  </div>
+                <SummaryList
+                  title="Age Groups"
+                  items={[
+                    { label: 'Under 15', value: data.age_lt15, color: '#a78bfa' },
+                    { label: '15 yrs', value: data.age_15, color: '#2563eb' },
+                    { label: 'Over 15', value: data.age_gt15, color: '#1d4ed8' },
+                  ]}
+                />
+                <SummaryList
+                  title="Sex"
+                  items={[
+                    { label: 'Male', value: data.male_count, color: '#2563eb' },
+                    { label: 'Female', value: data.female_count, color: '#ec4899' },
+                  ]}
+                />
+                <SummaryList
+                  title="Animal Type"
+                  items={[
+                    { label: 'Dog', value: data.animal_counts.dog, color: '#2563eb' },
+                    { label: 'Cat', value: data.animal_counts.cat, color: '#7c3aed' },
+                    { label: 'Bat', value: data.animal_counts.bat, color: '#db2777' },
+                    { label: 'Other', value: data.animal_counts.other, color: '#d97706' },
+                  ]}
+                />
+                <SummaryList
+                  title="Exposure Category"
+                  items={[
+                    { label: 'Category I', value: data.cat1, color: '#22c55e' },
+                    { label: 'Category II', value: data.cat2, color: '#f59e0b' },
+                    { label: 'Category III', value: data.cat3, color: '#ef4444' },
+                  ]}
+                />
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <SummaryList
+                    title="ERIG / HRIG"
+                    items={[
+                      { label: 'ERIG', value: data.erig_count, color: '#2563eb' },
+                      { label: 'HRIG', value: data.hrig_count, color: '#7c3aed' },
+                    ]}
+                  />
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginTop: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginTop: 16 }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
-                    Age Group Filter
+                    Age Group
                   </label>
                   <select className="form-select" value={ageFilter} onChange={e => setAgeFilter(e.target.value as AgeFilter)}>
                     <option value="all">All Ages</option>
@@ -302,10 +241,9 @@ export default function DashboardPage() {
                     <option value="over15">Over 15</option>
                   </select>
                 </div>
-
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
-                    Sex Filter
+                    Sex
                   </label>
                   <select className="form-select" value={sexFilter} onChange={e => setSexFilter(e.target.value as SexFilter)}>
                     <option value="all">All Sex</option>
@@ -313,45 +251,45 @@ export default function DashboardPage() {
                     <option value="female">Female</option>
                   </select>
                 </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
+                    Animal Type
+                  </label>
+                  <select className="form-select" value={animalFilter} onChange={e => setAnimalFilter(e.target.value as AnimalFilter)}>
+                    <option value="all">All Animals</option>
+                    <option value="dog">Dog</option>
+                    <option value="cat">Cat</option>
+                    <option value="bat">Bat</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
+                    Category
+                  </label>
+                  <select className="form-select" value={categoryFilter} onChange={e => setCategoryFilter(e.target.value as CategoryFilter)}>
+                    <option value="all">All Categories</option>
+                    <option value="I">Category I</option>
+                    <option value="II">Category II</option>
+                    <option value="III">Category III</option>
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
+                    ERIG / HRIG
+                  </label>
+                  <select className="form-select" value={rigFilter} onChange={e => setRigFilter(e.target.value as RigFilter)}>
+                    <option value="all">All RIG</option>
+                    <option value="ERIG">ERIG</option>
+                    <option value="HRIG">HRIG</option>
+                  </select>
+                </div>
               </div>
 
               <div style={{ marginTop: 14, padding: '12px 14px', border: '1px solid var(--slate-200)', borderRadius: 12, background: 'var(--slate-50)' }}>
-                <div style={{ fontSize: 12, color: 'var(--slate-500)' }}>Filtered patient count</div>
-                <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--slate-800)', lineHeight: 1.1 }}>{filteredCount}</div>
+                <div style={{ fontSize: 12, color: 'var(--slate-500)' }}>Filtered incident count</div>
+                <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--slate-800)', lineHeight: 1.1 }}>{filteredRecords.length}</div>
               </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <div className="card-header">
-              <span className="card-title">ERIG / HRIG</span>
-            </div>
-            <div className="card-body">
-              {[
-                { label: 'ERIG (Equine)', count: data.erig_count, color: '#2563eb' },
-                { label: 'HRIG (Human)', count: data.hrig_count, color: '#7c3aed' },
-              ].map(item => {
-                const total = data.erig_count + data.hrig_count || 1;
-                return (
-                  <div key={item.label} style={{ marginBottom: 14 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 5 }}>
-                      <span style={{ color: 'var(--slate-600)' }}>{item.label}</span>
-                      <span style={{ fontWeight: 700 }}>{item.count}</span>
-                    </div>
-                    <div style={{ background: 'var(--slate-100)', borderRadius: 4, height: 8 }}>
-                      <div
-                        style={{
-                          width: `${(item.count / total) * 100}%`,
-                          background: item.color,
-                          height: '100%',
-                          borderRadius: 4,
-                          transition: 'width .4s',
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
             </div>
           </div>
         </div>
@@ -364,7 +302,6 @@ export default function DashboardPage() {
           <div className="table-wrap">
             {!data.due_overdue_patients || data.due_overdue_patients.length === 0 ? (
               <div className="empty-state" style={{ padding: 36 }}>
-                <div className="empty-icon">Today</div>
                 <div className="empty-text">No due or overdue patients</div>
                 <div className="empty-sub">Upcoming vaccination follow-ups will appear here</div>
               </div>
@@ -405,9 +342,7 @@ export default function DashboardPage() {
                       </td>
                       <td style={{ fontSize: 13, fontWeight: 600, color: 'var(--slate-700)' }}>{patient.full_name || '-'}</td>
                       <td style={{ fontSize: 12, color: 'var(--slate-600)' }}>{patient.dose_day || '-'}</td>
-                      <td style={{ fontSize: 12, color: 'var(--slate-500)' }}>
-                        {formatSheetDate(patient.due_date)}
-                      </td>
+                      <td style={{ fontSize: 12, color: 'var(--slate-500)' }}>{formatSheetDate(patient.due_date)}</td>
                     </tr>
                   ))}
                 </tbody>
