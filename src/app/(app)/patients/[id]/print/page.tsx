@@ -126,8 +126,8 @@ export default function PrintPage() {
         @media print { .screen-controls { display: none !important; } .print-btn { display: none; } }
       `}</style>
 
-      <div className="screen-controls" style={{ position:'fixed', top:16, left:16, right:16, display:'flex', justifyContent:'space-between', alignItems:'center', zIndex:1000 }}>
-        <button className="print-btn" onClick={() => router.back()} style={{ position:'static', background:'#475569', boxShadow:'0 4px 12px rgba(71,85,105,.28)', padding:'8px 16px' }}>← Back</button>
+      <div className="screen-controls" style={{ position:'fixed', top:16, left:240, right:16, display:'flex', justifyContent:'space-between', alignItems:'center', zIndex:1000 }}>
+        <button className="print-btn" onClick={() => router.back()} style={{ position:'static', background:'#1d4ed8', boxShadow:'0 4px 12px rgba(29,78,216,.4)', padding:'8px 16px' }}>← Back</button>
         <button className="print-btn" onClick={() => window.print()} style={{ position:'static', boxShadow:'0 4px 12px rgba(29,78,216,.4)' }}>🖨 Print</button>
       </div>
 
