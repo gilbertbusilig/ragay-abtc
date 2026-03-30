@@ -63,6 +63,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData|null>(null);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [demoFilter, setDemoFilter] = useState<'sex' | 'age'>('sex');
 
   useEffect(() => { load(); }, [year]);
 
@@ -133,7 +134,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Charts row 1 */}
-        <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gap:14, marginBottom:14 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr', gap:14, marginBottom:14 }}>
           <div className="card">
             <div className="card-header"><span className="card-title">Monthly Cases — {year}</span></div>
             <div className="card-body"><BarChart data={data.monthly} labels={MONTHS}/></div>
@@ -145,15 +146,6 @@ export default function DashboardPage() {
                 segments={[data.animal_counts.dog,data.animal_counts.cat,data.animal_counts.bat,data.animal_counts.other]}
                 labels={['Dog','Cat','Bat','Other']}
                 colors={['#2563eb','#7c3aed','#db2777','#d97706']}/>
-            </div>
-          </div>
-          <div className="card">
-            <div className="card-header"><span className="card-title">Sex</span></div>
-            <div className="card-body">
-              <DonutChart
-                segments={[data.male_count,data.female_count]}
-                labels={['Male','Female']}
-                colors={['#2563eb','#ec4899']}/>
             </div>
           </div>
         </div>
@@ -170,12 +162,25 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="card">
-            <div className="card-header"><span className="card-title">Age Groups</span></div>
+            <div className="card-header">
+              <span className="card-title">Patient Demographics</span>
+              <select className="form-select" style={{ width:110 }} value={demoFilter} onChange={e => setDemoFilter(e.target.value as 'sex' | 'age')}>
+                <option value="sex">Sex</option>
+                <option value="age">Age Groups</option>
+              </select>
+            </div>
             <div className="card-body">
-              <DonutChart
-                segments={[data.age_lt15,data.age_15,data.age_gt15]}
-                labels={['Under 15','15 yrs','Over 15']}
-                colors={['#a78bfa','#2563eb','#1d4ed8']}/>
+              {demoFilter === 'sex' ? (
+                <DonutChart
+                  segments={[data.male_count,data.female_count]}
+                  labels={['Male','Female']}
+                  colors={['#2563eb','#ec4899']}/>
+              ) : (
+                <DonutChart
+                  segments={[data.age_lt15,data.age_15,data.age_gt15]}
+                  labels={['Under 15','15 yrs','Over 15']}
+                  colors={['#a78bfa','#2563eb','#1d4ed8']}/>
+              )}
             </div>
           </div>
           <div className="card">
