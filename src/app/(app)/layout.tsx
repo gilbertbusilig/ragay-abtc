@@ -17,12 +17,14 @@ const NAV = [
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { user, activeNurse, nurses, setActiveNurse, logout } = useAuth();
+  const { user, activeNurse, nurses, setActiveNurse, logout, initialized } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => { if (!user) router.replace('/'); }, [user]);
-  if (!user) return null;
+  useEffect(() => {
+    if (initialized && !user) router.replace('/');
+  }, [initialized, user, router]);
+  if (!initialized || !user) return null;
 
   const displayUser = user.role === 'nurse' && activeNurse ? activeNurse : user;
   const initials = displayUser.full_name.split(' ').map((w: string) => w[0]).join('').slice(0, 2).toUpperCase() || '??';

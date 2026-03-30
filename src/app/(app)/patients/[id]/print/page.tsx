@@ -1,9 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 
 export default function PrintPage() {
+  const router = useRouter();
+  const { activeNurse } = useAuth();
   const params = useParams();
   const patient_id = params.id as string;
   const [data, setData] = useState<any>(null);
@@ -69,7 +72,7 @@ export default function PrintPage() {
   const pepRows = pepDoseDays.map(day => pepDoses.find((d: any) => d.dose_day === day) || { dose_day: day, vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'', scheduled_date:'' });
   const prepRows = prepDoseDays.map(day => prepDoses.find((d: any) => d.dose_day === day) || { dose_day: day, vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'', scheduled_date:'' });
 
-  const nurseId = incDoses.find((d: any) => d.administered_by)?.administered_by || '';
+  const nurseId = activeNurse?.user_id || incDoses.find((d: any) => d.administered_by)?.administered_by || '';
   const doctorId = incident.referring_doctor || '';
 
   // Percentage positions [left%, top%] on the anatomical image (front left half, back right half)
@@ -123,7 +126,10 @@ export default function PrintPage() {
         @media print { .print-btn { display: none; } }
       `}</style>
 
-      <button className="print-btn" onClick={() => window.print()}>🖨 Print</button>
+      <div style={{ position:'fixed', top:16, right:16, display:'flex', gap:8, zIndex:999 }} className="print-btn-wrap">
+        <button className="print-btn" onClick={() => router.back()} style={{ background:'#475569' }}>← Back</button>
+        <button className="print-btn" onClick={() => window.print()}>🖨 Print</button>
+      </div>
 
       {/* ===== PAGE 1 ===== */}
       <div className="page">
@@ -208,25 +214,6 @@ export default function PrintPage() {
                 <div style={{ position:'relative', display:'inline-block', width:'100%', background:'#fff' }}>
                   <img src="/logos/anatomical.png" alt="Anatomical Position"
                     style={{ width:'100%', maxHeight:160, objectFit:'contain', display:'block', background:'#fff' }} />
-                  {/* Overlay red markers for marked sites using percentage positions */}
-                  <div style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', pointerEvents:'none' }}>
-                    {anatomicalSites.map(site => {
-                      const coords = BODY_SITE_COORDS[site];
-                      if (!coords) return null;
-                      return (
-                        <div key={site} style={{
-                          position:'absolute',
-                          left: `${coords[0]}%`,
-                          top: `${coords[1]}%`,
-                          width:12, height:12,
-                          borderRadius:'50%',
-                          background:'#dc2626',
-                          border:'2px solid #991b1b',
-                          transform:'translate(-50%,-50%)',
-                        }}/>
-                      );
-                    })}
-                  </div>
                 </div>
                 <div style={{ fontSize:'7.5pt', marginTop:3 }}>
                   <strong>Marked:</strong> {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
@@ -330,6 +317,8 @@ export default function PrintPage() {
               <thead>
                 <tr>
                   <th style={{ width:'18%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'9%' }}>PVRV</th>
+                  <th style={{ width:'9%' }}>PCEC</th>
                   <th style={{ width:'22%' }}>Schedule Date</th>
                   <th style={{ width:'20%' }}>Date Given</th>
                   <th>Administered By</th>
@@ -341,6 +330,8 @@ export default function PrintPage() {
                     <td style={{ fontWeight:'bold', fontSize:'8pt', paddingLeft:4 }}>
                       {d.dose_day === 'D28' ? 'D 28/30' : d.dose_day.replace('D','D ')}
                     </td>
+                    <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
+                    <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                     <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                     <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>
                       {d.administered_date ? fullDate(d.administered_date) : '—'}
@@ -360,6 +351,8 @@ export default function PrintPage() {
               <thead>
                 <tr>
                   <th style={{ width:'18%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'9%' }}>PVRV</th>
+                  <th style={{ width:'9%' }}>PCEC</th>
                   <th style={{ width:'22%' }}>Schedule Date</th>
                   <th style={{ width:'20%' }}>Date Given</th>
                   <th>Administered By</th>
@@ -371,6 +364,8 @@ export default function PrintPage() {
                     <td style={{ fontWeight:'bold', fontSize:'8pt', paddingLeft:4 }}>
                       {d.dose_day === 'D28' ? 'D 28/30' : d.dose_day.replace('D','D ')}
                     </td>
+                    <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
+                    <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                     <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                     <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>
                       {d.administered_date ? fullDate(d.administered_date) : '—'}
@@ -436,19 +431,21 @@ export default function PrintPage() {
         <div className="sig-row">
           <div className="sig-block">
             <div style={{ minHeight:28 }} />
-            <div className="sig-line">
+            <div>
               <strong>{getUserName(nurseId) || '________________________________'}</strong>
               {getUserCred(nurseId) ? `, ${getUserCred(nurseId)}` : ''}<br/>
-              <span style={{ fontSize:'7.5pt' }}>Lic. No.: {getUserLic(nurseId) || '_______________'}</span><br/>
+              <span style={{ fontSize:'7.5pt' }}>Lic. No.: {getUserLic(nurseId) || '_______________'}</span>
+              <div className="sig-line" />
               <strong style={{ fontSize:'8pt' }}>ABTC NURSE</strong>
             </div>
           </div>
           <div className="sig-block">
             <div style={{ minHeight:28 }} />
-            <div className="sig-line">
+            <div>
               <strong>{getUserName(doctorId) || '________________________________'}</strong>
               {getUserCred(doctorId) ? `, ${getUserCred(doctorId)}` : ''}<br/>
-              <span style={{ fontSize:'7.5pt' }}>Lic. No.: {getUserLic(doctorId) || '_______________'}</span><br/>
+              <span style={{ fontSize:'7.5pt' }}>Lic. No.: {getUserLic(doctorId) || '_______________'}</span>
+              <div className="sig-line" />
               <strong style={{ fontSize:'8pt' }}>ABTC PHYSICIAN</strong>
             </div>
           </div>

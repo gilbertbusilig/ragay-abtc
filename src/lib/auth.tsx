@@ -9,6 +9,7 @@ interface AuthCtx {
   user: User | null;
   activeNurse: User | null;
   token: string | null;
+  initialized: boolean;
   login: (username: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   logout: () => void;
   setActiveNurse: (nurse: User) => void;
@@ -23,18 +24,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [activeNurse, setActiveNurse] = useState<User | null>(null);
   const [nurses, setNurses] = useState<User[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem('abtc_session');
       if (saved) {
-        const { user: u, token: t } = JSON.parse(saved);
+        const { user: u, token: t, activeNurse: savedActiveNurse } = JSON.parse(saved);
         setUser(u);
         setToken(t);
+        if (savedActiveNurse) setActiveNurse(savedActiveNurse);
         if (u?.role === 'nurse') loadNurses();
       }
     } catch {}
+    setInitialized(true);
   }, []);
+
+  function persistSession(nextUser: User | null, nextToken: string | null, nextActiveNurse: User | null) {
+    try {
+      if (!nextUser || !nextToken) {
+        localStorage.removeItem('abtc_session');
+        return;
+      }
+      localStorage.setItem('abtc_session', JSON.stringify({
+        user: nextUser,
+        token: nextToken,
+        activeNurse: nextActiveNurse,
+      }));
+    } catch {}
+  }
 
   async function login(username: string, password: string): Promise<{ ok: boolean; error?: string }> {
     try {
@@ -44,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const t = res.data.token;
         setUser(u);
         setToken(t);
-        localStorage.setItem('abtc_session', JSON.stringify({ user: u, token: t }));
+        persistSession(u, t, null);
         if (u.role === 'nurse') {
           await loadNurses();
         }
@@ -60,7 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setToken(null);
     setActiveNurse(null);
-    try { localStorage.removeItem('abtc_session'); } catch {}
+    persistSession(null, null, null);
+  }
+
+  function handleSetActiveNurse(nurse: User) {
+    setActiveNurse(nurse);
+    persistSession(user, token, nurse);
   }
 
   async function loadNurses() {
@@ -80,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, activeNurse, token, login, logout, setActiveNurse, nurses, loadNurses }}>
+    <AuthContext.Provider value={{ user, activeNurse, token, initialized, login, logout, setActiveNurse: handleSetActiveNurse, nurses, loadNurses }}>
       {children}
     </AuthContext.Provider>
   );
