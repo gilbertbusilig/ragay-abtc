@@ -19,6 +19,7 @@ export interface Patient {
   sex: 'M' | 'F' | '';
   age: number | string;
   weight: number | string;
+  height: number | string;
   contact_no: string;
   created_at: string;
   created_by: string;
