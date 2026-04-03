@@ -147,7 +147,7 @@ export default function PrintPage() {
         </div>
 
         <div style={{ display:'flex', justifyContent:'space-between', marginBottom:5 }}>
-          <span><span className="lbl">Date of Consultation:</span> <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:160, paddingRight:8 }}>{fullDate(incident.consult_date) || fullDate(new Date().toISOString())}</span></span>
+          <span><span className="lbl">Date of Consultation:</span> <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:160, paddingRight:8 }}>{fullDate(incident.consult_date) || fullDate((() => { const n = new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })())}</span></span>
           <span><span className="lbl">Patient ID No.:</span> <span style={{ fontFamily:'monospace', fontWeight:900, fontSize:'9pt', borderBottom:'1px solid #333', display:'inline-block', minWidth:100 }}>{patient.patient_id}</span></span>
         </div>
 
