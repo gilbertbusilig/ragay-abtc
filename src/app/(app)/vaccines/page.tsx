@@ -12,12 +12,20 @@ function fmtDate(d: string) {
   return `${m}/${dd}/${y}`;
 }
 
+function getLocalISODate() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 export default function VaccineSchedulePage() {
   const router = useRouter();
   const [doses, setDoses] = useState<(Dose & { patient_name?: string })[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalISODate();
 
   useEffect(() => { load(); }, []);
 
@@ -39,7 +47,8 @@ export default function VaccineSchedulePage() {
     if (filter === 'due_today') return d.scheduled_date === today && d.status === 'scheduled';
     if (filter === 'due_week') {
       const wk = new Date(); wk.setDate(wk.getDate() + 7);
-      return d.scheduled_date >= today && d.scheduled_date <= wk.toISOString().split('T')[0] && d.status === 'scheduled';
+      const wkStr = (() => { const y = wk.getFullYear(); const m = String(wk.getMonth()+1).padStart(2,'0'); const d = String(wk.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; })();
+      return d.scheduled_date >= today && d.scheduled_date <= wkStr && d.status === 'scheduled';
     }
     if (filter === 'overdue') return d.status === 'overdue';
     if (filter === 'done') return d.status === 'done';
