@@ -97,7 +97,12 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
             <tr key={d.dose_id || d.dose_day} style={{ opacity: d.is_optional && d.status === 'scheduled' ? .55 : 1 }}>
               <td><span style={{ fontWeight:700, color:'var(--blue-700)', fontSize:13 }}>{d.dose_day}</span></td>
               <td>
-                {canEdit && d.status !== 'done' ? (
+                {/* D0 scheduled date is auto-set to the administered date — never editable */}
+                {d.dose_day === 'D0' ? (
+                  <span style={{ fontSize:12, color: d.status === 'done' ? 'inherit' : 'var(--slate-400)' }}>
+                    {d.status === 'done' && d.scheduled_date ? toMMDDYYYY(d.scheduled_date) : '—'}
+                  </span>
+                ) : canEdit && d.status !== 'done' ? (
                   <input
                     type="date"
                     defaultValue={d.scheduled_date || ''}
@@ -232,12 +237,28 @@ export default function PatientDetailPage() {
     if (res.status === 'ok') {
       if (res.data?.dose) {
         const updatedDose = res.data.dose as Dose;
-        setDoses(prev => prev.map(d =>
-          (d.dose_id && updatedDose.dose_id && d.dose_id === updatedDose.dose_id) ||
-          (d.incident_id === updatedDose.incident_id && d.dose_day === updatedDose.dose_day)
-            ? { ...d, ...updatedDose }
-            : d
-        ));
+        setDoses(prev => {
+          // Update the dose that was just administered
+          let next = prev.map(d =>
+            (d.dose_id && updatedDose.dose_id && d.dose_id === updatedDose.dose_id) ||
+            (d.incident_id === updatedDose.incident_id && d.dose_day === updatedDose.dose_day)
+              ? { ...d, ...updatedDose }
+              : d
+          );
+          // If D0 was just given, recalculate scheduled dates for all other doses in this incident
+          if (updatedDose.dose_day === 'D0' && updatedDose.administered_date) {
+            const d0Date = updatedDose.administered_date;
+            next = next.map(d => {
+              if (d.incident_id !== updatedDose.incident_id) return d;
+              if (d.dose_day === 'D0') return d; // D0 scheduled_date already set
+              if (d.status === 'done') return d;  // never shift a dose already given
+              const offset = DAY_OFFSETS[d.dose_day];
+              if (offset === undefined) return d;
+              return { ...d, scheduled_date: addDays(d0Date, offset) };
+            });
+          }
+          return next;
+        });
       } else {
         load();
       }
