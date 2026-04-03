@@ -27,7 +27,10 @@ function toISO(mmddyyyy: string) {
 function addDays(isoDate: string, days: number) {
   const d = new Date(isoDate + 'T00:00:00');
   d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
 }
 const DAY_OFFSETS: Record<string,number> = { D0:0, D3:3, D7:7, D14:14, D21:21, D28:28 };
 
@@ -289,7 +292,7 @@ export default function PatientDetailPage() {
     const res = await api.updatePetMonitor({
       monitor_id: petOutcomeModal.monitor_id,
       outcome: petOutcome,
-      outcome_date: new Date().toISOString().split('T')[0],
+      outcome_date: getLocalISODate(),
       recorded_by: by,
     });
     setSaving(false);
