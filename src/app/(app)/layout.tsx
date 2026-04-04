@@ -10,6 +10,7 @@ const NAV = [
   ]},
   { section: 'Reports', items: [
     { href: '/vaccines', label: 'Vaccine Schedule', icon: '💉' },
+    { href: '/forms',    label: 'Forms',            icon: '📋' },
   ]},
   { section: 'Admin', items: [
     { href: '/accounts', label: 'Accounts', icon: '👥', adminOnly: true },
