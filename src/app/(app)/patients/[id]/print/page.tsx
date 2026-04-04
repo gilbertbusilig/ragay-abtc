@@ -200,15 +200,14 @@ export default function PrintPage() {
             <div className="section-title">III. Wound Description / Wound Care</div>
             <div className="section-body" style={{ paddingBottom:2 }}>
 
-              {/* A. Anatomical — full width */}
+              {/* A. Anatomical — full width, centered, large */}
               <div style={{ marginBottom:4 }}>
                 <strong style={{ fontSize:'7.5pt' }}>A. Anatomical Position</strong>
-                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'4px 6px', display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'6px 4px 4px', textAlign:'center' }}>
                   <img src="/logos/anatomical_new.jpg" alt="Anatomical Position"
-                    style={{ height:130, width:'auto', objectFit:'contain', flexShrink:0 }} />
-                  <div style={{ fontSize:'7pt', flex:1 }}>
-                    <strong>Marked sites:</strong><br/>
-                    {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
+                    style={{ width:'92%', maxHeight:190, objectFit:'contain', display:'block', margin:'0 auto' }} />
+                  <div style={{ fontSize:'7pt', marginTop:4, textAlign:'left', paddingLeft:4 }}>
+                    <strong>Marked sites:</strong> {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
                   </div>
                 </div>
               </div>
@@ -282,12 +281,10 @@ export default function PrintPage() {
               <div className="col" style={{ fontSize:'7.5pt' }}>
                 <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
                 <div style={{ lineHeight:1.85 }}>
-                  <div><Cb checked={!!incident.hiv}               /> H.I.V.</div>
-                  <div><Cb checked={!!incident.congenital_immuno}  /> Congenital Immunodeficiency</div>
-                  <div><Cb checked={!!incident.immunosuppressant}  /> Immunosuppressant Agent</div>
-                  <div><Cb checked={!!incident.long_term_steroid}  /> Long-Term Steroid</div>
-                  <div><Cb checked={!!incident.chloroquine}        /> Chloroquine Treatment</div>
-                  <div><Cb checked={!!incident.malignancy}         /> Malignancy (On Treatment)</div>
+                  <div><Cb checked={!!(incident.hiv || incident.congenital_immuno)}         /> H.I.V. / Congenital Immunodeficiency</div>
+                  <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid)} /> Immunosuppressant Agent / Long-Term Steroid</div>
+                  <div><Cb checked={!!incident.chloroquine}                                  /> Chloroquine Treatment</div>
+                  <div><Cb checked={!!incident.malignancy}                                   /> Malignancy (On Treatment)</div>
                   <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:100 }}>{incident.other_conditions||''}</span></div>
                 </div>
               </div>
