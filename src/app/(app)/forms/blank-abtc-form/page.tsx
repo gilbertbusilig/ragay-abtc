@@ -144,12 +144,11 @@ export default function BlankABTCForm() {
               {/* A. Anatomical — full width */}
               <div style={{ marginBottom:4 }}>
                 <strong style={{ fontSize:'7.5pt' }}>A. Anatomical Position</strong>
-                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'4px 6px', display:'flex', alignItems:'center', gap:12 }}>
+                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'6px 4px 4px', textAlign:'center' }}>
                   <img src="/logos/anatomical_new.jpg" alt="Anatomical Position"
-                    style={{ height:130, width:'auto', objectFit:'contain', flexShrink:0 }} />
-                  <div style={{ fontSize:'7pt', flex:1 }}>
-                    <strong>Marked sites:</strong><br/>
-                    <Line w={200} />
+                    style={{ width:'92%', maxHeight:190, objectFit:'contain', display:'block', margin:'0 auto' }} />
+                  <div style={{ fontSize:'7pt', marginTop:4, textAlign:'left', paddingLeft:4 }}>
+                    <strong>Marked sites:</strong> <Line w={200} />
                   </div>
                 </div>
               </div>
@@ -213,10 +212,8 @@ export default function BlankABTCForm() {
               <div className="col" style={{ fontSize:'7.5pt' }}>
                 <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
                 <div style={{ lineHeight:1.85 }}>
-                  <div><Cb /> H.I.V.</div>
-                  <div><Cb /> Congenital Immunodeficiency</div>
-                  <div><Cb /> Immunosuppressant Agent</div>
-                  <div><Cb /> Long-Term Steroid</div>
+                  <div><Cb /> H.I.V. / Congenital Immunodeficiency</div>
+                  <div><Cb /> Immunosuppressant Agent / Long-Term Steroid</div>
                   <div><Cb /> Chloroquine Treatment</div>
                   <div><Cb /> Malignancy (On Treatment)</div>
                   <div style={{ marginTop:2 }}>Others: <Line w={100} /></div>
