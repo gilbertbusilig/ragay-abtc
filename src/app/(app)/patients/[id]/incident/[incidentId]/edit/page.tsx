@@ -191,51 +191,37 @@ export default function IncidentEditPage() {
           <div className="section-box">
             <div className="section-box-title">III. Wound Description / Wound Care</div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
-              {/* Left */}
-              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
-
-                {/* Anatomical position */}
-                <div>
-                  <div className="form-label" style={{ marginBottom:8 }}>A. Anatomical Position (click to mark)</div>
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                    {BODY_SITES.map(site => (
-                      <button key={site} type="button" onClick={() => toggleSite(site)}
-                        style={{
-                          padding:'5px 12px', borderRadius:20, fontSize:13, border:'1.5px solid', cursor:'pointer', transition:'all .12s',
-                          borderColor: f.anatomical_positions.includes(site) ? 'var(--red-500)' : 'var(--slate-300)',
-                          background: f.anatomical_positions.includes(site) ? '#fee2e2' : 'white',
-                          color: f.anatomical_positions.includes(site) ? 'var(--red-700)' : 'var(--slate-600)',
-                          fontWeight: f.anatomical_positions.includes(site) ? 600 : 400,
-                        }}>
-                        {f.anatomical_positions.includes(site) ? '✕ ' : ''}{site}
-                      </button>
-                    ))}
-                  </div>
-                  <div style={{ display:'flex', gap:8, marginTop:10 }}>
-                    <input className="form-input" type="text" value={customSite} onChange={e => setCustomSite(e.target.value)} placeholder="Custom / Others" />
-                    <button type="button" className="btn btn-secondary btn-sm" onClick={addCustomSite}>Add</button>
-                  </div>
-                  {f.anatomical_positions.length > 0 && (
-                    <div style={{ marginTop:8, fontSize:13, color:'var(--red-700)', fontWeight:500 }}>
-                      Marked: {f.anatomical_positions.join(', ')}
-                    </div>
-                  )}
-                </div>
-
-                {/* Wound care */}
-                <div>
-                  <div className="form-label" style={{ marginBottom:8 }}>E. Wound Care</div>
-                  <label className="checkbox-item" style={{ marginBottom:8 }}>
-                    <Cb k="wound_wash" /> e1. Wound Wash with soap and water
-                  </label>
-                  <label className="checkbox-item">
-                    <Cb k="antiseptic_applied" /> e2. Antiseptic Applied (Povidone/Alcohol)
-                  </label>
-                </div>
+            {/* A. Anatomical Position — full width */}
+            <div>
+              <div className="form-label" style={{ marginBottom:8 }}>A. Anatomical Position (click to mark)</div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {BODY_SITES.map(site => (
+                  <button key={site} type="button" onClick={() => toggleSite(site)}
+                    style={{
+                      padding:'5px 12px', borderRadius:20, fontSize:13, border:'1.5px solid', cursor:'pointer', transition:'all .12s',
+                      borderColor: f.anatomical_positions.includes(site) ? 'var(--red-500)' : 'var(--slate-300)',
+                      background: f.anatomical_positions.includes(site) ? '#fee2e2' : 'white',
+                      color: f.anatomical_positions.includes(site) ? 'var(--red-700)' : 'var(--slate-600)',
+                      fontWeight: f.anatomical_positions.includes(site) ? 600 : 400,
+                    }}>
+                    {f.anatomical_positions.includes(site) ? '✕ ' : ''}{site}
+                  </button>
+                ))}
               </div>
+              <div style={{ display:'flex', gap:8, marginTop:10 }}>
+                <input className="form-input" type="text" value={customSite} onChange={e => setCustomSite(e.target.value)} placeholder="Custom / Others" />
+                <button type="button" className="btn btn-secondary btn-sm" onClick={addCustomSite}>Add</button>
+              </div>
+              {f.anatomical_positions.length > 0 && (
+                <div style={{ marginTop:8, fontSize:13, color:'var(--red-700)', fontWeight:500 }}>
+                  Marked: {f.anatomical_positions.join(', ')}
+                </div>
+              )}
+            </div>
 
-              {/* Right */}
+            {/* B–E in a 2-column grid below anatomical */}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+              {/* Left col: B, C, D */}
               <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>B. Wound Status</div>
@@ -253,15 +239,34 @@ export default function IncidentEditPage() {
                   <div className="form-label" style={{ marginBottom:8 }}>C. Wound Category</div>
                   <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                     {[
-                      { val:'I', label:'Category I', desc:'Touching or feeding animals, licks on intact skin, contact of intact skin with secretions/excretions of rabid animal or person.' },
-                      { val:'II', label:'Category II', desc:'Nibbling of uncovered skin, minor scratches or abrasions without bleeding.' },
-                      { val:'III', label:'Category III', desc:'Single or multiple transdermal bites or scratches, licks on broken skin, contamination of mucous membrane with saliva from licks and exposure to bats.' },
+                      { val:'I', label:'Category I', items:[
+                        'a. Feeding/Touching',
+                        'b. Licking of intact skin (with reliable history and thorough physical examination)',
+                        'c. Exposure to patient with signs and symptoms for rabies by sharing of eating or drinking utensils',
+                        'd. Casual contact (talking to, visiting and feeding suspected rabies cases) and routine delivery of health care to patient with signs and symptoms of rabies',
+                      ]},
+                      { val:'II', label:'Category II', items:[
+                        'a. Nibbling of uncovered skin with or without bruising/hematoma',
+                        'b. Minor/superficial scratches/abrasions without bleeding, including those induced to bleeding',
+                        'c. All Category II exposures on the head and neck area are considered Category III and shall be managed as such',
+                      ]},
+                      { val:'III', label:'Category III', items:[
+                        'a. Transdermal bites (puncture wounds, lacerations, avulsions) or scratches/abrasions with spontaneous bleeding',
+                        'b. Licks on broken skin or mucous membrane',
+                        'c. Exposure to a rabies patient through bites, contamination of mucous membranes (eyes, oral/nasal mucous, genital/anal mucous membrane) or open skin lesions with body fluids through splattering and mouth-to-mouth resuscitation',
+                        'd. Unprotected handling of infected carcass',
+                        'e. Ingestion of raw infected meat',
+                        'f. Exposure to bats',
+                        'g. All Category II exposures on head and neck area',
+                      ]},
                     ].map(c => (
                       <label key={c.val} style={{ display:'flex', gap:10, cursor:'pointer', padding:'10px 12px', borderRadius:'var(--radius-md)', border:'1.5px solid', borderColor: f.wound_category===c.val ? 'var(--blue-500)' : 'var(--slate-200)', background: f.wound_category===c.val ? 'var(--blue-50)' : 'white', transition:'all .12s' }}>
                         <input type="radio" name="wound_category" value={c.val} checked={f.wound_category===c.val} onChange={() => set('wound_category', c.val)} style={{ marginTop:2, width:16, height:16, accentColor:'var(--blue-600)', flexShrink:0 }} />
                         <div>
                           <div style={{ fontWeight:600, fontSize:14, color: f.wound_category===c.val ? 'var(--blue-800)' : 'var(--slate-700)' }}>{c.label}</div>
-                          <div style={{ fontSize:12, color:'var(--slate-500)', marginTop:2, lineHeight:1.4 }}>{c.desc}</div>
+                          <div style={{ fontSize:11, color:'var(--slate-500)', marginTop:3, lineHeight:1.5 }}>
+                            {c.items.map((item, i) => <div key={i}>{item}</div>)}
+                          </div>
                         </div>
                       </label>
                     ))}
@@ -282,37 +287,51 @@ export default function IncidentEditPage() {
                     <input className="form-input" style={{ marginTop:8 }} type="text" value={f.wound_type_other} onChange={e => set('wound_type_other', e.target.value)} placeholder="Specify wound type…" />
                   )}
                 </div>
+
+                {/* E. Wound Care */}
+                <div>
+                  <div className="form-label" style={{ marginBottom:8 }}>E. Wound Care</div>
+                  <label className="checkbox-item" style={{ marginBottom:8 }}>
+                    <Cb k="wound_wash" /> e1. Wound Wash with soap and water
+                  </label>
+                  <label className="checkbox-item">
+                    <Cb k="antiseptic_applied" /> e2. Antiseptic Applied (Povidone/Alcohol)
+                  </label>
+                </div>
               </div>
-            </div>
+            </div>{/* end B-E grid */}
           </div>
 
           {/* Section IV — History */}
           <div className="section-box">
             <div className="section-box-title">IV. History</div>
 
-            <div style={{ marginBottom:14 }}>
-              <div className="form-label" style={{ marginBottom:8 }}>A. Other Medical Conditions / On Treatment</div>
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-                {[
-                  { k:'hiv', label:'H.I.V.' },
-                  { k:'immunosuppressant', label:'Immunosuppressant Agent' },
-                  { k:'long_term_steroid', label:'Long-Term Steroid' },
-                  { k:'chloroquine', label:'Chloroquine' },
-                  { k:'malignancy', label:'Treatment for Malignancy' },
-                  { k:'congenital_immuno', label:'Congenital Immuno-deficiency' },
-                ].map(item => (
-                  <label key={item.k} className="checkbox-item">
-                    <Cb k={item.k} /> {item.label}
-                  </label>
-                ))}
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+              {/* Left col: A */}
+              <div style={{ marginBottom:14 }}>
+                <div className="form-label" style={{ marginBottom:8 }}>A. Other Medical Conditions / On Treatment</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {[
+                    { k:'hiv',               label:'H.I.V.' },
+                    { k:'congenital_immuno',  label:'Congenital Immunodeficiency' },
+                    { k:'immunosuppressant',  label:'Immunosuppressant Agent' },
+                    { k:'long_term_steroid',  label:'Long-Term Steroid' },
+                    { k:'chloroquine',        label:'Chloroquine Treatment' },
+                    { k:'malignancy',         label:'Malignancy (On Treatment)' },
+                  ].map(item => (
+                    <label key={item.k} className="checkbox-item">
+                      <Cb k={item.k} /> {item.label}
+                    </label>
+                  ))}
+                </div>
+                <div style={{ marginTop:10 }}>
+                  <label className="form-label">Others (specify)</label>
+                  <input className="form-input" type="text" value={f.other_conditions} onChange={e => set('other_conditions', e.target.value)} placeholder="Other conditions…" />
+                </div>
               </div>
-              <div style={{ marginTop:10 }}>
-                <label className="form-label">Others (specify)</label>
-                <input className="form-input" type="text" value={f.other_conditions} onChange={e => set('other_conditions', e.target.value)} placeholder="Other conditions…" />
-              </div>
-            </div>
 
-            <div className="form-grid form-grid-2">
+              {/* Right col: B–F */}
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
               <div>
                 <div className="form-label" style={{ marginBottom:8 }}>B. Anti-Tetanus Vaccine</div>
                 <div className="checkbox-group" style={{ marginBottom:8 }}>
@@ -399,8 +418,8 @@ export default function IncidentEditPage() {
                   <div className="form-label" style={{ marginBottom:8 }}>F. Allergy</div>
                   <input className="form-input" type="text" value={f.allergy} onChange={e => set('allergy', e.target.value)} placeholder="Known allergies (drug, food, etc.)…" />
                 </div>
-              </div>
-            </div>
+              </div>{/* end right col B-F */}
+            </div>{/* end A|B-F grid */}
           </div>
 
           {/* Section V — Physician Notes */}
