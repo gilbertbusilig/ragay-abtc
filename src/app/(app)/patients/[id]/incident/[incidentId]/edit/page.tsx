@@ -221,7 +221,7 @@ export default function IncidentEditPage() {
 
             {/* B–E in a 2-column grid below anatomical */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
-              {/* Left col: B, C */}
+              {/* Left col: B, C, D */}
               <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>B. Wound Status</div>
@@ -259,23 +259,20 @@ export default function IncidentEditPage() {
                         'f. Exposure to bats',
                         'g. All Category II exposures on head and neck area',
                       ]},
-                    ].map(cat => (
-                      <label key={cat.val} style={{ display:'flex', gap:10, cursor:'pointer', padding:'10px 12px', borderRadius:'var(--radius-md)', border:'1.5px solid', borderColor: f.wound_category===cat.val ? 'var(--blue-500)' : 'var(--slate-200)', background: f.wound_category===cat.val ? 'var(--blue-50)' : 'white', transition:'all .12s' }}>
-                        <input type="radio" name="wound_category" value={cat.val} checked={f.wound_category===cat.val} onChange={() => set('wound_category', cat.val)} style={{ marginTop:2, width:16, height:16, accentColor:'var(--blue-600)', flexShrink:0 }} />
+                    ].map(c => (
+                      <label key={c.val} style={{ display:'flex', gap:10, cursor:'pointer', padding:'10px 12px', borderRadius:'var(--radius-md)', border:'1.5px solid', borderColor: f.wound_category===c.val ? 'var(--blue-500)' : 'var(--slate-200)', background: f.wound_category===c.val ? 'var(--blue-50)' : 'white', transition:'all .12s' }}>
+                        <input type="radio" name="wound_category" value={c.val} checked={f.wound_category===c.val} onChange={() => set('wound_category', c.val)} style={{ marginTop:2, width:16, height:16, accentColor:'var(--blue-600)', flexShrink:0 }} />
                         <div>
-                          <div style={{ fontWeight:600, fontSize:14, color: f.wound_category===cat.val ? 'var(--blue-800)' : 'var(--slate-700)' }}>{cat.label}</div>
+                          <div style={{ fontWeight:600, fontSize:14, color: f.wound_category===c.val ? 'var(--blue-800)' : 'var(--slate-700)' }}>{c.label}</div>
                           <div style={{ fontSize:11, color:'var(--slate-500)', marginTop:3, lineHeight:1.5 }}>
-                            {cat.items.map((item: string, i: number) => <div key={i}>{item}</div>)}
+                            {c.items.map((item, i) => <div key={i}>{item}</div>)}
                           </div>
                         </div>
                       </label>
                     ))}
                   </div>
                 </div>
-              </div>
 
-              {/* Right col: D, E */}
-              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>D. Type of Wound</div>
                   <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -291,6 +288,7 @@ export default function IncidentEditPage() {
                   )}
                 </div>
 
+                {/* E. Wound Care */}
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>E. Wound Care</div>
                   <label className="checkbox-item" style={{ marginBottom:8 }}>
