@@ -10,6 +10,27 @@ export default function BlankABTCForm() {
     <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:w, marginLeft:3 }}>&nbsp;</span>
   );
 
+  const CAT_I = [
+    'a. Feeding/Touching',
+    'b. Licking of intact skin (with reliable history and thorough physical examination)',
+    'c. Exposure to patient with signs and symptoms for rabies by sharing of eating or drinking utensils',
+    'd. Casual contact (talking to, visiting and feeding suspected rabies cases) and routine delivery of health care to patient with signs and symptoms of rabies',
+  ];
+  const CAT_II = [
+    'a. Nibbling of uncovered skin with or without bruising/hematoma',
+    'b. Minor/superficial scratches/abrasions without bleeding, including those induced to bleeding',
+    'c. All Category II exposures on the head and neck area are considered Category III and shall be managed as such',
+  ];
+  const CAT_III = [
+    'a. Transdermal bites (puncture wounds, lacerations, avulsions) or scratches/abrasions with spontaneous bleeding',
+    'b. Licks on broken skin or mucous membrane',
+    'c. Exposure to a rabies patient through bites, contamination of mucous membranes (eyes, oral/nasal mucous, genital/anal mucous membrane) or open skin lesions with body fluids through splattering and mouth-to-mouth resuscitation',
+    'd. Unprotected handling of infected carcass',
+    'e. Ingestion of raw infected meat',
+    'f. Exposure to bats',
+    'g. All Category II exposures on head and neck area',
+  ];
+
   return (
     <>
       <style>{`
@@ -31,7 +52,7 @@ export default function BlankABTCForm() {
         table { width: 100%; border-collapse: collapse; font-size: 7pt; }
         th, td { border: 1px solid #333; padding: 3px 3px; vertical-align: middle; }
         th { background: #dce8f5; font-weight: bold; text-align: center; }
-        .sig-row { display: flex; justify-content: space-between; margin-top: 12px; gap: 20px; }
+        .sig-row { display: flex; justify-content: space-between; margin-top: 8px; gap: 20px; }
         .sig-block { text-align: center; flex: 1; }
         .sig-line { border-top: 1.5px solid #333; padding-top: 3px; }
         .footer { text-align:center; margin-top:auto; padding-top:5px; border-top:1.5px solid #1d4ed8; }
@@ -44,13 +65,12 @@ export default function BlankABTCForm() {
 
       <div className="screen-controls" style={{ position:'fixed', top:16, right:16, display:'flex', gap:10, zIndex:1000 }}>
         <button onClick={() => router.back()} style={{ padding:'8px 16px', background:'#64748b', color:'white', border:'none', borderRadius:8, cursor:'pointer', fontWeight:700 }}>← Back</button>
-        <button onClick={() => window.print()} style={{ padding:'8px 20px', background:'#1d4ed8', color:'white', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:700, boxShadow:'0 4px 12px rgba(29,78,216,.4)' }}>🖨 Print / Download</button>
+        <button onClick={() => window.print()} style={{ padding:'8px 20px', background:'#1d4ed8', color:'white', border:'none', borderRadius:8, cursor:'pointer', fontSize:14, fontWeight:700, boxShadow:'0 4px 12px rgba(29,78,216,.4)' }}>🖨 Print / Save as PDF</button>
       </div>
 
       {/* ===== PAGE 1 ===== */}
       <div className="page">
         <div className="page-content">
-          {/* Header */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, marginBottom:5, paddingBottom:5, borderBottom:'2px solid #1d4ed8' }}>
             <img src="/logos/bagong_pilipinas.jpg" alt="" style={{ width:46, height:46, objectFit:'contain' }} />
             <img src="/logos/lgu_logo.jpg"         alt="" style={{ width:46, height:46, objectFit:'contain' }} />
@@ -72,8 +92,7 @@ export default function BlankABTCForm() {
             <div className="section-body">
               <div className="row">
                 <span className="lbl">A. Full Name:</span><span className="val" />
-                <span className="lbl">D. Sex:</span>
-                <span><Cb /> M &nbsp; <Cb /> F</span>
+                <span className="lbl">D. Sex:</span><span><Cb /> M &nbsp; <Cb /> F</span>
                 <span className="lbl">G. Contact No.:</span><span className="val" />
               </div>
               <div className="row">
@@ -99,7 +118,7 @@ export default function BlankABTCForm() {
                   <span style={{ marginRight:12 }}><Cb /> Dog</span>
                   <span style={{ marginRight:12 }}><Cb /> Cat</span>
                   <span style={{ marginRight:12 }}><Cb /> Bat</span>
-                  <span><Cb /> Others: <Line w={60} /></span>
+                  <span><Cb /> Others: <Line w={55} /></span>
                 </div>
                 <div style={{ marginTop:4, fontSize:'7.5pt' }}>
                   <span className="lbl">E. Circumstance: </span>
@@ -117,50 +136,66 @@ export default function BlankABTCForm() {
             </div>
           </div>
 
-          {/* Section III */}
+          {/* Section III — Anatomical full width, B-E below */}
           <div className="section">
             <div className="section-title">III. Wound Description / Wound Care</div>
-            <div className="two-col">
-              <div className="col" style={{ display:'flex', flexDirection:'column' }}>
+            <div className="section-body" style={{ paddingBottom:2 }}>
+
+              {/* A. Anatomical — full width */}
+              <div style={{ marginBottom:4 }}>
                 <strong style={{ fontSize:'7.5pt' }}>A. Anatomical Position</strong>
-                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'4px 2px', flex:1, display:'flex', flexDirection:'column', justifyContent:'center' }}>
+                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'4px 6px', display:'flex', alignItems:'center', gap:12 }}>
                   <img src="/logos/anatomical_new.jpg" alt="Anatomical Position"
-                    style={{ width:'100%', height:'auto', maxHeight:215, objectFit:'contain', display:'block' }} />
-                  <div style={{ fontSize:'7pt', marginTop:4, paddingLeft:2 }}>
-                    <strong>Marked:</strong> <Line w={120} />
+                    style={{ height:130, width:'auto', objectFit:'contain', flexShrink:0 }} />
+                  <div style={{ fontSize:'7pt', flex:1 }}>
+                    <strong>Marked sites:</strong><br/>
+                    <Line w={200} />
                   </div>
                 </div>
-                <div style={{ marginTop:4 }}>
-                  <strong style={{ fontSize:'7.5pt' }}>E. Wound Care</strong>
-                  <div style={{ marginTop:2, lineHeight:1.7, fontSize:'7.5pt' }}>
+              </div>
+
+              {/* B–E below in 2 cols */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0, borderTop:'1px solid #ddd', paddingTop:3 }}>
+
+                {/* Left: B, C */}
+                <div style={{ paddingRight:6, borderRight:'1px solid #ddd', fontSize:'7.5pt' }}>
+                  <div style={{ marginBottom:3 }}>
+                    <strong>B. Wound Status: </strong>
+                    <Cb /> Bleeding &nbsp; <Cb /> Non-Bleeding
+                  </div>
+                  <div>
+                    <strong>C. Wound Category:</strong>
+                    {([['I', CAT_I], ['II', CAT_II], ['III', CAT_III]] as [string, string[]][]).map(([cat, items]) => (
+                      <div key={cat} style={{ marginTop:3, paddingLeft:2 }}>
+                        <div style={{ fontWeight:'bold' }}><Cb /> Category {cat}</div>
+                        <div style={{ paddingLeft:14, fontSize:'6.5pt', lineHeight:1.5, color:'#333' }}>
+                          {items.map((item, i) => <div key={i}>{item}</div>)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: D, E */}
+                <div style={{ paddingLeft:6, fontSize:'7.5pt' }}>
+                  <div style={{ marginBottom:4, lineHeight:1.7 }}>
+                    <strong>D. Type of Wound:</strong>
+                    {['Superficial Scratches','Abrasion','Multiple transdermal bites/scratches','Lick','Contamination of Mucus Membrane'].map(l => (
+                      <div key={l}><Cb /> {l}</div>
+                    ))}
+                    <div><Cb /> Others: <Line w={80} /></div>
+                  </div>
+                  <div style={{ lineHeight:1.7 }}>
+                    <strong>E. Wound Care</strong>
                     <div>e1. Wound Wash with soap and water: &nbsp; <Cb /> Y &nbsp; <Cb /> N</div>
                     <div>e2. Antiseptic Applied (Povidone/Alcohol): &nbsp; <Cb /> Y &nbsp; <Cb /> N</div>
                   </div>
                 </div>
               </div>
-              <div className="col">
-                <div style={{ marginBottom:4, fontSize:'7.5pt' }}>
-                  <strong>B. Wound Status: &nbsp;</strong><Cb /> Bleeding &nbsp;&nbsp; <Cb /> Non-Bleeding
-                </div>
-                <div style={{ marginBottom:4, lineHeight:1.55, fontSize:'7.5pt' }}>
-                  <strong>C. Wound Category:</strong>
-                  <div style={{ marginTop:2 }}>
-                    <div><Cb /> <strong>Category I:</strong> Touching/feeding animals, licks on intact skin, contact of intact skin with secretions.</div>
-                    <div style={{ marginTop:3 }}><Cb /> <strong>Category II:</strong> Nibbling of uncovered skin, minor scratches or abrasions without bleeding.</div>
-                    <div style={{ marginTop:3 }}><Cb /> <strong>Category III:</strong> Transdermal bites/scratches, licks on broken skin, contamination of mucous membrane, exposure to bats.</div>
-                  </div>
-                </div>
-                <div style={{ lineHeight:1.7, fontSize:'7.5pt' }}>
-                  <strong>D. Type of Wound:</strong>
-                  {['Superficial Scratches','Abrasion','Multiple transdermal bites/scratches','Lick','Contamination of Mucus Membrane'].map(l => (
-                    <div key={l}><Cb /> {l}</div>
-                  ))}
-                  <div><Cb /> Others: <Line w={80} /></div>
-                </div>
-              </div>
             </div>
           </div>
         </div>
+
         <div className="footer">
           <div style={{ fontSize:'9pt', fontWeight:800, color:'#1d4ed8', letterSpacing:'.12em' }}>BETTER · GREATER · HAPPIER</div>
           <div style={{ fontSize:'12pt', fontWeight:900, color:'#1e3a8a', letterSpacing:'.15em' }}>RAGAY</div>
@@ -170,31 +205,29 @@ export default function BlankABTCForm() {
       {/* ===== PAGE 2 ===== */}
       <div className="page">
         <div className="page-content">
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:5, paddingBottom:4, borderBottom:'2px solid #1d4ed8' }}>
-            <div style={{ textAlign:'center', flex:1 }}>
-              <div style={{ fontSize:'11pt', fontWeight:900, color:'#1e3a8a' }}>RAGAY ANIMAL BITE TREATMENT CENTER</div>
-              <div style={{ fontSize:'7.5pt' }}>Poblacion, Ragay, Camarines Sur · Municipal Health Office</div>
-            </div>
-          </div>
 
-          {/* Section IV */}
+          {/* Section IV — A left, B-F right */}
           <div className="section">
             <div className="section-title">IV. History</div>
-            <div className="section-body">
-              <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
-              <div style={{ lineHeight:1.85, fontSize:'7.5pt' }}>
-                <div><Cb /> H.I.V. / Congenital Immunodeficiency</div>
-                <div><Cb /> Immunosuppressant Agent / Long-Term Steroid</div>
-                <div><Cb /> Chloroquine Treatment</div>
-                <div><Cb /> Malignancy (On Treatment)</div>
-                <div style={{ marginTop:2 }}>Others: <Line w={220} /></div>
+            <div className="two-col">
+              <div className="col" style={{ fontSize:'7.5pt' }}>
+                <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
+                <div style={{ lineHeight:1.85 }}>
+                  <div><Cb /> H.I.V.</div>
+                  <div><Cb /> Congenital Immunodeficiency</div>
+                  <div><Cb /> Immunosuppressant Agent</div>
+                  <div><Cb /> Long-Term Steroid</div>
+                  <div><Cb /> Chloroquine Treatment</div>
+                  <div><Cb /> Malignancy (On Treatment)</div>
+                  <div style={{ marginTop:2 }}>Others: <Line w={100} /></div>
+                </div>
               </div>
-              <div style={{ marginTop:3, lineHeight:1.8, fontSize:'7.5pt' }}>
-                <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; If yes: <Line w={100} /></div>
-                <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; <Line w={100} /></div>
-                <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; <Line w={100} /></div>
+              <div className="col" style={{ fontSize:'7.5pt', lineHeight:1.8 }}>
+                <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; If yes: <Line w={80} /></div>
+                <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; <Line w={80} /></div>
+                <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; <Line w={60} /></div>
                 <div><strong>E.</strong> &nbsp; <Cb /> Smoker &nbsp;&nbsp; <Cb /> Alcoholic Drinker</div>
-                <div><strong>F. Allergy:</strong> &nbsp; <Line w={220} /></div>
+                <div><strong>F. Allergy:</strong> &nbsp; <Line w={150} /></div>
               </div>
             </div>
           </div>
@@ -202,7 +235,7 @@ export default function BlankABTCForm() {
           {/* Section V — bigger */}
           <div className="section">
             <div className="section-title">V. Physician's Order / Notes</div>
-            <div style={{ padding:'4px 6px', minHeight:80 }}>&nbsp;</div>
+            <div style={{ padding:'4px 6px', minHeight:100 }}>&nbsp;</div>
           </div>
 
           {/* Section VI */}
@@ -288,8 +321,13 @@ export default function BlankABTCForm() {
             </div>
           </div>
 
-          <div style={{ fontSize:'8pt', marginBottom:8 }}><strong>VII. Refer If Needed:</strong></div>
+          {/* VII — boxed */}
+          <div className="section" style={{ marginBottom:8 }}>
+            <div className="section-title">VII. Refer If Needed</div>
+            <div style={{ padding:'4px 6px', minHeight:28 }}>&nbsp;</div>
+          </div>
 
+          {/* Signatures */}
           <div className="sig-row">
             <div className="sig-block">
               <div style={{ minHeight:30 }} />
@@ -311,6 +349,7 @@ export default function BlankABTCForm() {
             </div>
           </div>
         </div>
+
         <div className="footer">
           <div style={{ fontSize:'9pt', fontWeight:800, color:'#1d4ed8', letterSpacing:'.12em' }}>BETTER · GREATER · HAPPIER</div>
           <div style={{ fontSize:'12pt', fontWeight:900, color:'#1e3a8a', letterSpacing:'.15em' }}>RAGAY</div>
