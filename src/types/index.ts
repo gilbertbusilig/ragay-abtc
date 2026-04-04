@@ -76,6 +76,7 @@ export interface Incident {
   folk_remedy_details: string;
   smoker: boolean;
   alcoholic: boolean;
+  allergy: string;
   physician_notes: string;
   referring_doctor: string;
   status: 'active' | 'completed';
