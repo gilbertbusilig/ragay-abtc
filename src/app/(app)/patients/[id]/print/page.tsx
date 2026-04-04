@@ -102,8 +102,6 @@ export default function PrintPage() {
       {/* ===== PAGE 1 ===== */}
       <div className="page">
         <div className="page-content">
-
-          {/* Header */}
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, marginBottom:5, paddingBottom:5, borderBottom:'2px solid #1d4ed8' }}>
             <img src="/logos/bagong_pilipinas.jpg" alt="" style={{ width:46, height:46, objectFit:'contain' }} />
             <img src="/logos/lgu_logo.jpg"         alt="" style={{ width:46, height:46, objectFit:'contain' }} />
@@ -174,16 +172,11 @@ export default function PrintPage() {
           <div className="section">
             <div className="section-title">III. Wound Description / Wound Care</div>
             <div className="two-col">
-
-              {/* Left — bigger anatomical image */}
               <div className="col" style={{ display:'flex', flexDirection:'column' }}>
                 <strong style={{ fontSize:'7.5pt' }}>A. Anatomical Position</strong>
                 <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'4px 2px', flex:1, display:'flex', flexDirection:'column', justifyContent:'center' }}>
-                  <img
-                    src="/logos/anatomical_new.jpg"
-                    alt="Anatomical Position"
-                    style={{ width:'100%', height:'auto', maxHeight:215, objectFit:'contain', display:'block' }}
-                  />
+                  <img src="/logos/anatomical_new.jpg" alt="Anatomical Position"
+                    style={{ width:'100%', height:'auto', maxHeight:215, objectFit:'contain', display:'block' }} />
                   <div style={{ fontSize:'7pt', marginTop:4, paddingLeft:2 }}>
                     <strong>Marked:</strong> {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
                   </div>
@@ -196,8 +189,6 @@ export default function PrintPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Right */}
               <div className="col">
                 <div style={{ marginBottom:4, fontSize:'7.5pt' }}>
                   <strong>B. Wound Status: &nbsp;</strong>
@@ -228,7 +219,6 @@ export default function PrintPage() {
               </div>
             </div>
           </div>
-
         </div>
         <div className="footer">
           <div style={{ fontSize:'9pt', fontWeight:800, color:'#1d4ed8', letterSpacing:'.12em' }}>BETTER · GREATER · HAPPIER</div>
@@ -239,7 +229,6 @@ export default function PrintPage() {
       {/* ===== PAGE 2 ===== */}
       <div className="page">
         <div className="page-content">
-
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:5, paddingBottom:4, borderBottom:'2px solid #1d4ed8' }}>
             <div style={{ textAlign:'center', flex:1 }}>
               <div style={{ fontSize:'11pt', fontWeight:900, color:'#1e3a8a' }}>RAGAY ANIMAL BITE TREATMENT CENTER</div>
@@ -257,36 +246,40 @@ export default function PrintPage() {
                 <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid)} /> Immunosuppressant Agent / Long-Term Steroid</div>
                 <div><Cb checked={!!incident.chloroquine} /> Chloroquine Treatment</div>
                 <div><Cb checked={!!incident.malignancy}  /> Malignancy (On Treatment)</div>
-                <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:220 }}>{incident.other_conditions||''}</span></div>
+                <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:200 }}>{incident.other_conditions||''}</span></div>
               </div>
               <div style={{ marginTop:3, lineHeight:1.8, fontSize:'7.5pt' }}>
                 <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb checked={incident.anti_tetanus_vaccine===true||incident.anti_tetanus_vaccine==='true'} /> Y &nbsp; <Cb checked={incident.anti_tetanus_vaccine===false||incident.anti_tetanus_vaccine==='false'} /> N &nbsp; {incident.anti_tetanus_vaccine ? `If yes: ${fullDate(incident.tetanus_date)||'____________'}` : ''}</div>
                 <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb checked={incident.anti_rabies_completed} /> Y &nbsp; <Cb checked={!incident.anti_rabies_completed} /> N &nbsp; {incident.anti_rabies_details ? `(${incident.anti_rabies_details})` : ''}</div>
                 <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb checked={incident.folk_remedy} /> Y &nbsp; <Cb checked={!incident.folk_remedy} /> N &nbsp; {incident.folk_remedy_details||''}</div>
                 <div><strong>E.</strong> &nbsp; <Cb checked={incident.smoker} /> Smoker &nbsp;&nbsp; <Cb checked={incident.alcoholic} /> Alcoholic Drinker</div>
+                <div><strong>F. Allergy:</strong> &nbsp; <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:200 }}>{incident.allergy||''}</span></div>
               </div>
             </div>
           </div>
 
-          {/* Section V */}
+          {/* Section V — bigger min-height */}
           <div className="section">
             <div className="section-title">V. Physician's Order / Notes</div>
-            <div style={{ padding:4, minHeight:50, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.physician_notes||''}</div>
+            <div style={{ padding:'4px 6px', minHeight:80, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.physician_notes||''}</div>
           </div>
 
           {/* Section VI */}
           <div className="section">
             <div className="section-title">VI. Treatment</div>
 
+            {/* PEP — now includes Brand Name and Batch No. */}
             <div style={{ padding:'3px 5px 2px' }}>
               <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PEP Schedule Date</div>
               <table>
                 <thead><tr>
-                  <th style={{ width:'16%', textAlign:'left', paddingLeft:4 }}>Dose</th>
-                  <th style={{ width:'8%' }}>PVRV</th>
-                  <th style={{ width:'8%' }}>PCEC</th>
-                  <th style={{ width:'23%' }}>Schedule Date</th>
-                  <th style={{ width:'20%' }}>Date Given</th>
+                  <th style={{ width:'10%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'6%' }}>PVRV</th>
+                  <th style={{ width:'6%' }}>PCEC</th>
+                  <th style={{ width:'14%' }}>Brand Name</th>
+                  <th style={{ width:'12%' }}>Batch No.</th>
+                  <th style={{ width:'18%' }}>Schedule Date</th>
+                  <th style={{ width:'16%' }}>Date Given</th>
                   <th>Administered By</th>
                 </tr></thead>
                 <tbody>
@@ -295,6 +288,8 @@ export default function PrintPage() {
                       <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d.dose_day === 'D28' ? 'D 28/30' : d.dose_day.replace('D','D ')}</td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
+                      <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
+                      <td style={{ fontSize:'7pt' }}>{d.batch_no||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
                       <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
@@ -304,15 +299,18 @@ export default function PrintPage() {
               </table>
             </div>
 
+            {/* PrEP — now includes Brand Name and Batch No. */}
             <div style={{ padding:'2px 5px 3px' }}>
               <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PrEP Schedule Date</div>
               <table>
                 <thead><tr>
-                  <th style={{ width:'16%', textAlign:'left', paddingLeft:4 }}>Dose</th>
-                  <th style={{ width:'8%' }}>PVRV</th>
-                  <th style={{ width:'8%' }}>PCEC</th>
-                  <th style={{ width:'23%' }}>Schedule Date</th>
-                  <th style={{ width:'20%' }}>Date Given</th>
+                  <th style={{ width:'10%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'6%' }}>PVRV</th>
+                  <th style={{ width:'6%' }}>PCEC</th>
+                  <th style={{ width:'14%' }}>Brand Name</th>
+                  <th style={{ width:'12%' }}>Batch No.</th>
+                  <th style={{ width:'18%' }}>Schedule Date</th>
+                  <th style={{ width:'16%' }}>Date Given</th>
                   <th>Administered By</th>
                 </tr></thead>
                 <tbody>
@@ -321,6 +319,8 @@ export default function PrintPage() {
                       <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d.dose_day === 'D28' ? 'D 28/30' : d.dose_day.replace('D','D ')}</td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
+                      <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
+                      <td style={{ fontSize:'7pt' }}>{d.batch_no||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
                       <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
@@ -330,6 +330,7 @@ export default function PrintPage() {
               </table>
             </div>
 
+            {/* ERIG/HRIG */}
             <div style={{ padding:'2px 5px' }}>
               <table>
                 <thead><tr>
@@ -346,6 +347,7 @@ export default function PrintPage() {
               </table>
             </div>
 
+            {/* Tetanus */}
             <div style={{ padding:'2px 5px 3px' }}>
               <table>
                 <thead><tr>
@@ -392,7 +394,6 @@ export default function PrintPage() {
               </div>
             </div>
           </div>
-
         </div>
         <div className="footer">
           <div style={{ fontSize:'9pt', fontWeight:800, color:'#1d4ed8', letterSpacing:'.12em' }}>BETTER · GREATER · HAPPIER</div>
