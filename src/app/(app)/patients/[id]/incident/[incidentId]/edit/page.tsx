@@ -310,22 +310,30 @@ export default function IncidentEditPage() {
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
 
-              {/* Left col: A */}
+              {/* Left col: A — 4 items matching the print form */}
               <div>
                 <div className="form-label" style={{ marginBottom:8 }}>A. Other Medical Conditions / On Treatment</div>
-                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
-                  {[
-                    { k:'hiv',              label:'H.I.V.' },
-                    { k:'congenital_immuno', label:'Congenital Immunodeficiency' },
-                    { k:'immunosuppressant', label:'Immunosuppressant Agent' },
-                    { k:'long_term_steroid', label:'Long-Term Steroid' },
-                    { k:'chloroquine',       label:'Chloroquine Treatment' },
-                    { k:'malignancy',        label:'Malignancy (On Treatment)' },
-                  ].map(item => (
-                    <label key={item.k} className="checkbox-item">
-                      <Cb k={item.k} /> {item.label}
-                    </label>
-                  ))}
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  <label className="checkbox-item" style={{ alignItems:'flex-start', gap:8 }}>
+                    <div style={{ display:'flex', gap:6, paddingTop:1 }}>
+                      <Cb k="hiv" />
+                      <Cb k="congenital_immuno" />
+                    </div>
+                    <span>H.I.V. / Congenital Immunodeficiency</span>
+                  </label>
+                  <label className="checkbox-item" style={{ alignItems:'flex-start', gap:8 }}>
+                    <div style={{ display:'flex', gap:6, paddingTop:1 }}>
+                      <Cb k="immunosuppressant" />
+                      <Cb k="long_term_steroid" />
+                    </div>
+                    <span>Immunosuppressant Agent / Long-Term Steroid</span>
+                  </label>
+                  <label className="checkbox-item">
+                    <Cb k="chloroquine" /> Chloroquine Treatment
+                  </label>
+                  <label className="checkbox-item">
+                    <Cb k="malignancy" /> Malignancy (On Treatment)
+                  </label>
                 </div>
                 <div style={{ marginTop:10 }}>
                   <label className="form-label">Others (specify)</label>
