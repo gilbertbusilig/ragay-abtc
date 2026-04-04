@@ -1,5 +1,4 @@
 'use client';
-import { useRouter } from 'next/navigation';
 
 const FORMS = [
   {
@@ -12,7 +11,6 @@ const FORMS = [
 ];
 
 export default function FormsPage() {
-  const router = useRouter();
   return (
     <div className="page-wrapper">
       <div className="page-header no-print">
@@ -40,21 +38,27 @@ export default function FormsPage() {
               >
                 🖨 View &amp; Print
               </button>
+              {/* Download: open in new tab — user can Save As PDF from the print dialog */}
               <button
                 className="btn btn-secondary btn-sm"
                 style={{ flex:1 }}
                 onClick={() => {
-                  const a = document.createElement('a');
-                  a.href = form.href;
-                  a.target = '_blank';
-                  a.click();
+                  const win = window.open(form.href + '?download=1', '_blank');
+                  if (win) {
+                    win.addEventListener('load', () => {
+                      setTimeout(() => win.print(), 800);
+                    });
+                  }
                 }}
               >
-                ⬇ Download
+                ⬇ Download PDF
               </button>
             </div>
           </div>
         ))}
+      </div>
+      <div style={{ marginTop:20, padding:'12px 16px', background:'#f0f9ff', borderRadius:8, border:'1px solid #bae6fd', fontSize:12, color:'#0369a1' }}>
+        💡 <strong>Tip:</strong> To save as PDF, click <strong>Download PDF</strong> — the print dialog will open. Select <em>"Save as PDF"</em> as the destination.
       </div>
     </div>
   );
