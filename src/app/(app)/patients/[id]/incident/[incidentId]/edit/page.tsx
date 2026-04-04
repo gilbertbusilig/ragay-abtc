@@ -221,7 +221,7 @@ export default function IncidentEditPage() {
 
             {/* B–E in a 2-column grid below anatomical */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
-              {/* Left col: B, C, D */}
+              {/* Left col: B, C */}
               <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>B. Wound Status</div>
@@ -259,20 +259,23 @@ export default function IncidentEditPage() {
                         'f. Exposure to bats',
                         'g. All Category II exposures on head and neck area',
                       ]},
-                    ].map(c => (
-                      <label key={c.val} style={{ display:'flex', gap:10, cursor:'pointer', padding:'10px 12px', borderRadius:'var(--radius-md)', border:'1.5px solid', borderColor: f.wound_category===c.val ? 'var(--blue-500)' : 'var(--slate-200)', background: f.wound_category===c.val ? 'var(--blue-50)' : 'white', transition:'all .12s' }}>
-                        <input type="radio" name="wound_category" value={c.val} checked={f.wound_category===c.val} onChange={() => set('wound_category', c.val)} style={{ marginTop:2, width:16, height:16, accentColor:'var(--blue-600)', flexShrink:0 }} />
+                    ].map(cat => (
+                      <label key={cat.val} style={{ display:'flex', gap:10, cursor:'pointer', padding:'10px 12px', borderRadius:'var(--radius-md)', border:'1.5px solid', borderColor: f.wound_category===cat.val ? 'var(--blue-500)' : 'var(--slate-200)', background: f.wound_category===cat.val ? 'var(--blue-50)' : 'white', transition:'all .12s' }}>
+                        <input type="radio" name="wound_category" value={cat.val} checked={f.wound_category===cat.val} onChange={() => set('wound_category', cat.val)} style={{ marginTop:2, width:16, height:16, accentColor:'var(--blue-600)', flexShrink:0 }} />
                         <div>
-                          <div style={{ fontWeight:600, fontSize:14, color: f.wound_category===c.val ? 'var(--blue-800)' : 'var(--slate-700)' }}>{c.label}</div>
+                          <div style={{ fontWeight:600, fontSize:14, color: f.wound_category===cat.val ? 'var(--blue-800)' : 'var(--slate-700)' }}>{cat.label}</div>
                           <div style={{ fontSize:11, color:'var(--slate-500)', marginTop:3, lineHeight:1.5 }}>
-                            {c.items.map((item, i) => <div key={i}>{item}</div>)}
+                            {cat.items.map((item: string, i: number) => <div key={i}>{item}</div>)}
                           </div>
                         </div>
                       </label>
                     ))}
                   </div>
                 </div>
+              </div>
 
+              {/* Right col: D, E */}
+              <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>D. Type of Wound</div>
                   <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -288,7 +291,6 @@ export default function IncidentEditPage() {
                   )}
                 </div>
 
-                {/* E. Wound Care */}
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>E. Wound Care</div>
                   <label className="checkbox-item" style={{ marginBottom:8 }}>
@@ -307,17 +309,18 @@ export default function IncidentEditPage() {
             <div className="section-box-title">IV. History</div>
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+
               {/* Left col: A */}
-              <div style={{ marginBottom:14 }}>
+              <div>
                 <div className="form-label" style={{ marginBottom:8 }}>A. Other Medical Conditions / On Treatment</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                   {[
-                    { k:'hiv',               label:'H.I.V.' },
-                    { k:'congenital_immuno',  label:'Congenital Immunodeficiency' },
-                    { k:'immunosuppressant',  label:'Immunosuppressant Agent' },
-                    { k:'long_term_steroid',  label:'Long-Term Steroid' },
-                    { k:'chloroquine',        label:'Chloroquine Treatment' },
-                    { k:'malignancy',         label:'Malignancy (On Treatment)' },
+                    { k:'hiv',              label:'H.I.V.' },
+                    { k:'congenital_immuno', label:'Congenital Immunodeficiency' },
+                    { k:'immunosuppressant', label:'Immunosuppressant Agent' },
+                    { k:'long_term_steroid', label:'Long-Term Steroid' },
+                    { k:'chloroquine',       label:'Chloroquine Treatment' },
+                    { k:'malignancy',        label:'Malignancy (On Treatment)' },
                   ].map(item => (
                     <label key={item.k} className="checkbox-item">
                       <Cb k={item.k} /> {item.label}
@@ -331,62 +334,64 @@ export default function IncidentEditPage() {
               </div>
 
               {/* Right col: B–F */}
-              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-              <div>
-                <div className="form-label" style={{ marginBottom:8 }}>B. Anti-Tetanus Vaccine</div>
-                <div className="checkbox-group" style={{ marginBottom:8 }}>
-                  <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="true" checked={f.anti_tetanus_vaccine===true} onChange={() => set('anti_tetanus_vaccine', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
-                  <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="false" checked={f.anti_tetanus_vaccine===false} onChange={() => set('anti_tetanus_vaccine', false)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
-                </div>
-                {f.anti_tetanus_vaccine && (
-                  <div className="form-group">
-                    <label className="form-label">If yes — date given</label>
-                    <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
-                  </div>
-                )}
-                {f.anti_tetanus_vaccine === false && (
-                  <div className="form-group">
-                    <label className="form-label">Administer</label>
-                    <div className="checkbox-group">
-                      {['TT','TD','ATS'].map(t => (
-                        <label key={t} className="checkbox-item">
-                          <input type="radio" name="tet_type" value={t} checked={f.tetanus_type===t} onChange={() => set('tetanus_type', t)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
-                          {t}
-                        </label>
-                      ))}
-                    </div>
-                    <div style={{ marginTop:10, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                      <div className="form-group">
-                        <label className="form-label">Date Given</label>
-                        <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">Brand</label>
-                        <input className="form-input" type="text" value={f.tetanus_brand} onChange={e => set('tetanus_brand', e.target.value)} />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">Batch No.</label>
-                        <input className="form-input" type="text" value={f.tetanus_batch} onChange={e => set('tetanus_batch', e.target.value)} />
-                      </div>
-                      {f.tetanus_type === 'ATS' && (
-                        <div className="form-group">
-                          <label className="form-label">ATS Units</label>
-                          <input className="form-input" type="text" value={f.tetanus_units} onChange={e => set('tetanus_units', e.target.value)} placeholder="e.g. 1500 IU" />
-                        </div>
-                      )}
-                      <div className="form-group" style={{ gridColumn:'1 / -1' }}>
-                        <label className="form-label">Administered By</label>
-                        <select className="form-select" value={f.tetanus_admin_by} onChange={e => set('tetanus_admin_by', e.target.value)}>
-                          <option value="">-- Select nurse --</option>
-                          {nurses.map(n => <option key={n.user_id} value={n.user_id}>{n.full_name}{n.credential ? `, ${n.credential}` : ''}</option>)}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
-              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                {/* B */}
+                <div>
+                  <div className="form-label" style={{ marginBottom:8 }}>B. Anti-Tetanus Vaccine</div>
+                  <div className="checkbox-group" style={{ marginBottom:8 }}>
+                    <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="true" checked={f.anti_tetanus_vaccine===true} onChange={() => set('anti_tetanus_vaccine', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
+                    <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="false" checked={f.anti_tetanus_vaccine===false} onChange={() => set('anti_tetanus_vaccine', false)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
+                  </div>
+                  {f.anti_tetanus_vaccine && (
+                    <div className="form-group">
+                      <label className="form-label">If yes — date given</label>
+                      <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
+                    </div>
+                  )}
+                  {f.anti_tetanus_vaccine === false && (
+                    <div className="form-group">
+                      <label className="form-label">Administer</label>
+                      <div className="checkbox-group">
+                        {['TT','TD','ATS'].map(t => (
+                          <label key={t} className="checkbox-item">
+                            <input type="radio" name="tet_type" value={t} checked={f.tetanus_type===t} onChange={() => set('tetanus_type', t)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
+                            {t}
+                          </label>
+                        ))}
+                      </div>
+                      <div style={{ marginTop:10, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                        <div className="form-group">
+                          <label className="form-label">Date Given</label>
+                          <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Brand</label>
+                          <input className="form-input" type="text" value={f.tetanus_brand} onChange={e => set('tetanus_brand', e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                          <label className="form-label">Batch No.</label>
+                          <input className="form-input" type="text" value={f.tetanus_batch} onChange={e => set('tetanus_batch', e.target.value)} />
+                        </div>
+                        {f.tetanus_type === 'ATS' && (
+                          <div className="form-group">
+                            <label className="form-label">ATS Units</label>
+                            <input className="form-input" type="text" value={f.tetanus_units} onChange={e => set('tetanus_units', e.target.value)} placeholder="e.g. 1500 IU" />
+                          </div>
+                        )}
+                        <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                          <label className="form-label">Administered By</label>
+                          <select className="form-select" value={f.tetanus_admin_by} onChange={e => set('tetanus_admin_by', e.target.value)}>
+                            <option value="">-- Select nurse --</option>
+                            {nurses.map(n => <option key={n.user_id} value={n.user_id}>{n.full_name}{n.credential ? `, ${n.credential}` : ''}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* C */}
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>C. Completed anti-rabies shots previously?</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
@@ -397,6 +402,8 @@ export default function IncidentEditPage() {
                     <input className="form-input" type="text" value={f.anti_rabies_details} onChange={e => set('anti_rabies_details', e.target.value)} placeholder="Specify previous regimen…" />
                   )}
                 </div>
+
+                {/* D */}
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>D. Consulted folk healer / tambal first?</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
@@ -407,6 +414,8 @@ export default function IncidentEditPage() {
                     <input className="form-input" type="text" value={f.folk_remedy_details} onChange={e => set('folk_remedy_details', e.target.value)} placeholder="Tambal, Tanduk, etc…" />
                   )}
                 </div>
+
+                {/* E */}
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>E. Lifestyle</div>
                   <div className="checkbox-group">
@@ -414,15 +423,18 @@ export default function IncidentEditPage() {
                     <label className="checkbox-item"><Cb k="alcoholic" /> Alcoholic Drinker</label>
                   </div>
                 </div>
+
+                {/* F */}
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>F. Allergy</div>
                   <input className="form-input" type="text" value={f.allergy} onChange={e => set('allergy', e.target.value)} placeholder="Known allergies (drug, food, etc.)…" />
                 </div>
+
               </div>{/* end right col B-F */}
             </div>{/* end A|B-F grid */}
           </div>
 
-          {/* Section V — Physician Notes */}
+                    {/* Section V — Physician Notes */}
           <div className="section-box">
             <div className="section-box-title">V. Physician's Order / Notes</div>
             <div className="form-group" style={{ marginBottom:12 }}>
