@@ -62,6 +62,33 @@ export default function PrintPage() {
   const nurseId  = activeNurse?.user_id || incDoses.find((d: any) => d.administered_by)?.administered_by || '';
   const doctorId = incident.referring_doctor || '';
 
+  const CAT_I = [
+    'a. Feeding/Touching',
+    'b. Licking of intact skin (with reliable history and thorough physical examination)',
+    'c. Exposure to patient with signs and symptoms for rabies by sharing of eating or drinking utensils',
+    'd. Casual contact (talking to, visiting and feeding suspected rabies cases) and routine delivery of health care to patient with signs and symptoms of rabies',
+  ];
+  const CAT_II = [
+    'a. Nibbling of uncovered skin with or without bruising/hematoma',
+    'b. Minor/superficial scratches/abrasions without bleeding, including those induced to bleeding',
+    'c. All Category II exposures on the head and neck area are considered Category III and shall be managed as such',
+  ];
+  const CAT_III = [
+    'a. Transdermal bites (puncture wounds, lacerations, avulsions) or scratches/abrasions with spontaneous bleeding',
+    'b. Licks on broken skin or mucous membrane',
+    'c. Exposure to a rabies patient through bites, contamination of mucous membranes (eyes, oral/nasal mucous, genital/anal mucous membrane) or open skin lesions with body fluids through splattering and mouth-to-mouth resuscitation',
+    'd. Unprotected handling of infected carcass',
+    'e. Ingestion of raw infected meat',
+    'f. Exposure to bats',
+    'g. All Category II exposures on head and neck area',
+  ];
+
+  const catItems = (cat: string) => {
+    if (cat === 'I') return CAT_I;
+    if (cat === 'II') return CAT_II;
+    return CAT_III;
+  };
+
   return (
     <>
       <style>{`
@@ -83,7 +110,7 @@ export default function PrintPage() {
         table { width: 100%; border-collapse: collapse; font-size: 7pt; }
         th, td { border: 1px solid #333; padding: 2px 3px; vertical-align: middle; }
         th { background: #dce8f5; font-weight: bold; text-align: center; }
-        .sig-row { display: flex; justify-content: space-between; margin-top: 12px; gap: 20px; }
+        .sig-row { display: flex; justify-content: space-between; margin-top: 8px; gap: 20px; }
         .sig-block { text-align: center; flex: 1; }
         .sig-line { border-top: 1.5px solid #333; padding-top: 3px; }
         .footer { text-align:center; margin-top:auto; padding-top:5px; border-top:1.5px solid #1d4ed8; }
@@ -168,58 +195,75 @@ export default function PrintPage() {
             </div>
           </div>
 
-          {/* Section III */}
+          {/* Section III — Anatomical full width, then B-E in 2 cols below */}
           <div className="section">
             <div className="section-title">III. Wound Description / Wound Care</div>
-            <div className="two-col">
-              <div className="col" style={{ display:'flex', flexDirection:'column' }}>
+            <div className="section-body" style={{ paddingBottom:2 }}>
+
+              {/* A. Anatomical — full width */}
+              <div style={{ marginBottom:4 }}>
                 <strong style={{ fontSize:'7.5pt' }}>A. Anatomical Position</strong>
-                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'4px 2px', flex:1, display:'flex', flexDirection:'column', justifyContent:'center' }}>
+                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'4px 6px', display:'flex', alignItems:'center', gap:12 }}>
                   <img src="/logos/anatomical_new.jpg" alt="Anatomical Position"
-                    style={{ width:'100%', height:'auto', maxHeight:215, objectFit:'contain', display:'block' }} />
-                  <div style={{ fontSize:'7pt', marginTop:4, paddingLeft:2 }}>
-                    <strong>Marked:</strong> {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
+                    style={{ height:130, width:'auto', objectFit:'contain', flexShrink:0 }} />
+                  <div style={{ fontSize:'7pt', flex:1 }}>
+                    <strong>Marked sites:</strong><br/>
+                    {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
                   </div>
                 </div>
-                <div style={{ marginTop:4 }}>
-                  <strong style={{ fontSize:'7.5pt' }}>E. Wound Care</strong>
-                  <div style={{ marginTop:2, lineHeight:1.7, fontSize:'7.5pt' }}>
+              </div>
+
+              {/* B–E below in 2 cols */}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0, borderTop:'1px solid #ddd', paddingTop:3 }}>
+
+                {/* Left: B, C */}
+                <div style={{ paddingRight:6, borderRight:'1px solid #ddd', fontSize:'7.5pt' }}>
+                  <div style={{ marginBottom:3 }}>
+                    <strong>B. Wound Status: </strong>
+                    <Cb checked={incident.wound_status==='bleeding'}     /> Bleeding &nbsp;
+                    <Cb checked={incident.wound_status==='non_bleeding'} /> Non-Bleeding
+                  </div>
+                  <div>
+                    <strong>C. Wound Category:</strong>
+                    {['I','II','III'].map(cat => (
+                      <div key={cat} style={{ marginTop:3, paddingLeft:2 }}>
+                        <div style={{ fontWeight:'bold' }}>
+                          <Cb checked={incident.wound_category===cat} /> Category {cat}
+                        </div>
+                        <div style={{ paddingLeft:14, fontSize:'6.5pt', lineHeight:1.5, color:'#333' }}>
+                          {catItems(cat).map((item, i) => <div key={i}>{item}</div>)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right: D, E */}
+                <div style={{ paddingLeft:6, fontSize:'7.5pt' }}>
+                  <div style={{ marginBottom:4, lineHeight:1.7 }}>
+                    <strong>D. Type of Wound:</strong>
+                    {[
+                      { val:'superficial', label:'Superficial Scratches' },
+                      { val:'abrasion',    label:'Abrasion' },
+                      { val:'transdermal', label:'Multiple transdermal bites/scratches' },
+                      { val:'lick',        label:'Lick' },
+                      { val:'mucus',       label:'Contamination of Mucus Membrane' },
+                      { val:'other',       label:`Others: ${incident.wound_type_other||'___________'}` },
+                    ].map(o => (
+                      <div key={o.val}><Cb checked={incident.wound_type===o.val} /> {o.label}</div>
+                    ))}
+                  </div>
+                  <div style={{ lineHeight:1.7 }}>
+                    <strong>E. Wound Care</strong>
                     <div>e1. Wound Wash with soap and water: &nbsp; <Cb checked={incident.wound_wash===true||incident.wound_wash==='true'} /> Y &nbsp; <Cb checked={incident.wound_wash===false||incident.wound_wash==='false'} /> N</div>
                     <div>e2. Antiseptic Applied (Povidone/Alcohol): &nbsp; <Cb checked={incident.antiseptic_applied===true||incident.antiseptic_applied==='true'} /> Y &nbsp; <Cb checked={incident.antiseptic_applied===false||incident.antiseptic_applied==='false'} /> N</div>
                   </div>
                 </div>
               </div>
-              <div className="col">
-                <div style={{ marginBottom:4, fontSize:'7.5pt' }}>
-                  <strong>B. Wound Status: &nbsp;</strong>
-                  <Cb checked={incident.wound_status==='bleeding'}     /> Bleeding &nbsp;&nbsp;
-                  <Cb checked={incident.wound_status==='non_bleeding'} /> Non-Bleeding
-                </div>
-                <div style={{ marginBottom:4, lineHeight:1.55, fontSize:'7.5pt' }}>
-                  <strong>C. Wound Category:</strong>
-                  <div style={{ marginTop:2 }}>
-                    <div><Cb checked={incident.wound_category==='I'}   /> <strong>Category I:</strong> Touching/feeding animals, licks on intact skin, contact of intact skin with secretions.</div>
-                    <div style={{ marginTop:3 }}><Cb checked={incident.wound_category==='II'}  /> <strong>Category II:</strong> Nibbling of uncovered skin, minor scratches or abrasions without bleeding.</div>
-                    <div style={{ marginTop:3 }}><Cb checked={incident.wound_category==='III'} /> <strong>Category III:</strong> Transdermal bites/scratches, licks on broken skin, contamination of mucous membrane, exposure to bats.</div>
-                  </div>
-                </div>
-                <div style={{ lineHeight:1.7, fontSize:'7.5pt' }}>
-                  <strong>D. Type of Wound:</strong>
-                  {[
-                    { val:'superficial', label:'Superficial Scratches' },
-                    { val:'abrasion',    label:'Abrasion' },
-                    { val:'transdermal', label:'Multiple transdermal bites/scratches' },
-                    { val:'lick',        label:'Lick' },
-                    { val:'mucus',       label:'Contamination of Mucus Membrane' },
-                    { val:'other',       label:`Others: ${incident.wound_type_other||'___________'}` },
-                  ].map(o => (
-                    <div key={o.val}><Cb checked={incident.wound_type===o.val} /> {o.label}</div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
+
         <div className="footer">
           <div style={{ fontSize:'9pt', fontWeight:800, color:'#1d4ed8', letterSpacing:'.12em' }}>BETTER · GREATER · HAPPIER</div>
           <div style={{ fontSize:'12pt', fontWeight:900, color:'#1e3a8a', letterSpacing:'.15em' }}>RAGAY</div>
@@ -229,46 +273,45 @@ export default function PrintPage() {
       {/* ===== PAGE 2 ===== */}
       <div className="page">
         <div className="page-content">
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:5, paddingBottom:4, borderBottom:'2px solid #1d4ed8' }}>
-            <div style={{ textAlign:'center', flex:1 }}>
-              <div style={{ fontSize:'11pt', fontWeight:900, color:'#1e3a8a' }}>RAGAY ANIMAL BITE TREATMENT CENTER</div>
-              <div style={{ fontSize:'7.5pt' }}>Poblacion, Ragay, Camarines Sur · Municipal Health Office</div>
-            </div>
-          </div>
 
-          {/* Section IV */}
+          {/* Section IV — History: A left, B-F right */}
           <div className="section">
             <div className="section-title">IV. History</div>
-            <div className="section-body">
-              <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
-              <div style={{ lineHeight:1.85, fontSize:'7.5pt' }}>
-                <div><Cb checked={!!(incident.hiv || incident.congenital_immuno)} /> H.I.V. / Congenital Immunodeficiency</div>
-                <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid)} /> Immunosuppressant Agent / Long-Term Steroid</div>
-                <div><Cb checked={!!incident.chloroquine} /> Chloroquine Treatment</div>
-                <div><Cb checked={!!incident.malignancy}  /> Malignancy (On Treatment)</div>
-                <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:200 }}>{incident.other_conditions||''}</span></div>
+            <div className="two-col">
+              {/* Left: A */}
+              <div className="col" style={{ fontSize:'7.5pt' }}>
+                <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
+                <div style={{ lineHeight:1.85 }}>
+                  <div><Cb checked={!!incident.hiv}               /> H.I.V.</div>
+                  <div><Cb checked={!!incident.congenital_immuno}  /> Congenital Immunodeficiency</div>
+                  <div><Cb checked={!!incident.immunosuppressant}  /> Immunosuppressant Agent</div>
+                  <div><Cb checked={!!incident.long_term_steroid}  /> Long-Term Steroid</div>
+                  <div><Cb checked={!!incident.chloroquine}        /> Chloroquine Treatment</div>
+                  <div><Cb checked={!!incident.malignancy}         /> Malignancy (On Treatment)</div>
+                  <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:100 }}>{incident.other_conditions||''}</span></div>
+                </div>
               </div>
-              <div style={{ marginTop:3, lineHeight:1.8, fontSize:'7.5pt' }}>
+              {/* Right: B–F */}
+              <div className="col" style={{ fontSize:'7.5pt', lineHeight:1.8 }}>
                 <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb checked={incident.anti_tetanus_vaccine===true||incident.anti_tetanus_vaccine==='true'} /> Y &nbsp; <Cb checked={incident.anti_tetanus_vaccine===false||incident.anti_tetanus_vaccine==='false'} /> N &nbsp; {incident.anti_tetanus_vaccine ? `If yes: ${fullDate(incident.tetanus_date)||'____________'}` : ''}</div>
                 <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb checked={incident.anti_rabies_completed} /> Y &nbsp; <Cb checked={!incident.anti_rabies_completed} /> N &nbsp; {incident.anti_rabies_details ? `(${incident.anti_rabies_details})` : ''}</div>
                 <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb checked={incident.folk_remedy} /> Y &nbsp; <Cb checked={!incident.folk_remedy} /> N &nbsp; {incident.folk_remedy_details||''}</div>
                 <div><strong>E.</strong> &nbsp; <Cb checked={incident.smoker} /> Smoker &nbsp;&nbsp; <Cb checked={incident.alcoholic} /> Alcoholic Drinker</div>
-                <div><strong>F. Allergy:</strong> &nbsp; <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:200 }}>{incident.allergy||''}</span></div>
+                <div><strong>F. Allergy:</strong> &nbsp; <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:150 }}>{incident.allergy||''}</span></div>
               </div>
             </div>
           </div>
 
-          {/* Section V — bigger min-height */}
+          {/* Section V — bigger notes area */}
           <div className="section">
             <div className="section-title">V. Physician's Order / Notes</div>
-            <div style={{ padding:'4px 6px', minHeight:80, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.physician_notes||''}</div>
+            <div style={{ padding:'4px 6px', minHeight:100, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.physician_notes||''}</div>
           </div>
 
           {/* Section VI */}
           <div className="section">
             <div className="section-title">VI. Treatment</div>
 
-            {/* PEP — now includes Brand Name and Batch No. */}
             <div style={{ padding:'3px 5px 2px' }}>
               <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PEP Schedule Date</div>
               <table>
@@ -299,7 +342,6 @@ export default function PrintPage() {
               </table>
             </div>
 
-            {/* PrEP — now includes Brand Name and Batch No. */}
             <div style={{ padding:'2px 5px 3px' }}>
               <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PrEP Schedule Date</div>
               <table>
@@ -330,7 +372,6 @@ export default function PrintPage() {
               </table>
             </div>
 
-            {/* ERIG/HRIG */}
             <div style={{ padding:'2px 5px' }}>
               <table>
                 <thead><tr>
@@ -347,7 +388,6 @@ export default function PrintPage() {
               </table>
             </div>
 
-            {/* Tetanus */}
             <div style={{ padding:'2px 5px 3px' }}>
               <table>
                 <thead><tr>
@@ -370,8 +410,13 @@ export default function PrintPage() {
             </div>
           </div>
 
-          <div style={{ fontSize:'8pt', marginBottom:8 }}><strong>VII. Refer If Needed:</strong></div>
+          {/* VII. Refer If Needed — boxed */}
+          <div className="section" style={{ marginBottom:8 }}>
+            <div className="section-title">VII. Refer If Needed</div>
+            <div style={{ padding:'4px 6px', minHeight:28, fontSize:'8pt' }}>&nbsp;</div>
+          </div>
 
+          {/* Signatures */}
           <div className="sig-row">
             <div className="sig-block">
               <div style={{ minHeight:24 }} />
@@ -395,6 +440,7 @@ export default function PrintPage() {
             </div>
           </div>
         </div>
+
         <div className="footer">
           <div style={{ fontSize:'9pt', fontWeight:800, color:'#1d4ed8', letterSpacing:'.12em' }}>BETTER · GREATER · HAPPIER</div>
           <div style={{ fontSize:'12pt', fontWeight:900, color:'#1e3a8a', letterSpacing:'.15em' }}>RAGAY</div>
