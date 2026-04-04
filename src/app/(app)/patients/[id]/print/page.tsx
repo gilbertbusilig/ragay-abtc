@@ -200,13 +200,28 @@ export default function PrintPage() {
             <div className="section-title">III. Wound Description / Wound Care</div>
             <div className="section-body" style={{ paddingBottom:2 }}>
 
-              {/* A. Anatomical — full width, centered, large */}
+              {/* A. Anatomical — full width, 3 views */}
               <div style={{ marginBottom:4 }}>
                 <strong style={{ fontSize:'7.5pt' }}>A. Anatomical Position</strong>
-                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'6px 4px 4px', textAlign:'center' }}>
-                  <img src="/logos/anatomical_new.jpg" alt="Anatomical Position"
-                    style={{ width:'92%', maxHeight:190, objectFit:'contain', display:'block', margin:'0 auto' }} />
-                  <div style={{ fontSize:'7pt', marginTop:4, textAlign:'left', paddingLeft:4 }}>
+                <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'6px 8px 4px' }}>
+                  <div style={{ display:'flex', justifyContent:'center', alignItems:'flex-end', gap:16 }}>
+                    <div style={{ textAlign:'center' }}>
+                      <img src="/logos/anatomical_front.jpg" alt="Front"
+                        style={{ height:185, width:'auto', objectFit:'contain', display:'block', margin:'0 auto' }} />
+                      <div style={{ fontSize:'6pt', color:'#555', marginTop:2 }}>Front</div>
+                    </div>
+                    <div style={{ textAlign:'center' }}>
+                      <img src="/logos/anatomical_back.jpg" alt="Back"
+                        style={{ height:185, width:'auto', objectFit:'contain', display:'block', margin:'0 auto' }} />
+                      <div style={{ fontSize:'6pt', color:'#555', marginTop:2 }}>Back</div>
+                    </div>
+                    <div style={{ textAlign:'center' }}>
+                      <img src="/logos/anatomical_side.jpg" alt="Side"
+                        style={{ height:185, width:'auto', objectFit:'contain', display:'block', margin:'0 auto' }} />
+                      <div style={{ fontSize:'6pt', color:'#555', marginTop:2 }}>Side</div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize:'7pt', marginTop:4, paddingLeft:2 }}>
                     <strong>Marked sites:</strong> {anatomicalSites.length > 0 ? anatomicalSites.join(', ') : '—'}
                   </div>
                 </div>
@@ -407,10 +422,10 @@ export default function PrintPage() {
             </div>
           </div>
 
-          {/* VII. Refer If Needed — boxed */}
+          {/* VII. Refer If Needed — boxed, same size as Physician Notes */}
           <div className="section" style={{ marginBottom:8 }}>
             <div className="section-title">VII. Refer If Needed</div>
-            <div style={{ padding:'4px 6px', minHeight:28, fontSize:'8pt' }}>&nbsp;</div>
+            <div style={{ padding:'4px 6px', minHeight:100, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.refer_if_needed||''}</div>
           </div>
 
           {/* Signatures */}
