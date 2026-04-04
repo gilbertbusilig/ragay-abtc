@@ -63,6 +63,7 @@ export default function IncidentEditPage() {
     folk_remedy_details: '',
     smoker: false,
     alcoholic: false,
+    allergy: '',
     physician_notes: '',
     dose_type: 'PEP',
     pep_doses_needed: 5,
@@ -115,6 +116,7 @@ export default function IncidentEditPage() {
           folk_remedy: !!inc.folk_remedy,
           folk_remedy_details: inc.folk_remedy_details || '',
           smoker: !!inc.smoker, alcoholic: !!inc.alcoholic,
+          allergy: inc.allergy || '',
           physician_notes: inc.physician_notes || '',
           dose_type: incidentDoses[0]?.dose_type || 'PEP',
           pep_doses_needed: inc.pep_doses_needed || 5,
@@ -392,6 +394,10 @@ export default function IncidentEditPage() {
                     <label className="checkbox-item"><Cb k="smoker" /> Smoker</label>
                     <label className="checkbox-item"><Cb k="alcoholic" /> Alcoholic Drinker</label>
                   </div>
+                </div>
+                <div>
+                  <div className="form-label" style={{ marginBottom:8 }}>F. Allergy</div>
+                  <input className="form-input" type="text" value={f.allergy} onChange={e => set('allergy', e.target.value)} placeholder="Known allergies (drug, food, etc.)…" />
                 </div>
               </div>
             </div>
