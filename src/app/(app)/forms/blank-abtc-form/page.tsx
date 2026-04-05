@@ -145,18 +145,18 @@ export default function BlankABTCForm() {
               <div style={{ marginBottom:4 }}>
                 <strong style={{ fontSize:'7.5pt' }}>A. Anatomical Position</strong>
                 <div style={{ border:'1px solid #aaa', marginTop:3, background:'#fff', padding:'6px 8px 4px' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end' }}>
-                    <div style={{ textAlign:'center', flex:'0 0 auto' }}>
+                  <div style={{ display:'flex', justifyContent:'center', alignItems:'flex-end', gap:0 }}>
+                    <div style={{ textAlign:'center', flex:'1 1 0', paddingRight:8 }}>
                       <img src="/logos/anatomical_front.jpg" alt="Front"
                         style={{ height:185, width:'auto', objectFit:'contain', display:'block', margin:'0 auto' }} />
                       <div style={{ fontSize:'6pt', color:'#555', marginTop:2 }}>Front</div>
                     </div>
-                    <div style={{ textAlign:'center', flex:'0 0 auto' }}>
+                    <div style={{ textAlign:'center', flex:'1 1 0' }}>
                       <img src="/logos/anatomical_back.jpg" alt="Back"
                         style={{ height:185, width:'auto', objectFit:'contain', display:'block', margin:'0 auto' }} />
                       <div style={{ fontSize:'6pt', color:'#555', marginTop:2 }}>Back</div>
                     </div>
-                    <div style={{ textAlign:'center', flex:'0 0 auto' }}>
+                    <div style={{ textAlign:'center', flex:'1 1 0', paddingLeft:8 }}>
                       <img src="/logos/anatomical_side.jpg" alt="Side"
                         style={{ height:185, width:'auto', objectFit:'contain', display:'block', margin:'0 auto' }} />
                       <div style={{ fontSize:'6pt', color:'#555', marginTop:2 }}>Side</div>
