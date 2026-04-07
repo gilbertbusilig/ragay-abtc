@@ -424,7 +424,9 @@ export default function PatientDetailPage() {
 
   const incidentDoses = useMemo(() => {
     if (!activeIncident) return [];
-    const rows = doses.filter(d => d.incident_id === activeIncident.incident_id);
+    const rows = doses.filter(
+      d => d.incident_id === activeIncident.incident_id && String(d.status || '').toLowerCase() !== 'skipped'
+    );
     const byDay = new Map<string, Dose>();
     const pick = (obj: any, keys: string[]) => {
       for (const k of keys) {
