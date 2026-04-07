@@ -210,7 +210,16 @@ export default function PatientDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeIncident, setActiveIncident] = useState<Incident | null>(null);
   const [adminModal, setAdminModal] = useState<Dose | null>(null);
-  const [doseForm, setDoseForm] = useState({ vaccine_type: 'PVRV', brand_name: '', batch_no: '', administered_date: '', route: 'Intramuscular', dose_volume: '0.5 ml' });
+  const [doseForm, setDoseForm] = useState({
+    vaccine_type: 'PVRV',
+    brand_name: '',
+    batch_no: '',
+    administered_date: '',
+    route: 'Intramuscular',
+    dose_volume: '0.5 ml',
+    from_other_facility: false,
+    administered_by_other: '',
+  });
   const [petOutcomeModal, setPetOutcomeModal] = useState<PetMonitor | null>(null);
   const [petOutcome, setPetOutcome] = useState<'healthy' | 'perished'>('healthy');
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'patient' | 'incident' | 'dose'; id: string; dose?: Dose } | null>(null);
@@ -267,6 +276,14 @@ export default function PatientDetailPage() {
     if (!adminModal) return;
     setSaving(true);
     const by = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
+    const administeredBy = doseForm.from_other_facility
+      ? String(doseForm.administered_by_other || '').trim()
+      : (by || '');
+    if (!administeredBy) {
+      setSaving(false);
+      showToast('Please enter who administered this dose in the other facility', 'error');
+      return;
+    }
     const today = getLocalISODate();
     const res = await api.administerDose({
       dose_id:         adminModal.dose_id || '',
@@ -277,7 +294,7 @@ export default function PatientDetailPage() {
       vaccine_type:    doseForm.vaccine_type,
       brand_name:      doseForm.brand_name,
       batch_no:        doseForm.batch_no,
-      administered_by: by,
+      administered_by: administeredBy,
       administered_date: doseForm.administered_date || today,
       route: doseForm.route,
       dose_volume: doseForm.dose_volume,
@@ -700,7 +717,16 @@ export default function PatientDetailPage() {
                   allUsers={allUsers}
                   onAdminister={d => {
                     setAdminModal(d);
-                    setDoseForm({ vaccine_type:'PVRV', brand_name:'', batch_no:'', administered_date: getLocalISODate(), route:'Intramuscular', dose_volume:'0.5 ml' });
+                    setDoseForm({
+                      vaccine_type:'PVRV',
+                      brand_name:'',
+                      batch_no:'',
+                      administered_date: getLocalISODate(),
+                      route:'Intramuscular',
+                      dose_volume:'0.5 ml',
+                      from_other_facility: false,
+                      administered_by_other: '',
+                    });
                   }}
                   onDateChange={handleDoseDateChange}
                   onDeleteDose={d => setDeleteConfirm({ type:'dose', id:d.dose_id || `${d.incident_id}:${d.dose_day}`, dose:d })}
@@ -727,8 +753,29 @@ export default function PatientDetailPage() {
               </div>
               <div className="form-grid">
                 <div className="form-group">
-                  <label className="form-label">Administered By</label>
-                  <input className="form-input" type="text" readOnly value={currentActor ? `${currentActor.full_name}${currentActor.credential ? `, ${currentActor.credential}` : ''}` : ''} style={{ background:'var(--slate-50)' }} />
+                  <label className="checkbox-item" style={{ marginBottom:8 }}>
+                    <input
+                      type="checkbox"
+                      checked={!!doseForm.from_other_facility}
+                      onChange={e => setDoseForm(p => ({...p, from_other_facility: e.target.checked}))}
+                      style={{ width:16, height:16, accentColor:'var(--blue-600)' }}
+                    />
+                    Dose started from another facility
+                  </label>
+                  <label className="form-label">
+                    {doseForm.from_other_facility ? 'Administered By (Other Facility)' : 'Administered By'}
+                  </label>
+                  {doseForm.from_other_facility ? (
+                    <input
+                      className="form-input"
+                      type="text"
+                      value={doseForm.administered_by_other}
+                      onChange={e => setDoseForm(p => ({...p, administered_by_other: e.target.value}))}
+                      placeholder="Enter name / facility"
+                    />
+                  ) : (
+                    <input className="form-input" type="text" readOnly value={currentActor ? `${currentActor.full_name}${currentActor.credential ? `, ${currentActor.credential}` : ''}` : ''} style={{ background:'var(--slate-50)' }} />
+                  )}
                 </div>
                 <div className="form-group">
                   <label className="form-label">Date Administered</label>

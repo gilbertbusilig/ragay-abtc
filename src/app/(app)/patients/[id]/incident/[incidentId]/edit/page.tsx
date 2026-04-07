@@ -81,7 +81,9 @@ export default function IncidentEditPage() {
     ]);
     if (initRes.status === 'ok') {
       setNurses(initRes.data.nurses || []);
-      setDoctors((initRes.data.accounts || []).filter((u: any) => u.role === 'doctor' || u.role === 'admin'));
+      setDoctors((initRes.data.accounts || []).filter((u: any) =>
+        u.role === 'doctor' && String(u.full_name || '').trim().toLowerCase() !== 'system administrator'
+      ));
     }
     if (patRes.status === 'ok') {
       const inc = patRes.data.incidents?.find((i: any) => i.incident_id === incident_id);
@@ -197,7 +199,7 @@ export default function IncidentEditPage() {
             <div className="section-box-title">III. Wound Description / Wound Care</div>
 
             {/* A. Anatomical Position — full width */}
-            <div>
+            <div style={{ marginBottom: 20 }}>
               <div className="form-label" style={{ marginBottom:8 }}>A. Anatomical Position (click to mark)</div>
               <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
                 {BODY_SITES.map(site => (
