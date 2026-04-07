@@ -23,6 +23,7 @@ function getLocalISODate() {
 export default function VaccineSchedulePage() {
   const router = useRouter();
   const [doses, setDoses] = useState<(Dose & { patient_name?: string })[]>([]);
+  const [userMap, setUserMap] = useState<Record<string, { full_name?: string; credential?: string }>>({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const today = getLocalISODate();
@@ -31,16 +32,30 @@ export default function VaccineSchedulePage() {
 
   async function load() {
     setLoading(true);
-    const [dosesRes, patientsRes] = await Promise.all([
+    const [dosesRes, patientsRes, initRes] = await Promise.all([
       api.getDoses(),
       api.getPatients(),
+      api.getInitData(),
     ]);
     if (dosesRes.status === 'ok' && patientsRes.status === 'ok') {
       const patMap: Record<string, string> = {};
       patientsRes.data.forEach((p: any) => { patMap[p.patient_id] = p.full_name; });
       setDoses(dosesRes.data.map((d: Dose) => ({ ...d, patient_name: patMap[d.patient_id] || d.patient_id })));
     }
+    if (initRes.status === 'ok') {
+      const map: Record<string, { full_name?: string; credential?: string }> = {};
+      (initRes.data.accounts || []).forEach((u: any) => { map[u.user_id] = u; });
+      (initRes.data.nurses || []).forEach((u: any) => { if (!map[u.user_id]) map[u.user_id] = u; });
+      setUserMap(map);
+    }
     setLoading(false);
+  }
+
+  function givenByName(userId?: string) {
+    if (!userId) return '—';
+    const u = userMap[userId];
+    if (!u?.full_name) return userId;
+    return `${u.full_name}${u.credential ? `, ${u.credential}` : ''}`;
   }
 
   const filtered = doses.filter(d => {
@@ -174,7 +189,7 @@ export default function VaccineSchedulePage() {
                       <td style={{ fontSize:13 }}>{d.vaccine_type || '—'}</td>
                       <td style={{ fontSize:13 }}>{d.brand_name || '—'}</td>
                       <td style={{ fontSize:13 }}>{fmtDate(d.administered_date)}</td>
-                      <td style={{ fontSize:13 }}>{d.administered_by || '—'}</td>
+                      <td style={{ fontSize:13 }}>{givenByName(d.administered_by)}</td>
                     </tr>
                   ))}
                 </tbody>

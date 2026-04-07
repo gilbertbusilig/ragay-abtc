@@ -182,34 +182,6 @@ export default function NewIncidentPage() {
             </div>
           </div>
 
-          <div className="section-box">
-            <div className="section-box-title">Treatment Plan</div>
-            <div className="form-group">
-              <label className="form-label">PEP / PrEP Doses Required</label>
-              <select
-                className="form-select"
-                value={`${form.dose_type}:${form.pep_doses_needed}`}
-                onChange={e => {
-                  const [doseType, doseCount] = e.target.value.split(':');
-                  setForm(prev => ({
-                    ...prev,
-                    dose_type: doseType,
-                    pep_doses_needed: Number(doseCount),
-                  }));
-                }}
-                style={{ maxWidth: 420 }}
-              >
-                <option value="PEP:5">PEP - 5 doses (D0, D3, D7, D14, D28/30)</option>
-                <option value="PEP:4">PEP - 4 doses (D0, D3, D7, D28/30)</option>
-                <option value="PrEP:3">PrEP - 3 doses (D0, D7, D21/28)</option>
-                <option value="PEP:1">Booster - 1 dose (D0)</option>
-              </select>
-              <div style={{ fontSize:12, color:'var(--slate-500)', marginTop:8 }}>
-                Schedule dates stay blank until the actual date given for D0 is recorded.
-              </div>
-            </div>
-          </div>
-
           <div style={{ display:'flex', gap:12, justifyContent:'flex-end' }}>
             <button type="button" className="btn btn-secondary" onClick={() => router.push(`/patients/${patient_id}`)}>Cancel</button>
             <button type="submit" className="btn btn-primary" disabled={saving}>

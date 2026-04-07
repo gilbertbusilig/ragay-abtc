@@ -339,12 +339,20 @@ export default function PatientDetailPage() {
       if (res?.status === 'ok') {
         const clearedDose = res.data?.dose;
         if (clearedDose) {
-          setDoses(prev => prev.map(d =>
-            ((clearedDose.dose_id && d.dose_id === clearedDose.dose_id) ||
-            (d.incident_id === clearedDose.incident_id && d.dose_day === clearedDose.dose_day))
-              ? { ...d, ...clearedDose }
-              : d
-          ));
+          setDoses(prev => prev.map(d => {
+            const isClearedDose =
+              (clearedDose.dose_id && d.dose_id === clearedDose.dose_id) ||
+              (d.incident_id === clearedDose.incident_id && d.dose_day === clearedDose.dose_day);
+            if (isClearedDose) return { ...d, ...clearedDose };
+
+            // If D0 is deleted, clear scheduled dates of related doses because they are D0-derived.
+            if (clearedDose.dose_day === 'D0' && d.incident_id === clearedDose.incident_id) {
+              const next: Dose = { ...d, scheduled_date: '' };
+              if (!d.administered_date) next.status = 'scheduled';
+              return next;
+            }
+            return d;
+          }));
         } else {
           load();
         }
