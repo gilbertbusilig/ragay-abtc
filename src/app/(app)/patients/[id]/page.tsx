@@ -94,10 +94,12 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
     if (raw === 'intramuscular') return 'Intramuscular';
     return '';
   };
+  const isDoseGiven = (d: any) => !!String(d?.administered_date || '').trim();
   const doseAmount = (d: any) => {
+    if (!isDoseGiven(d)) return '';
     const raw = pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
     if (!raw || raw.toLowerCase() === 'false' || raw.toLowerCase() === 'true') return '';
-    const normalized = raw.toLowerCase().replace(/\s+/g, '');
+    const normalized = raw.toLowerCase().replace(/\s+/g, '').replace(/[.,;]+$/g, '');
     if (normalized === '0.1ml' || normalized === '0.1') return '0.1 ml';
     if (normalized === '0.5ml' || normalized === '0.5') return '0.5 ml';
     if (normalized === '1ml' || normalized === '1.0ml' || normalized === '1' || normalized === '1.0') return '1.0 ml';
