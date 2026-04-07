@@ -58,7 +58,9 @@ export default function VaccineSchedulePage() {
     return `${u.full_name}${u.credential ? `, ${u.credential}` : ''}`;
   }
 
-  const filtered = doses.filter(d => {
+  const activeDoses = doses.filter(d => String(d.status || '').toLowerCase() !== 'skipped');
+
+  const filtered = activeDoses.filter(d => {
     if (filter === 'due_today') return d.scheduled_date === today && d.status === 'scheduled';
     if (filter === 'due_week') {
       const wk = new Date(); wk.setDate(wk.getDate() + 7);
@@ -72,9 +74,9 @@ export default function VaccineSchedulePage() {
   }).sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''));
 
   const counts = {
-    due_today: doses.filter(d => d.scheduled_date === today && d.status === 'scheduled').length,
-    overdue: doses.filter(d => d.status === 'overdue').length,
-    done: doses.filter(d => d.status === 'done').length,
+    due_today: activeDoses.filter(d => d.scheduled_date === today && d.status === 'scheduled').length,
+    overdue: activeDoses.filter(d => d.status === 'overdue').length,
+    done: activeDoses.filter(d => d.status === 'done').length,
   };
 
   const statusBadge = (s: string, optional: boolean) => {
@@ -114,7 +116,7 @@ export default function VaccineSchedulePage() {
             <div className="stat-icon">✅</div>
           </div>
           <div className="stat-card">
-            <div className="stat-value">{doses.length}</div>
+            <div className="stat-value">{activeDoses.length}</div>
             <div className="stat-label">Total Scheduled</div>
             <div className="stat-icon">💉</div>
           </div>
