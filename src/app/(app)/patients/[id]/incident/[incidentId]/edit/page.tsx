@@ -313,7 +313,7 @@ export default function IncidentEditPage() {
           <div className="section-box">
             <div className="section-box-title">IV. History</div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:20 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
 
               {/* Left col: A — matches print form exactly */}
               <div>
@@ -401,6 +401,11 @@ export default function IncidentEditPage() {
                     </div>
                   )}
                 </div>
+
+              </div>
+
+              {/* Right col: C-F */}
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
                 {/* C */}
                 <div>
@@ -501,8 +506,8 @@ export default function IncidentEditPage() {
                   </div>
                 </div>
 
-              </div>{/* end right col B-F */}
-            </div>{/* end A|B-F grid */}
+              </div>{/* end right col C-F */}
+            </div>{/* end A|C-F grid */}
           </div>
 
                     {/* Section V — Physician Notes */}
