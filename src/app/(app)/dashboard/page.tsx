@@ -80,7 +80,8 @@ export default function DashboardPage() {
   const [dashboardByYear, setDashboardByYear] = useState<Record<string, DashboardData>>({});
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [summaryYear, setSummaryYear] = useState(new Date().getFullYear().toString());
+  const [demographicsYear, setDemographicsYear] = useState(new Date().getFullYear().toString());
   const [monthFilter, setMonthFilter] = useState<number>(0); // 0 = all
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
   const [sexFilter, setSexFilter] = useState<SexFilter>('all');
@@ -106,7 +107,7 @@ export default function DashboardPage() {
     setRefreshing(false);
   }
 
-  const data = dashboardByYear[year] || null;
+  const data = dashboardByYear[summaryYear] || null;
 
   if (loading) {
     return (
@@ -133,7 +134,8 @@ export default function DashboardPage() {
     day: 'numeric',
   });
 
-  const filteredRecords = (data.demographics_records || []).filter(record => {
+  const demographicsData = dashboardByYear[demographicsYear] || data;
+  const filteredRecords = (demographicsData?.demographics_records || []).filter(record => {
     if (monthFilter !== 0 && (record as any).consult_month !== monthFilter) return false;
     if (ageFilter !== 'all' && record.age_group !== ageFilter) return false;
     if (sexFilter !== 'all' && record.sex !== sexFilter) return false;
@@ -180,7 +182,7 @@ export default function DashboardPage() {
           <p className="page-subtitle">{now}</p>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <select className="form-select" style={{ width: 96 }} value={year} onChange={e => setYear(e.target.value)}>
+          <select className="form-select" style={{ width: 96 }} value={summaryYear} onChange={e => setSummaryYear(e.target.value)}>
             {YEARS.map(y => (
               <option key={y} value={y}>
                 {y}
@@ -205,29 +207,31 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className="stat-grid" style={{ marginBottom: 18 }}>
-          {[
-            { val: data.total_patients, label: 'Total Patients', cls: '' },
-            { val: data.active_treatment, label: 'Active Treatment', cls: 'amber' },
-            { val: data.completed, label: 'Completed', cls: 'green' },
-            { val: data.overdue_doses, label: 'Overdue Doses', cls: 'red' },
-            { val: data.due_today, label: 'Due Today', cls: '' },
-            { val: data.pet_monitors_active, label: 'Pet Monitors', cls: '' },
-          ].map(s => (
-            <div
-              key={s.label}
-              className={`stat-card ${s.cls}`}
-              style={{
-                borderRadius: 18,
-                border: '1px solid rgba(148, 163, 184, 0.12)',
-                boxShadow: '0 18px 35px rgba(15, 23, 42, 0.06)',
-                background: 'linear-gradient(180deg, rgba(255,255,255,1), rgba(248,250,252,0.92))',
-              }}
-            >
-              <div className="stat-value">{s.val}</div>
-              <div className="stat-label">{s.label}</div>
-            </div>
-          ))}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+          <div className="stat-grid" style={{ width: '100%', maxWidth: 1320 }}>
+            {[
+              { val: data.total_patients, label: 'Total Patients', cls: '' },
+              { val: data.active_treatment, label: 'Active Treatment', cls: 'amber' },
+              { val: data.completed, label: 'Completed', cls: 'green' },
+              { val: data.overdue_doses, label: 'Overdue Doses', cls: 'red' },
+              { val: data.due_today, label: 'Due Today', cls: '' },
+              { val: data.pet_monitors_active, label: 'Pet Monitors', cls: '' },
+            ].map(s => (
+              <div
+                key={s.label}
+                className={`stat-card ${s.cls}`}
+                style={{
+                  borderRadius: 18,
+                  border: '1px solid rgba(148, 163, 184, 0.12)',
+                  boxShadow: '0 18px 35px rgba(15, 23, 42, 0.06)',
+                  background: 'linear-gradient(180deg, rgba(255,255,255,1), rgba(248,250,252,0.92))',
+                }}
+              >
+                <div className="stat-value">{s.val}</div>
+                <div className="stat-label">{s.label}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16, marginBottom: 16 }}>
@@ -241,7 +245,7 @@ export default function DashboardPage() {
               }}
             >
               <div>
-                <span className="card-title">Monthly Cases - {year}</span>
+                <span className="card-title">Monthly Cases - {summaryYear}</span>
                 <div style={{ fontSize: 12, color: 'var(--slate-500)', marginTop: 4 }}>Case trend overview for the selected year</div>
               </div>
             </div>
@@ -328,7 +332,7 @@ export default function DashboardPage() {
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
                     Year
                   </label>
-                  <select className="form-select" value={year} onChange={e => setYear(e.target.value)}>
+                  <select className="form-select" value={demographicsYear} onChange={e => setDemographicsYear(e.target.value)}>
                     {YEARS.map(y => (
                       <option key={y} value={y}>
                         {y}

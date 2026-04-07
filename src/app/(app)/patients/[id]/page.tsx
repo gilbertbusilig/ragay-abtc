@@ -83,18 +83,18 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
 
   return (
     <div className="table-wrap">
-      <table className="data-table" style={{ tableLayout:'fixed', width:'100%' }}>
+      <table className="data-table" style={{ tableLayout:'auto', width:'100%', minWidth:1140 }}>
         <thead><tr>
-          <th style={{ width:58 }}>Day</th>
-          <th style={{ width:132 }}>Scheduled Date</th>
-          <th style={{ width:95 }}>Status</th>
-          <th style={{ width:86 }}>Vaccine</th>
-          <th style={{ width:108 }}>Brand</th>
-          <th style={{ width:98 }}>Batch</th>
-          <th style={{ width:110 }}>Route</th>
-          <th style={{ width:100 }}>Dose Volume</th>
-          <th style={{ width:170 }}>Administered By</th>
-          <th style={{ width:118 }}>Date Given</th>
+          <th style={{ width:56, whiteSpace:'nowrap' }}>Day</th>
+          <th style={{ width:132, whiteSpace:'nowrap' }}>Scheduled Date</th>
+          <th style={{ width:96, whiteSpace:'nowrap' }}>Status</th>
+          <th style={{ width:84, whiteSpace:'nowrap' }}>Vaccine</th>
+          <th style={{ width:108, whiteSpace:'nowrap' }}>Brand</th>
+          <th style={{ width:98, whiteSpace:'nowrap' }}>Batch</th>
+          <th style={{ width:108, whiteSpace:'nowrap' }}>Route</th>
+          <th style={{ width:110, whiteSpace:'nowrap' }}>Dose Volume</th>
+          <th style={{ width:178, whiteSpace:'nowrap' }}>Administered By</th>
+          <th style={{ width:118, whiteSpace:'nowrap' }}>Date Given</th>
           {canEdit && <th></th>}
         </tr></thead>
         <tbody>

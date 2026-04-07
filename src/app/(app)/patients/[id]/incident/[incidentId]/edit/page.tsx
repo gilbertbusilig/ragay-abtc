@@ -27,6 +27,7 @@ export default function IncidentEditPage() {
   const [nurses, setNurses] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [customSite, setCustomSite] = useState('');
+  const [allergyKnown, setAllergyKnown] = useState(false);
 
   const [f, setF] = useState<Record<string, any>>({
     consult_date: '',
@@ -123,6 +124,7 @@ export default function IncidentEditPage() {
           referring_doctor: inc.referring_doctor || '',
           consult_date: inc.consult_date || '',
         });
+        setAllergyKnown(!!String(inc.allergy || '').trim());
       }
     }
     setLoading(false);
@@ -172,6 +174,8 @@ export default function IncidentEditPage() {
       style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }} />
   );
   const immunosuppressantChecked = !!(f.immunosuppressant || f.long_term_steroid || f.malignancy);
+  const lifestyleNotApplicable = !f.smoker && !f.alcoholic;
+  const hasAllergy = allergyKnown;
 
   if (loading) return <div className="page-loader"><div className="spinner" style={{ width:28, height:28 }} /></div>;
 
@@ -428,17 +432,77 @@ export default function IncidentEditPage() {
 
                 {/* E */}
                 <div>
-                  <div className="form-label" style={{ marginBottom:8 }}>E. Lifestyle</div>
+                  <div className="form-label" style={{ marginBottom:8 }}>E. Current Lifestyle</div>
                   <div className="checkbox-group">
-                    <label className="checkbox-item"><Cb k="smoker" /> Smoker</label>
-                    <label className="checkbox-item"><Cb k="alcoholic" /> Alcoholic Drinker</label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={!!f.smoker}
+                        onChange={e => set('smoker', e.target.checked)}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> Smoker
+                    </label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={!!f.alcoholic}
+                        onChange={e => set('alcoholic', e.target.checked)}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> Alcohol use
+                    </label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={lifestyleNotApplicable}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            set('smoker', false);
+                            set('alcoholic', false);
+                          }
+                        }}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> Not Applicable
+                    </label>
                   </div>
                 </div>
 
                 {/* F */}
                 <div>
-                  <div className="form-label" style={{ marginBottom:8 }}>F. Allergy</div>
-                  <input className="form-input" type="text" value={f.allergy} onChange={e => set('allergy', e.target.value)} placeholder="Known allergies (drug, food, etc.)…" />
+                  <div className="form-label" style={{ marginBottom:8 }}>F. Do you have any known allergies to medications or foods?</div>
+                  <div className="checkbox-group" style={{ marginBottom:8 }}>
+                    <label className="checkbox-item">
+                      <input
+                        type="radio"
+                        name="known_allergy"
+                        checked={hasAllergy}
+                        onChange={() => setAllergyKnown(true)}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)' }}
+                      /> Yes
+                    </label>
+                    <label className="checkbox-item">
+                      <input
+                        type="radio"
+                        name="known_allergy"
+                        checked={!hasAllergy}
+                        onChange={() => {
+                          setAllergyKnown(false);
+                          set('allergy', '');
+                        }}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)' }}
+                      /> No
+                    </label>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Specify</label>
+                    <input
+                      className="form-input"
+                      type="text"
+                      value={f.allergy}
+                      onChange={e => set('allergy', e.target.value)}
+                      placeholder="Specify allergies"
+                      disabled={!hasAllergy}
+                    />
+                  </div>
                 </div>
 
               </div>{/* end right col B-F */}
