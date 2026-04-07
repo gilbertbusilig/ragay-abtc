@@ -409,7 +409,28 @@ export default function PatientDetailPage() {
     if (res?.status !== 'ok') showToast('Error: ' + res?.message, 'error');
   }
 
-  const incidentDoses = activeIncident ? doses.filter(d => d.incident_id === activeIncident.incident_id) : [];
+  const incidentDoses = (() => {
+    if (!activeIncident) return [];
+    const rows = doses.filter(d => d.incident_id === activeIncident.incident_id);
+    const byDay = new Map<string, Dose>();
+    rows.forEach(d => {
+      const key = d.dose_day;
+      const prev = byDay.get(key);
+      if (!prev) { byDay.set(key, d); return; }
+      const prevScore =
+        (prev.status === 'done' ? 100 : 0) +
+        (prev.administered_date ? 10 : 0) +
+        (prev.brand_name ? 1 : 0) +
+        (prev.dose_volume ? 1 : 0);
+      const nextScore =
+        (d.status === 'done' ? 100 : 0) +
+        (d.administered_date ? 10 : 0) +
+        (d.brand_name ? 1 : 0) +
+        (d.dose_volume ? 1 : 0);
+      if (nextScore >= prevScore) byDay.set(key, d);
+    });
+    return Array.from(byDay.values());
+  })();
   const formatDate = (d: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' }) : '—';
   const getUserName = (id: string) => {
     if (!id) return '—';
