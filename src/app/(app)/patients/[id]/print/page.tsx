@@ -308,8 +308,18 @@ export default function PrintPage() {
                 <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb checked={incident.anti_tetanus_vaccine===true||incident.anti_tetanus_vaccine==='true'} /> Y &nbsp; <Cb checked={incident.anti_tetanus_vaccine===false||incident.anti_tetanus_vaccine==='false'} /> N &nbsp; {incident.anti_tetanus_vaccine ? `If yes: ${fullDate(incident.tetanus_date)||'____________'}` : ''}</div>
                 <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb checked={incident.anti_rabies_completed} /> Y &nbsp; <Cb checked={!incident.anti_rabies_completed} /> N &nbsp; {incident.anti_rabies_details ? `(${incident.anti_rabies_details})` : ''}</div>
                 <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb checked={incident.folk_remedy} /> Y &nbsp; <Cb checked={!incident.folk_remedy} /> N &nbsp; {incident.folk_remedy_details||''}</div>
-                <div><strong>E.</strong> &nbsp; <Cb checked={incident.smoker} /> Smoker &nbsp;&nbsp; <Cb checked={incident.alcoholic} /> Alcoholic Drinker</div>
-                <div><strong>F. Allergy:</strong> &nbsp; <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:150 }}>{incident.allergy||''}</span></div>
+                <div>
+                  <strong>E. Current Lifestyle:</strong> &nbsp;
+                  <Cb checked={incident.smoker} /> Smoker &nbsp;&nbsp;
+                  <Cb checked={incident.alcoholic} /> Alcohol use &nbsp;&nbsp;
+                  <Cb checked={!incident.smoker && !incident.alcoholic} /> Not Applicable
+                </div>
+                <div>
+                  <strong>F. Do you have any known allergies to medications or foods?</strong> &nbsp;
+                  <Cb checked={!!String(incident.allergy || '').trim()} /> Yes &nbsp;
+                  <Cb checked={!String(incident.allergy || '').trim()} /> No &nbsp;
+                  Specify: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:150 }}>{incident.allergy||''}</span>
+                </div>
               </div>
             </div>
           </div>

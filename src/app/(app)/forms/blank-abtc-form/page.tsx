@@ -238,8 +238,8 @@ export default function BlankABTCForm() {
                 <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; If yes: <Line w={80} /></div>
                 <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; <Line w={80} /></div>
                 <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb /> Y &nbsp; <Cb /> N &nbsp; <Line w={60} /></div>
-                <div><strong>E.</strong> &nbsp; <Cb /> Smoker &nbsp;&nbsp; <Cb /> Alcoholic Drinker</div>
-                <div><strong>F. Allergy:</strong> &nbsp; <Line w={150} /></div>
+                <div><strong>E. Current Lifestyle:</strong> &nbsp; <Cb /> Smoker &nbsp;&nbsp; <Cb /> Alcohol use &nbsp;&nbsp; <Cb /> Not Applicable</div>
+                <div><strong>F. Do you have any known allergies to medications or foods?</strong> &nbsp; <Cb /> Yes &nbsp; <Cb /> No &nbsp; Specify: <Line w={150} /></div>
               </div>
             </div>
           </div>

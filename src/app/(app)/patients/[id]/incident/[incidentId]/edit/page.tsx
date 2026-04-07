@@ -313,7 +313,7 @@ export default function IncidentEditPage() {
           <div className="section-box">
             <div className="section-box-title">IV. History</div>
 
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:20 }}>
 
               {/* Left col: A — matches print form exactly */}
               <div>
@@ -346,13 +346,9 @@ export default function IncidentEditPage() {
                   <label className="form-label">Others (specify)</label>
                   <input className="form-input" type="text" value={f.other_conditions} onChange={e => set('other_conditions', e.target.value)} placeholder="Other conditions…" />
                 </div>
-              </div>
-
-              {/* Right col: B–F */}
-              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
                 {/* B */}
-                <div>
+                <div style={{ marginTop:14 }}>
                   <div className="form-label" style={{ marginBottom:8 }}>B. Anti-Tetanus Vaccine</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
                     <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="true" checked={f.anti_tetanus_vaccine===true} onChange={() => set('anti_tetanus_vaccine', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
@@ -360,7 +356,7 @@ export default function IncidentEditPage() {
                   </div>
                   {f.anti_tetanus_vaccine && (
                     <div className="form-group">
-                      <label className="form-label">If yes — date given</label>
+                      <label className="form-label">If yes - date given</label>
                       <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
                     </div>
                   )}
