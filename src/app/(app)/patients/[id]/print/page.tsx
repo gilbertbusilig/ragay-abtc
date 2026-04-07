@@ -35,15 +35,22 @@ export default function PrintPage() {
     if (!clean || clean === 'undefined') return '';
     return new Date(clean + 'T00:00:00').toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' });
   };
+  const pickDoseField = (d: any, keys: string[]) => {
+    for (const k of keys) {
+      if (d?.[k] !== undefined && d?.[k] !== null && String(d[k]).trim() !== '') return String(d[k]).trim();
+    }
+    return '';
+  };
   const cleanBatchNo = (v: any) => {
     if (v === null || v === undefined) return '';
-    const s = String(v).trim();
+    let s = String(v).trim();
+    if (s.startsWith("'")) s = s.slice(1).trim();
     if (!s) return '';
     if (s.includes('T') && s.endsWith('Z')) return s.split('T')[0];
     return s;
   };
-  const doseRoute = (d: any) => String(d.route ?? d.dose_route ?? d.vaccine_route ?? '').trim();
-  const doseAmount = (d: any) => String(d.dose_volume ?? d.dose ?? d.volume ?? '').trim();
+  const doseRoute = (d: any) => pickDoseField(d, ['route', 'Route', 'dose_route', 'vaccine_route']);
+  const doseAmount = (d: any) => pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
   const fmtDateTime = (d: string) => d ? new Date(d).toLocaleString('en-PH', { month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
 
   const Cb = ({ checked }: { checked?: boolean }) => (
@@ -365,7 +372,7 @@ export default function PrintPage() {
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
-                      <td style={{ fontSize:'7pt' }}>{cleanBatchNo(d.batch_no)||''}</td>
+                      <td style={{ fontSize:'7pt' }}>{cleanBatchNo(pickDoseField(d, ['batch_no', 'Batch No.', 'Batch No', 'Batch / Lot Number']))||''}</td>
                       <td style={{ fontSize:'6.5pt' }}>{doseRoute(d)||''}</td>
                       <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
@@ -399,7 +406,7 @@ export default function PrintPage() {
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
-                      <td style={{ fontSize:'7pt' }}>{cleanBatchNo(d.batch_no)||''}</td>
+                      <td style={{ fontSize:'7pt' }}>{cleanBatchNo(pickDoseField(d, ['batch_no', 'Batch No.', 'Batch No', 'Batch / Lot Number']))||''}</td>
                       <td style={{ fontSize:'6.5pt' }}>{doseRoute(d)||''}</td>
                       <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>

@@ -68,16 +68,23 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
   onDeleteDose: (dose: Dose) => void;
   userRole: string;
 }) {
+  const pickDoseField = (d: any, keys: string[]) => {
+    for (const k of keys) {
+      if (d?.[k] !== undefined && d?.[k] !== null && String(d[k]).trim() !== '') return String(d[k]).trim();
+    }
+    return '';
+  };
   const cleanBatchNo = (v: any) => {
     if (v === null || v === undefined) return '';
-    const s = String(v).trim();
+    let s = String(v).trim();
+    if (s.startsWith("'")) s = s.slice(1).trim();
     if (!s) return '';
     // Avoid showing raw ISO timestamps in Batch/Lot display.
     if (s.includes('T') && s.endsWith('Z')) return s.split('T')[0];
     return s;
   };
-  const doseRoute = (d: any) => String(d.route ?? d.dose_route ?? d.vaccine_route ?? '').trim();
-  const doseAmount = (d: any) => String(d.dose_volume ?? d.dose ?? d.volume ?? '').trim();
+  const doseRoute = (d: any) => pickDoseField(d, ['route', 'Route', 'dose_route', 'vaccine_route']);
+  const doseAmount = (d: any) => pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
 
   const statusBadge = (s: string, optional: boolean) => {
     if (optional && s === 'scheduled') return <span className="badge" style={{ background:'#f1f5f9', color:'#94a3b8', border:'1px solid #e2e8f0' }}>Optional</span>;
@@ -135,7 +142,7 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
               <td style={{ whiteSpace:'nowrap' }}>{statusBadge(d.status, !!d.is_optional)}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.vaccine_type || '—'}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.brand_name || '—'}</td>
-              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{cleanBatchNo(d.batch_no) || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{cleanBatchNo(pickDoseField(d, ['batch_no', 'Batch No.', 'Batch No', 'Batch / Lot Number'])) || '—'}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{doseRoute(d) || '—'}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{doseAmount(d) || '—'}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{userName(d.administered_by)}</td>
