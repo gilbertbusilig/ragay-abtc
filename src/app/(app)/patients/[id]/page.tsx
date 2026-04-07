@@ -91,21 +91,20 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
     const raw = pickDoseField(d, ['route', 'Route', 'dose_route', 'vaccine_route']);
     if (!raw) return '';
     const lower = raw.toLowerCase().trim();
-    if (lower === 'intradermal' || lower === 'id') return 'Intradermal';
     if (lower === 'intramuscular' || lower === 'im') return 'Intramuscular';
-    // Fall back to displaying the stored value as-is rather than blanking it
-    return raw;
+    if (lower === 'intradermal' || lower === 'id') return 'Intradermal';
+    return '';
   };
   const isDoseGiven = (d: any) => !!String(d?.administered_date || '').trim() || String(d?.status || '').toLowerCase() === 'done';
   const doseAmount = (d: any) => {
+    if (!isDoseGiven(d)) return '';
     const raw = pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
     if (!raw || raw.toLowerCase() === 'false' || raw.toLowerCase() === 'true') return '';
     const normalized = raw.toLowerCase().replace(/\s+/g, '').replace(/[.,;]+$/g, '');
     if (normalized === '0.1ml' || normalized === '0.1') return '0.1 ml';
     if (normalized === '0.5ml' || normalized === '0.5') return '0.5 ml';
     if (normalized === '1ml' || normalized === '1.0ml' || normalized === '1' || normalized === '1.0') return '1.0 ml';
-    // Fall back to displaying the stored value as-is rather than blanking it
-    return raw;
+    return '';
   };
 
   const statusBadge = (s: string, optional: boolean) => {
