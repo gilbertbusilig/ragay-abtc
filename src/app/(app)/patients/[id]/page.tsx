@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Patient, Incident, Dose, PetMonitor, User } from '@/types';
@@ -345,8 +345,12 @@ export default function PatientDetailPage() {
     setSaving(false);
     setPetOutcomeModal(null);
     if (res.status === 'ok') {
-      showToast(petOutcome === 'perished' ? '⚠️ Pet perished — continue full treatment' : '✅ Pet healthy — inform doctor');
-      load();
+      showToast(petOutcome === 'perished' ? 'Pet perished - continue full treatment' : 'Pet healthy - inform doctor');
+      setMonitors(prev => prev.map(m =>
+        m.monitor_id === petOutcomeModal.monitor_id
+          ? { ...m, outcome: petOutcome, outcome_date: getLocalISODate(), recorded_by: by || '' }
+          : m
+      ));
     }
   }
 
@@ -361,7 +365,15 @@ export default function PatientDetailPage() {
     const res = await api.updatePatient(updates);
     setSaving(false);
     setEditPatientOpen(false);
-    if (res.status === 'ok') { showToast('Patient info updated ✓'); load(); }
+    if (res.status === 'ok') {
+      setPatient(prev => prev ? ({
+        ...prev,
+        ...(editPatientForm.weight ? { weight: editPatientForm.weight } : {}),
+        ...(editPatientForm.contact_no ? { contact_no: editPatientForm.contact_no } : {}),
+        ...(editPatientForm.address ? { address: editPatientForm.address } : {}),
+      }) : prev);
+      showToast('Patient info updated');
+    }
     else showToast('Error: ' + res.message, 'error');
   }
 
@@ -410,7 +422,7 @@ export default function PatientDetailPage() {
     if (res?.status !== 'ok') showToast('Error: ' + res?.message, 'error');
   }
 
-  const incidentDoses = (() => {
+  const incidentDoses = useMemo(() => {
     if (!activeIncident) return [];
     const rows = doses.filter(d => d.incident_id === activeIncident.incident_id);
     const byDay = new Map<string, Dose>();
@@ -444,7 +456,7 @@ export default function PatientDetailPage() {
       if (nextScore >= prevScore) byDay.set(key, d);
     });
     return Array.from(byDay.values());
-  })();
+  }, [activeIncident, doses]);
   const formatDate = (d: string) => d ? new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' }) : '—';
   const getUserName = (id: string) => {
     if (!id) return '—';
@@ -452,8 +464,27 @@ export default function PatientDetailPage() {
     return u ? `${u.full_name}${u.credential ? `, ${u.credential}` : ''}` : id;
   };
 
-  const activeMonitor = activeIncident ? monitors.find(m => m.incident_id === activeIncident.incident_id) : null;
-  const monitorReady = activeMonitor ? new Date() >= new Date(activeMonitor.monitor_end + 'T00:00:00') : false;
+  const activeMonitor = useMemo(
+    () => (activeIncident ? monitors.find(m => m.incident_id === activeIncident.incident_id) : null),
+    [activeIncident, monitors]
+  );
+  const monitorReady = useMemo(
+    () => (activeMonitor ? new Date() >= new Date(activeMonitor.monitor_end + 'T00:00:00') : false),
+    [activeMonitor]
+  );
+  const activeIncidentPositions = useMemo(() => {
+    if (!activeIncident?.anatomical_positions) return [];
+    try { return JSON.parse(activeIncident.anatomical_positions); }
+    catch { return []; }
+  }, [activeIncident]);
+  const completedDosesCount = useMemo(
+    () => incidentDoses.filter(d => d.status === 'done').length,
+    [incidentDoses]
+  );
+  const requiredDosesCount = useMemo(
+    () => incidentDoses.filter(d => !d.is_optional).length,
+    [incidentDoses]
+  );
 
   if (loading) return <div className="page-loader"><div className="spinner dark" style={{ width:28, height:28 }} /></div>;
   if (!patient) return <div className="page-body"><div className="card"><div className="empty-state"><div className="empty-text">Patient not found</div></div></div></div>;
@@ -607,7 +638,7 @@ export default function PatientDetailPage() {
 
                     {activeIncident.anatomical_positions && (
                       <div style={{ marginBottom:14 }}>
-                        <BodyDiagram selected={(() => { try { return JSON.parse(activeIncident.anatomical_positions); } catch { return []; } })()} />
+                        <BodyDiagram selected={activeIncidentPositions} />
                       </div>
                     )}
 
@@ -656,7 +687,7 @@ export default function PatientDetailPage() {
                 <div className="card-header">
                   <span className="card-title">💉 Vaccine Schedule</span>
                   <span style={{ fontSize:12, color:'var(--slate-500)' }}>
-                    {incidentDoses.filter(d => d.status === 'done').length} / {incidentDoses.filter(d => !d.is_optional).length} required doses
+                    {completedDosesCount} / {requiredDosesCount} required doses
                   </span>
                 </div>
                 <div className="alert alert-blue" style={{ margin:'8px 16px 0', fontSize:12 }}>
@@ -873,3 +904,4 @@ export default function PatientDetailPage() {
     </div>
   );
 }
+
