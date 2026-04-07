@@ -60,7 +60,7 @@ export default function PrintPage() {
     if (raw === 'intramuscular') return 'Intramuscular';
     return '';
   };
-  const isDoseGiven = (d: any) => !!String(d?.administered_date || '').trim();
+  const isDoseGiven = (d: any) => !!String(d?.administered_date || '').trim() || String(d?.status || '').toLowerCase() === 'done';
   const doseAmount = (d: any) => {
     if (!isDoseGiven(d)) return '';
     const raw = pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
@@ -92,8 +92,23 @@ export default function PrintPage() {
   const prepDoseDays = ['D0','D7','D14','D28'];
   const pepDoses  = incDoses.filter((d: any) => d.dose_type !== 'PrEP');
   const prepDoses = incDoses.filter((d: any) => d.dose_type === 'PrEP');
-  const pepRows  = pepDoseDays.map(day  => pepDoses.find((d: any)  => d.dose_day === day) || { dose_day: day, vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'', scheduled_date:'' });
-  const prepRows = prepDoseDays.map(day => prepDoses.find((d: any) => d.dose_day === day) || { dose_day: day, vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'', scheduled_date:'' });
+  const bestDoseByDay = (rows: any[], day: string) => {
+    const matches = rows.filter((d: any) => d.dose_day === day);
+    if (!matches.length) return null;
+    const score = (d: any) => {
+      const route = doseRoute(d);
+      const dose = doseAmount(d);
+      return (String(d.status || '').toLowerCase() === 'done' ? 100 : 0)
+        + (String(d.administered_date || '').trim() ? 10 : 0)
+        + (String(d.brand_name || '').trim() ? 1 : 0)
+        + (route ? 1 : 0)
+        + (dose ? 1 : 0);
+    };
+    return matches.sort((a, b) => score(b) - score(a))[0];
+  };
+  const emptyDose = { dose_day: '', vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'', scheduled_date:'', route:'', dose_volume:'', status:'' };
+  const pepRows  = pepDoseDays.map(day  => bestDoseByDay(pepDoses, day)  || { ...emptyDose, dose_day: day });
+  const prepRows = prepDoseDays.map(day => bestDoseByDay(prepDoses, day) || { ...emptyDose, dose_day: day });
 
   const nurseId  = activeNurse?.user_id || incDoses.find((d: any) => d.administered_by)?.administered_by || '';
   const doctorId = incident.referring_doctor || '';

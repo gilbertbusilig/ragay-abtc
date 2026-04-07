@@ -94,7 +94,7 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
     if (raw === 'intramuscular') return 'Intramuscular';
     return '';
   };
-  const isDoseGiven = (d: any) => !!String(d?.administered_date || '').trim();
+  const isDoseGiven = (d: any) => !!String(d?.administered_date || '').trim() || String(d?.status || '').toLowerCase() === 'done';
   const doseAmount = (d: any) => {
     if (!isDoseGiven(d)) return '';
     const raw = pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
@@ -413,20 +413,33 @@ export default function PatientDetailPage() {
     if (!activeIncident) return [];
     const rows = doses.filter(d => d.incident_id === activeIncident.incident_id);
     const byDay = new Map<string, Dose>();
+    const pick = (obj: any, keys: string[]) => {
+      for (const k of keys) {
+        const v = obj?.[k];
+        if (v !== undefined && v !== null && String(v).trim() !== '') return String(v).trim();
+      }
+      return '';
+    };
     rows.forEach(d => {
       const key = d.dose_day;
       const prev = byDay.get(key);
       if (!prev) { byDay.set(key, d); return; }
+      const prevRoute = pick(prev, ['route', 'Route', 'dose_route', 'vaccine_route']);
+      const nextRoute = pick(d, ['route', 'Route', 'dose_route', 'vaccine_route']);
+      const prevDose = pick(prev, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
+      const nextDose = pick(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
       const prevScore =
         (prev.status === 'done' ? 100 : 0) +
         (prev.administered_date ? 10 : 0) +
         (prev.brand_name ? 1 : 0) +
-        (prev.dose_volume ? 1 : 0);
+        (prevRoute ? 1 : 0) +
+        (prevDose ? 1 : 0);
       const nextScore =
         (d.status === 'done' ? 100 : 0) +
         (d.administered_date ? 10 : 0) +
         (d.brand_name ? 1 : 0) +
-        (d.dose_volume ? 1 : 0);
+        (nextRoute ? 1 : 0) +
+        (nextDose ? 1 : 0);
       if (nextScore >= prevScore) byDay.set(key, d);
     });
     return Array.from(byDay.values());
