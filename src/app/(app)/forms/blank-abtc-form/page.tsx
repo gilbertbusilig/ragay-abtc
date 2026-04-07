@@ -264,7 +264,7 @@ export default function BlankABTCForm() {
                   <th style={{ width:'10%' }}>Brand</th>
                   <th style={{ width:'9%' }}>Batch</th>
                   <th style={{ width:'9%' }}>Route</th>
-                  <th style={{ width:'7%' }}>Volume</th>
+                  <th style={{ width:'7%' }}>Dose</th>
                   <th style={{ width:'15%' }}>Schedule Date</th>
                   <th style={{ width:'13%' }}>Date Given</th>
                   <th>Administered By</th>
@@ -292,7 +292,7 @@ export default function BlankABTCForm() {
                   <th style={{ width:'10%' }}>Brand</th>
                   <th style={{ width:'9%' }}>Batch</th>
                   <th style={{ width:'9%' }}>Route</th>
-                  <th style={{ width:'7%' }}>Volume</th>
+                  <th style={{ width:'7%' }}>Dose</th>
                   <th style={{ width:'15%' }}>Schedule Date</th>
                   <th style={{ width:'13%' }}>Date Given</th>
                   <th>Administered By</th>

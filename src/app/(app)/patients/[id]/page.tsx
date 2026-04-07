@@ -68,6 +68,17 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
   onDeleteDose: (dose: Dose) => void;
   userRole: string;
 }) {
+  const cleanBatchNo = (v: any) => {
+    if (v === null || v === undefined) return '';
+    const s = String(v).trim();
+    if (!s) return '';
+    // Avoid showing raw ISO timestamps in Batch/Lot display.
+    if (s.includes('T') && s.endsWith('Z')) return s.split('T')[0];
+    return s;
+  };
+  const doseRoute = (d: any) => String(d.route ?? d.dose_route ?? d.vaccine_route ?? '').trim();
+  const doseAmount = (d: any) => String(d.dose_volume ?? d.dose ?? d.volume ?? '').trim();
+
   const statusBadge = (s: string, optional: boolean) => {
     if (optional && s === 'scheduled') return <span className="badge" style={{ background:'#f1f5f9', color:'#94a3b8', border:'1px solid #e2e8f0' }}>Optional</span>;
     const map: Record<string,string> = { done:'badge-done', scheduled:'badge-scheduled', overdue:'badge-overdue' };
@@ -92,7 +103,7 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
           <th style={{ width:108, whiteSpace:'nowrap' }}>Brand</th>
           <th style={{ width:98, whiteSpace:'nowrap' }}>Batch</th>
           <th style={{ width:108, whiteSpace:'nowrap' }}>Route</th>
-          <th style={{ width:110, whiteSpace:'nowrap' }}>Dose Volume</th>
+          <th style={{ width:110, whiteSpace:'nowrap' }}>Dose</th>
           <th style={{ width:178, whiteSpace:'nowrap' }}>Administered By</th>
           <th style={{ width:118, whiteSpace:'nowrap' }}>Date Given</th>
           {canEdit && <th></th>}
@@ -124,9 +135,9 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
               <td style={{ whiteSpace:'nowrap' }}>{statusBadge(d.status, !!d.is_optional)}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.vaccine_type || '—'}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.brand_name || '—'}</td>
-              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.batch_no || '—'}</td>
-              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.route || '—'}</td>
-              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.dose_volume || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{cleanBatchNo(d.batch_no) || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{doseRoute(d) || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{doseAmount(d) || '—'}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{userName(d.administered_by)}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap' }}>{d.administered_date ? toMMDDYYYY(d.administered_date) : '—'}</td>
               {canEdit && (
@@ -668,7 +679,7 @@ export default function PatientDetailPage() {
                   </div>
                 </div>
                 <div className="form-group">
-                  <label className="form-label">Dose Volume</label>
+                  <label className="form-label">Dose</label>
                   <select className="form-select" value={doseForm.dose_volume}
                     onChange={e => setDoseForm(p => ({...p, dose_volume:e.target.value}))}>
                     <option value="0.1 ml">0.1 ml</option>

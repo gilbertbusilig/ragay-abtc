@@ -35,6 +35,15 @@ export default function PrintPage() {
     if (!clean || clean === 'undefined') return '';
     return new Date(clean + 'T00:00:00').toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' });
   };
+  const cleanBatchNo = (v: any) => {
+    if (v === null || v === undefined) return '';
+    const s = String(v).trim();
+    if (!s) return '';
+    if (s.includes('T') && s.endsWith('Z')) return s.split('T')[0];
+    return s;
+  };
+  const doseRoute = (d: any) => String(d.route ?? d.dose_route ?? d.vaccine_route ?? '').trim();
+  const doseAmount = (d: any) => String(d.dose_volume ?? d.dose ?? d.volume ?? '').trim();
   const fmtDateTime = (d: string) => d ? new Date(d).toLocaleString('en-PH', { month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
 
   const Cb = ({ checked }: { checked?: boolean }) => (
@@ -344,7 +353,7 @@ export default function PrintPage() {
                   <th style={{ width:'10%' }}>Brand</th>
                   <th style={{ width:'9%' }}>Batch</th>
                   <th style={{ width:'9%' }}>Route</th>
-                  <th style={{ width:'7%' }}>Volume</th>
+                  <th style={{ width:'7%' }}>Dose</th>
                   <th style={{ width:'15%' }}>Schedule Date</th>
                   <th style={{ width:'13%' }}>Date Given</th>
                   <th>Administered By</th>
@@ -356,9 +365,9 @@ export default function PrintPage() {
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
-                      <td style={{ fontSize:'7pt' }}>{d.batch_no||''}</td>
-                      <td style={{ fontSize:'6.5pt' }}>{(d as any).route||''}</td>
-                      <td style={{ fontSize:'6.5pt' }}>{(d as any).dose_volume||''}</td>
+                      <td style={{ fontSize:'7pt' }}>{cleanBatchNo(d.batch_no)||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{doseRoute(d)||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
                       <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
@@ -378,7 +387,7 @@ export default function PrintPage() {
                   <th style={{ width:'10%' }}>Brand</th>
                   <th style={{ width:'9%' }}>Batch</th>
                   <th style={{ width:'9%' }}>Route</th>
-                  <th style={{ width:'7%' }}>Volume</th>
+                  <th style={{ width:'7%' }}>Dose</th>
                   <th style={{ width:'15%' }}>Schedule Date</th>
                   <th style={{ width:'13%' }}>Date Given</th>
                   <th>Administered By</th>
@@ -390,9 +399,9 @@ export default function PrintPage() {
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
-                      <td style={{ fontSize:'7pt' }}>{d.batch_no||''}</td>
-                      <td style={{ fontSize:'6.5pt' }}>{(d as any).route||''}</td>
-                      <td style={{ fontSize:'6.5pt' }}>{(d as any).dose_volume||''}</td>
+                      <td style={{ fontSize:'7pt' }}>{cleanBatchNo(d.batch_no)||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{doseRoute(d)||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
                       <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
