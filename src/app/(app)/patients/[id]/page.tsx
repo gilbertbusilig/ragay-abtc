@@ -83,23 +83,25 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
 
   return (
     <div className="table-wrap">
-      <table className="data-table">
+      <table className="data-table" style={{ tableLayout:'fixed', width:'100%' }}>
         <thead><tr>
-          <th>Day</th>
-          <th>Scheduled Date</th>
-          <th>Status</th>
-          <th>Vaccine</th>
-          <th>Brand</th>
-          <th>Batch</th>
-          <th>Administered By</th>
-          <th>Date Given</th>
+          <th style={{ width:58 }}>Day</th>
+          <th style={{ width:132 }}>Scheduled Date</th>
+          <th style={{ width:95 }}>Status</th>
+          <th style={{ width:86 }}>Vaccine</th>
+          <th style={{ width:108 }}>Brand</th>
+          <th style={{ width:98 }}>Batch</th>
+          <th style={{ width:110 }}>Route</th>
+          <th style={{ width:100 }}>Dose Volume</th>
+          <th style={{ width:170 }}>Administered By</th>
+          <th style={{ width:118 }}>Date Given</th>
           {canEdit && <th></th>}
         </tr></thead>
         <tbody>
           {doses.map(d => (
             <tr key={d.dose_id || d.dose_day} style={{ opacity: d.is_optional && d.status === 'scheduled' ? .55 : 1 }}>
-              <td><span style={{ fontWeight:700, color:'var(--blue-700)', fontSize:13 }}>{d.dose_day}</span></td>
-              <td>
+              <td style={{ whiteSpace:'nowrap' }}><span style={{ fontWeight:700, color:'var(--blue-700)', fontSize:13 }}>{d.dose_day}</span></td>
+              <td style={{ whiteSpace:'nowrap' }}>
                 {/* D0 scheduled date is auto-set to the administered date — never editable */}
                 {d.dose_day === 'D0' ? (
                   <span style={{ fontSize:12, color: d.status === 'done' ? 'inherit' : 'var(--slate-400)' }}>
@@ -119,12 +121,14 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
                   <span style={{ fontSize:12 }}>{toMMDDYYYY(d.scheduled_date)}</span>
                 )}
               </td>
-              <td>{statusBadge(d.status, !!d.is_optional)}</td>
-              <td style={{ fontSize:12 }}>{d.vaccine_type || '—'}</td>
-              <td style={{ fontSize:12 }}>{d.brand_name || '—'}</td>
-              <td style={{ fontSize:12 }}>{d.batch_no || '—'}</td>
-              <td style={{ fontSize:12 }}>{userName(d.administered_by)}</td>
-              <td style={{ fontSize:12 }}>{d.administered_date ? toMMDDYYYY(d.administered_date) : '—'}</td>
+              <td style={{ whiteSpace:'nowrap' }}>{statusBadge(d.status, !!d.is_optional)}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.vaccine_type || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.brand_name || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.batch_no || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.route || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.dose_volume || '—'}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{userName(d.administered_by)}</td>
+              <td style={{ fontSize:12, whiteSpace:'nowrap' }}>{d.administered_date ? toMMDDYYYY(d.administered_date) : '—'}</td>
               {canEdit && (
                 <td>
                   <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>

@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import { DashboardData } from '@/types';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const YEARS = [2024, 2025, 2026, 2027];
 
 type AgeFilter = 'all' | 'under15' | '15' | 'over15';
 type SexFilter = 'all' | 'male' | 'female';
@@ -29,7 +30,9 @@ function BarChart({ data, labels }: { data: number[]; labels: string[] }) {
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 5, height: 110, padding: '0 4px' }}>
       {data.map((val, i) => (
         <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-          <span style={{ fontSize: 9, color: 'var(--slate-500)', fontWeight: 600, minHeight: 12 }}>{val || ''}</span>
+          <span style={{ fontSize: 13, color: 'var(--slate-700)', fontWeight: 800, minHeight: 16, lineHeight: 1 }}>
+            {val || ''}
+          </span>
           <div
             style={{
               width: '100%',
@@ -74,8 +77,9 @@ function SummaryList({ title, items }: { title: string; items: Array<{ label: st
 }
 
 export default function DashboardPage() {
-  const [data, setData] = useState<DashboardData | null>(null);
+  const [dashboardByYear, setDashboardByYear] = useState<Record<string, DashboardData>>({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [monthFilter, setMonthFilter] = useState<number>(0); // 0 = all
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
@@ -85,15 +89,24 @@ export default function DashboardPage() {
   const [rigFilter, setRigFilter] = useState<RigFilter>('all');
 
   useEffect(() => {
-    load();
-  }, [year]);
+    loadAllYears(false);
+  }, []);
 
-  async function load() {
-    setLoading(true);
-    const res = await api.getDashboard(year);
-    if (res.status === 'ok') setData(res.data);
+  async function loadAllYears(showRefreshState = true) {
+    if (showRefreshState) setRefreshing(true);
+    else setLoading(true);
+
+    const responses = await Promise.all(YEARS.map(y => api.getDashboard(String(y))));
+    const next: Record<string, DashboardData> = {};
+    responses.forEach((res, idx) => {
+      if (res.status === 'ok') next[String(YEARS[idx])] = res.data;
+    });
+    setDashboardByYear(next);
     setLoading(false);
+    setRefreshing(false);
   }
+
+  const data = dashboardByYear[year] || null;
 
   if (loading) {
     return (
@@ -168,14 +181,14 @@ export default function DashboardPage() {
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <select className="form-select" style={{ width: 96 }} value={year} onChange={e => setYear(e.target.value)}>
-            {[2024, 2025, 2026, 2027].map(y => (
+            {YEARS.map(y => (
               <option key={y} value={y}>
                 {y}
               </option>
             ))}
           </select>
-          <button className="btn btn-secondary btn-sm" onClick={load}>
-            Refresh
+          <button className="btn btn-secondary btn-sm" onClick={() => loadAllYears(true)} disabled={refreshing}>
+            {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
         </div>
       </div>
@@ -316,7 +329,7 @@ export default function DashboardPage() {
                     Year
                   </label>
                   <select className="form-select" value={year} onChange={e => setYear(e.target.value)}>
-                    {[2024, 2025, 2026, 2027].map(y => (
+                    {YEARS.map(y => (
                       <option key={y} value={y}>
                         {y}
                       </option>

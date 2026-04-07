@@ -155,8 +155,8 @@ export default function VaccineSchedulePage() {
             <div className="table-wrap">
               <table className="data-table">
                 <thead><tr>
-                  <th>Patient</th>
                   <th>Patient ID</th>
+                  <th>Patient</th>
                   <th>Day</th>
                   <th>Scheduled Date</th>
                   <th>Status</th>
@@ -170,12 +170,12 @@ export default function VaccineSchedulePage() {
                     <tr key={d.dose_id}
                       style={{ background: isUrgent(d) ? '#fff8f8' : undefined, cursor:'pointer' }}
                       onClick={() => router.push(`/patients/${d.patient_id}`)}>
+                      <td><span style={{ fontFamily:'monospace', fontSize:12, color:'var(--blue-700)' }}>{d.patient_id}</span></td>
                       <td>
                         <span style={{ fontWeight:500, color: isUrgent(d) ? 'var(--red-700)' : undefined }}>
                           {(d as any).patient_name}
                         </span>
                       </td>
-                      <td><span style={{ fontFamily:'monospace', fontSize:12, color:'var(--blue-700)' }}>{d.patient_id}</span></td>
                       <td><span style={{ fontWeight:700, color:'var(--blue-700)' }}>{d.dose_day}</span></td>
                       <td style={{ fontSize:13 }}>
                         {fmtDate(d.scheduled_date)}
