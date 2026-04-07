@@ -53,15 +53,21 @@ export default function PrintPage() {
     if (s.includes('T') && s.endsWith('Z')) return s.split('T')[0];
     return s;
   };
-  const doseRoute = (d: any) => pickDoseField(d, ['route', 'Route', 'dose_route', 'vaccine_route']);
+  const doseRoute = (d: any) => {
+    const raw = pickDoseField(d, ['route', 'Route', 'dose_route', 'vaccine_route']).toLowerCase();
+    if (!raw) return '';
+    if (raw === 'intradermal') return 'Intradermal';
+    if (raw === 'intramuscular') return 'Intramuscular';
+    return '';
+  };
   const doseAmount = (d: any) => {
     const raw = pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
     if (!raw || raw.toLowerCase() === 'false' || raw.toLowerCase() === 'true') return '';
-    if (/(^|\s)(0\.1|0\.5|1(?:\.0)?)(\s*ml)?$/i.test(raw)) {
-      const num = raw.match(/0\.1|0\.5|1(?:\.0)?/i)?.[0] || raw;
-      return `${num === '1' ? '1.0' : num} ml`;
-    }
-    return raw;
+    const normalized = raw.toLowerCase().replace(/\s+/g, '');
+    if (normalized === '0.1ml' || normalized === '0.1') return '0.1 ml';
+    if (normalized === '0.5ml' || normalized === '0.5') return '0.5 ml';
+    if (normalized === '1ml' || normalized === '1.0ml' || normalized === '1' || normalized === '1.0') return '1.0 ml';
+    return '';
   };
   const fmtDateTime = (d: string) => d ? new Date(d).toLocaleString('en-PH', { month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
 
