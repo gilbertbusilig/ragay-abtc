@@ -35,22 +35,34 @@ export default function PrintPage() {
     if (!clean || clean === 'undefined') return '';
     return new Date(clean + 'T00:00:00').toLocaleDateString('en-PH', { month:'long', day:'numeric', year:'numeric' });
   };
+  const stripTextGuard = (v: any) => {
+    let s = String(v ?? '').trim();
+    if (s.startsWith("'")) s = s.slice(1).trim();
+    return s;
+  };
   const pickDoseField = (d: any, keys: string[]) => {
     for (const k of keys) {
-      if (d?.[k] !== undefined && d?.[k] !== null && String(d[k]).trim() !== '') return String(d[k]).trim();
+      if (d?.[k] !== undefined && d?.[k] !== null && String(d[k]).trim() !== '') return stripTextGuard(d[k]);
     }
     return '';
   };
   const cleanBatchNo = (v: any) => {
     if (v === null || v === undefined) return '';
-    let s = String(v).trim();
-    if (s.startsWith("'")) s = s.slice(1).trim();
+    let s = stripTextGuard(v);
     if (!s) return '';
     if (s.includes('T') && s.endsWith('Z')) return s.split('T')[0];
     return s;
   };
   const doseRoute = (d: any) => pickDoseField(d, ['route', 'Route', 'dose_route', 'vaccine_route']);
-  const doseAmount = (d: any) => pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
+  const doseAmount = (d: any) => {
+    const raw = pickDoseField(d, ['dose_volume', 'Dose', 'dose', 'volume', 'Volume', 'Dose Volume']);
+    if (!raw || raw.toLowerCase() === 'false' || raw.toLowerCase() === 'true') return '';
+    if (/(^|\s)(0\.1|0\.5|1(?:\.0)?)(\s*ml)?$/i.test(raw)) {
+      const num = raw.match(/0\.1|0\.5|1(?:\.0)?/i)?.[0] || raw;
+      return `${num === '1' ? '1.0' : num} ml`;
+    }
+    return raw;
+  };
   const fmtDateTime = (d: string) => d ? new Date(d).toLocaleString('en-PH', { month:'long', day:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '';
 
   const Cb = ({ checked }: { checked?: boolean }) => (
