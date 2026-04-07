@@ -313,6 +313,18 @@ export default function DashboardPage() {
               >
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
+                    Year
+                  </label>
+                  <select className="form-select" value={year} onChange={e => setYear(e.target.value)}>
+                    {[2024, 2025, 2026, 2027].map(y => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
                     Month
                   </label>
                   <select className="form-select" value={monthFilter} onChange={e => setMonthFilter(Number(e.target.value))}>

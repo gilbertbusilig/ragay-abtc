@@ -294,7 +294,7 @@ export default function PrintPage() {
             <div className="two-col">
               {/* Left: A */}
               <div className="col" style={{ fontSize:'7.5pt' }}>
-                <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
+                <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions / On Treatment:</strong></div>
                 <div style={{ lineHeight:1.85 }}>
                   <div><Cb checked={!!incident.hiv}               /> H.I.V.</div>
                   <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid || incident.malignancy)} /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>

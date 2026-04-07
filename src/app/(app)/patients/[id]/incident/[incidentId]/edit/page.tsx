@@ -171,6 +171,7 @@ export default function IncidentEditPage() {
     <input type="checkbox" checked={!!f[k]} onChange={e => set(k, e.target.checked)}
       style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }} />
   );
+  const immunosuppressantChecked = !!(f.immunosuppressant || f.long_term_steroid || f.malignancy);
 
   if (loading) return <div className="page-loader"><div className="spinner" style={{ width:28, height:28 }} /></div>;
 
@@ -317,10 +318,17 @@ export default function IncidentEditPage() {
                   <label className="checkbox-item">
                     <Cb k="hiv" /> H.I.V.
                   </label>
-                  <label className="checkbox-item" style={{ alignItems:'flex-start', gap:8 }}>
-                    <div style={{ display:'flex', gap:4, paddingTop:1 }}>
-                      <Cb k="immunosuppressant" /><Cb k="long_term_steroid" /><Cb k="malignancy" />
-                    </div>
+                  <label className="checkbox-item">
+                    <input
+                      type="checkbox"
+                      checked={immunosuppressantChecked}
+                      onChange={e => {
+                        set('immunosuppressant', e.target.checked);
+                        set('long_term_steroid', e.target.checked);
+                        set('malignancy', e.target.checked);
+                      }}
+                      style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                    />
                     <span>Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</span>
                   </label>
                   <label className="checkbox-item">

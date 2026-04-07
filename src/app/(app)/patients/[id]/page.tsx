@@ -32,7 +32,7 @@ function addDays(isoDate: string, days: number) {
   const dd = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${dd}`;
 }
-const DAY_OFFSETS: Record<string,number> = { D0:0, D3:4, D7:8, D14:15, D21:22, D28:29 };
+const DAY_OFFSETS: Record<string,number> = { D0:0, D3:3, D7:6, D14:13, D21:20, D28:27 };
 
 function BodyDiagram({ selected, onChange }: { selected: string[]; onChange?: (s: string[]) => void }) {
   const toggle = (site: string) => {
@@ -590,42 +590,6 @@ export default function PatientDetailPage() {
                 />
               </div>
             )}
-
-            {/* Forms tab */}
-            <div className="card">
-              <div className="card-header">
-                <span className="card-title">📄 Forms</span>
-              </div>
-              <div className="card-body" style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                <p style={{ fontSize:13, color:'var(--slate-500)', marginBottom:4 }}>
-                  Download blank forms to print and fill out manually.
-                </p>
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  <a
-                    href="/patients/blank-form"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', border:'1.5px solid var(--slate-200)', borderRadius:8, textDecoration:'none', color:'var(--slate-700)', background:'var(--slate-50)', transition:'border-color .15s' }}
-                    onMouseOver={e => (e.currentTarget.style.borderColor='var(--blue-400)')}
-                    onMouseOut={e => (e.currentTarget.style.borderColor='var(--slate-200)')}
-                  >
-                    <span style={{ fontSize:22 }}>📋</span>
-                    <div>
-                      <div style={{ fontWeight:600, fontSize:13 }}>ABTC Patient Record Form</div>
-                      <div style={{ fontSize:11, color:'var(--slate-400)', marginTop:1 }}>Blank 2-page form · Print & fill manually</div>
-                    </div>
-                    <span style={{ marginLeft:'auto', fontSize:11, color:'var(--blue-600)', fontWeight:600 }}>Open →</span>
-                  </a>
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    style={{ alignSelf:'flex-start' }}
-                    onClick={() => router.push(`/patients/${patient_id}/print`)}
-                  >
-                    🖨 Print Pre-filled Form for This Patient
-                  </button>
-                </div>
-              </div>
-            </div>
 
           </div>
         </div>

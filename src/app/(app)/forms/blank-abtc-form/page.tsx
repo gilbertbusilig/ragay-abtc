@@ -225,7 +225,7 @@ export default function BlankABTCForm() {
             <div className="section-title">IV. History</div>
             <div className="two-col">
               <div className="col" style={{ fontSize:'7.5pt' }}>
-                <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
+                <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions / On Treatment:</strong></div>
                 <div style={{ lineHeight:1.85 }}>
                   <div><Cb /> H.I.V.</div>
                   <div><Cb /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>
