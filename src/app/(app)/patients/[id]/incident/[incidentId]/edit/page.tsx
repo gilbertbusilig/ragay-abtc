@@ -112,7 +112,7 @@ export default function IncidentEditPage() {
           other_conditions: inc.other_conditions || '',
           anti_tetanus_vaccine: !!inc.anti_tetanus_vaccine,
           anti_rabies_completed: !!inc.anti_rabies_completed,
-          anti_rabies_details: inc.anti_rabies_details || '',
+          anti_rabies_details: (() => { const v = inc.anti_rabies_details || ''; if (v && v.includes('T') && v.includes('Z')) { try { const d = new Date(v); return d.toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' }); } catch(e) { return v; } } return v; })(),
           folk_remedy: !!inc.folk_remedy,
           folk_remedy_details: inc.folk_remedy_details || '',
           smoker: !!inc.smoker, alcoholic: !!inc.alcoholic,
@@ -310,29 +310,24 @@ export default function IncidentEditPage() {
 
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
 
-              {/* Left col: A — 4 items matching the print form */}
+              {/* Left col: A — matches print form exactly */}
               <div>
                 <div className="form-label" style={{ marginBottom:8 }}>A. Other Medical Conditions / On Treatment</div>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  <label className="checkbox-item" style={{ alignItems:'flex-start', gap:8 }}>
-                    <div style={{ display:'flex', gap:6, paddingTop:1 }}>
-                      <Cb k="hiv" />
-                      <Cb k="congenital_immuno" />
-                    </div>
-                    <span>H.I.V. / Congenital Immunodeficiency</span>
+                  <label className="checkbox-item">
+                    <Cb k="hiv" /> H.I.V.
                   </label>
                   <label className="checkbox-item" style={{ alignItems:'flex-start', gap:8 }}>
-                    <div style={{ display:'flex', gap:6, paddingTop:1 }}>
-                      <Cb k="immunosuppressant" />
-                      <Cb k="long_term_steroid" />
+                    <div style={{ display:'flex', gap:4, paddingTop:1 }}>
+                      <Cb k="immunosuppressant" /><Cb k="long_term_steroid" /><Cb k="malignancy" />
                     </div>
-                    <span>Immunosuppressant Agent / Long-Term Steroid</span>
+                    <span>Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</span>
                   </label>
                   <label className="checkbox-item">
-                    <Cb k="chloroquine" /> Chloroquine Treatment
+                    <Cb k="chloroquine" /> Chloroquine
                   </label>
                   <label className="checkbox-item">
-                    <Cb k="malignancy" /> Malignancy (On Treatment)
+                    <Cb k="congenital_immuno" /> Congenital Immuno-deficiency (G6PD)
                   </label>
                 </div>
                 <div style={{ marginTop:10 }}>
@@ -528,9 +523,9 @@ export default function IncidentEditPage() {
                   }}
                 >
                   <option value="PEP:5">PEP - 5 doses (D0, D3, D7, D14, D28/30)</option>
-                  <option value="PEP:3">PEP - 3 doses (D0, D7, D21)</option>
-                  <option value="PrEP:4">PrEP - 4 doses (D0, D7, D14, D28/30)</option>
-                  <option value="PEP:2">Booster - 2 doses (D0, D3)</option>
+                  <option value="PEP:4">PEP - 4 doses (D0, D3, D7, D28/30)</option>
+                  <option value="PrEP:3">PrEP - 3 doses (D0, D7, D21/28)</option>
+                  <option value="PEP:1">Booster - 1 dose (D0)</option>
                 </select>
                 <div style={{ fontSize:12, color:'var(--slate-500)', lineHeight:1.5, marginTop:8 }}>
                   Schedule dates stay blank until D0 is actually administered. Once D0 is given, the remaining schedule is auto-calculated.

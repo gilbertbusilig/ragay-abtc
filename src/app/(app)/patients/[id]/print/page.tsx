@@ -296,10 +296,10 @@ export default function PrintPage() {
               <div className="col" style={{ fontSize:'7.5pt' }}>
                 <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
                 <div style={{ lineHeight:1.85 }}>
-                  <div><Cb checked={!!(incident.hiv || incident.congenital_immuno)}         /> H.I.V. / Congenital Immunodeficiency</div>
-                  <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid)} /> Immunosuppressant Agent / Long-Term Steroid</div>
-                  <div><Cb checked={!!incident.chloroquine}                                  /> Chloroquine Treatment</div>
-                  <div><Cb checked={!!incident.malignancy}                                   /> Malignancy (On Treatment)</div>
+                  <div><Cb checked={!!incident.hiv}               /> H.I.V.</div>
+                  <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid || incident.malignancy)} /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>
+                  <div><Cb checked={!!incident.chloroquine}        /> Chloroquine</div>
+                  <div><Cb checked={!!incident.congenital_immuno}  /> Congenital Immuno-deficiency (G6PD)</div>
                   <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:100 }}>{incident.other_conditions||''}</span></div>
                 </div>
               </div>
@@ -328,13 +328,15 @@ export default function PrintPage() {
               <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PEP Schedule Date</div>
               <table>
                 <thead><tr>
-                  <th style={{ width:'10%', textAlign:'left', paddingLeft:4 }}>Dose</th>
-                  <th style={{ width:'6%' }}>PVRV</th>
-                  <th style={{ width:'6%' }}>PCEC</th>
-                  <th style={{ width:'14%' }}>Brand Name</th>
-                  <th style={{ width:'12%' }}>Batch No.</th>
-                  <th style={{ width:'18%' }}>Schedule Date</th>
-                  <th style={{ width:'16%' }}>Date Given</th>
+                  <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'5%' }}>PVRV</th>
+                  <th style={{ width:'5%' }}>PCEC</th>
+                  <th style={{ width:'10%' }}>Brand</th>
+                  <th style={{ width:'9%' }}>Batch</th>
+                  <th style={{ width:'9%' }}>Route</th>
+                  <th style={{ width:'7%' }}>Volume</th>
+                  <th style={{ width:'15%' }}>Schedule Date</th>
+                  <th style={{ width:'13%' }}>Date Given</th>
                   <th>Administered By</th>
                 </tr></thead>
                 <tbody>
@@ -345,6 +347,8 @@ export default function PrintPage() {
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.batch_no||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{(d as any).route||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{(d as any).dose_volume||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
                       <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
@@ -358,13 +362,15 @@ export default function PrintPage() {
               <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PrEP Schedule Date</div>
               <table>
                 <thead><tr>
-                  <th style={{ width:'10%', textAlign:'left', paddingLeft:4 }}>Dose</th>
-                  <th style={{ width:'6%' }}>PVRV</th>
-                  <th style={{ width:'6%' }}>PCEC</th>
-                  <th style={{ width:'14%' }}>Brand Name</th>
-                  <th style={{ width:'12%' }}>Batch No.</th>
-                  <th style={{ width:'18%' }}>Schedule Date</th>
-                  <th style={{ width:'16%' }}>Date Given</th>
+                  <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'5%' }}>PVRV</th>
+                  <th style={{ width:'5%' }}>PCEC</th>
+                  <th style={{ width:'10%' }}>Brand</th>
+                  <th style={{ width:'9%' }}>Batch</th>
+                  <th style={{ width:'9%' }}>Route</th>
+                  <th style={{ width:'7%' }}>Volume</th>
+                  <th style={{ width:'15%' }}>Schedule Date</th>
+                  <th style={{ width:'13%' }}>Date Given</th>
                   <th>Administered By</th>
                 </tr></thead>
                 <tbody>
@@ -375,6 +381,8 @@ export default function PrintPage() {
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.batch_no||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{(d as any).route||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{(d as any).dose_volume||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
                       <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>

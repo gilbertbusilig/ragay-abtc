@@ -227,10 +227,10 @@ export default function BlankABTCForm() {
               <div className="col" style={{ fontSize:'7.5pt' }}>
                 <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions/On Treatment:</strong></div>
                 <div style={{ lineHeight:1.85 }}>
-                  <div><Cb /> H.I.V. / Congenital Immunodeficiency</div>
-                  <div><Cb /> Immunosuppressant Agent / Long-Term Steroid</div>
-                  <div><Cb /> Chloroquine Treatment</div>
-                  <div><Cb /> Malignancy (On Treatment)</div>
+                  <div><Cb /> H.I.V.</div>
+                  <div><Cb /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>
+                  <div><Cb /> Chloroquine</div>
+                  <div><Cb /> Congenital Immuno-deficiency (G6PD)</div>
                   <div style={{ marginTop:2 }}>Others: <Line w={100} /></div>
                 </div>
               </div>
@@ -258,13 +258,15 @@ export default function BlankABTCForm() {
               <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PEP Schedule Date</div>
               <table>
                 <thead><tr>
-                  <th style={{ width:'10%', textAlign:'left', paddingLeft:4 }}>Dose</th>
-                  <th style={{ width:'6%' }}>PVRV</th>
-                  <th style={{ width:'6%' }}>PCEC</th>
-                  <th style={{ width:'14%' }}>Brand Name</th>
-                  <th style={{ width:'12%' }}>Batch No.</th>
-                  <th style={{ width:'18%' }}>Schedule Date</th>
-                  <th style={{ width:'16%' }}>Date Given</th>
+                  <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'5%' }}>PVRV</th>
+                  <th style={{ width:'5%' }}>PCEC</th>
+                  <th style={{ width:'10%' }}>Brand</th>
+                  <th style={{ width:'9%' }}>Batch</th>
+                  <th style={{ width:'9%' }}>Route</th>
+                  <th style={{ width:'7%' }}>Volume</th>
+                  <th style={{ width:'15%' }}>Schedule Date</th>
+                  <th style={{ width:'13%' }}>Date Given</th>
                   <th>Administered By</th>
                 </tr></thead>
                 <tbody>
@@ -273,7 +275,7 @@ export default function BlankABTCForm() {
                       <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d}</td>
                       <td style={{ textAlign:'center' }}><Cb /></td>
                       <td style={{ textAlign:'center' }}><Cb /></td>
-                      <td /><td /><td /><td /><td />
+                      <td /><td /><td /><td /><td /><td /><td />
                     </tr>
                   ))}
                 </tbody>
@@ -284,22 +286,24 @@ export default function BlankABTCForm() {
               <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PrEP Schedule Date</div>
               <table>
                 <thead><tr>
-                  <th style={{ width:'10%', textAlign:'left', paddingLeft:4 }}>Dose</th>
-                  <th style={{ width:'6%' }}>PVRV</th>
-                  <th style={{ width:'6%' }}>PCEC</th>
-                  <th style={{ width:'14%' }}>Brand Name</th>
-                  <th style={{ width:'12%' }}>Batch No.</th>
-                  <th style={{ width:'18%' }}>Schedule Date</th>
-                  <th style={{ width:'16%' }}>Date Given</th>
+                  <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'5%' }}>PVRV</th>
+                  <th style={{ width:'5%' }}>PCEC</th>
+                  <th style={{ width:'10%' }}>Brand</th>
+                  <th style={{ width:'9%' }}>Batch</th>
+                  <th style={{ width:'9%' }}>Route</th>
+                  <th style={{ width:'7%' }}>Volume</th>
+                  <th style={{ width:'15%' }}>Schedule Date</th>
+                  <th style={{ width:'13%' }}>Date Given</th>
                   <th>Administered By</th>
                 </tr></thead>
                 <tbody>
-                  {['D 0','D 7','D 14','D 28/30'].map((d, i) => (
+                  {['D 0','D 7','D 21/28'].map((d, i) => (
                     <tr key={d} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
                       <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d}</td>
                       <td style={{ textAlign:'center' }}><Cb /></td>
                       <td style={{ textAlign:'center' }}><Cb /></td>
-                      <td /><td /><td /><td /><td />
+                      <td /><td /><td /><td /><td /><td /><td />
                     </tr>
                   ))}
                 </tbody>

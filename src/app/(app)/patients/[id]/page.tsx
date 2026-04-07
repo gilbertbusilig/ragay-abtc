@@ -32,7 +32,7 @@ function addDays(isoDate: string, days: number) {
   const dd = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${dd}`;
 }
-const DAY_OFFSETS: Record<string,number> = { D0:0, D3:3, D7:7, D14:14, D21:21, D28:28 };
+const DAY_OFFSETS: Record<string,number> = { D0:0, D3:4, D7:8, D14:15, D21:22, D28:29 };
 
 function BodyDiagram({ selected, onChange }: { selected: string[]; onChange?: (s: string[]) => void }) {
   const toggle = (site: string) => {
@@ -167,7 +167,7 @@ export default function PatientDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeIncident, setActiveIncident] = useState<Incident | null>(null);
   const [adminModal, setAdminModal] = useState<Dose | null>(null);
-  const [doseForm, setDoseForm] = useState({ vaccine_type: 'PVRV', brand_name: '', batch_no: '', administered_date: '' });
+  const [doseForm, setDoseForm] = useState({ vaccine_type: 'PVRV', brand_name: '', batch_no: '', administered_date: '', route: 'Intramuscular', dose_volume: '0.5 ml' });
   const [petOutcomeModal, setPetOutcomeModal] = useState<PetMonitor | null>(null);
   const [petOutcome, setPetOutcome] = useState<'healthy' | 'perished'>('healthy');
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'patient' | 'incident' | 'dose'; id: string; dose?: Dose } | null>(null);
@@ -207,7 +207,9 @@ export default function PatientDetailPage() {
 
     if (!useCached && results[1]?.status === 'ok') {
       const map: Record<string, User> = {};
+      // Include all accounts AND nurses so administered_by resolves to a name
       (results[1].data.accounts || []).forEach((u: any) => { map[u.user_id] = u; });
+      (results[1].data.nurses  || []).forEach((u: any) => { if (!map[u.user_id]) map[u.user_id] = u; });
       accountsCache.data = map;
       accountsCache.ts = Date.now();
       setAllUsers(map);
@@ -234,6 +236,8 @@ export default function PatientDetailPage() {
       batch_no:        doseForm.batch_no,
       administered_by: by,
       administered_date: doseForm.administered_date || today,
+      route: doseForm.route,
+      dose_volume: doseForm.dose_volume,
     });
     setSaving(false);
     setAdminModal(null);
@@ -578,7 +582,7 @@ export default function PatientDetailPage() {
                   allUsers={allUsers}
                   onAdminister={d => {
                     setAdminModal(d);
-                    setDoseForm({ vaccine_type:'PVRV', brand_name:'', batch_no:'', administered_date: getLocalISODate() });
+                    setDoseForm({ vaccine_type:'PVRV', brand_name:'', batch_no:'', administered_date: getLocalISODate(), route:'Intramuscular', dose_volume:'0.5 ml' });
                   }}
                   onDateChange={handleDoseDateChange}
                   onDeleteDose={d => setDeleteConfirm({ type:'dose', id:d.dose_id || `${d.incident_id}:${d.dose_day}`, dose:d })}
@@ -586,6 +590,43 @@ export default function PatientDetailPage() {
                 />
               </div>
             )}
+
+            {/* Forms tab */}
+            <div className="card">
+              <div className="card-header">
+                <span className="card-title">📄 Forms</span>
+              </div>
+              <div className="card-body" style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                <p style={{ fontSize:13, color:'var(--slate-500)', marginBottom:4 }}>
+                  Download blank forms to print and fill out manually.
+                </p>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  <a
+                    href="/patients/blank-form"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', border:'1.5px solid var(--slate-200)', borderRadius:8, textDecoration:'none', color:'var(--slate-700)', background:'var(--slate-50)', transition:'border-color .15s' }}
+                    onMouseOver={e => (e.currentTarget.style.borderColor='var(--blue-400)')}
+                    onMouseOut={e => (e.currentTarget.style.borderColor='var(--slate-200)')}
+                  >
+                    <span style={{ fontSize:22 }}>📋</span>
+                    <div>
+                      <div style={{ fontWeight:600, fontSize:13 }}>ABTC Patient Record Form</div>
+                      <div style={{ fontSize:11, color:'var(--slate-400)', marginTop:1 }}>Blank 2-page form · Print & fill manually</div>
+                    </div>
+                    <span style={{ marginLeft:'auto', fontSize:11, color:'var(--blue-600)', fontWeight:600 }}>Open →</span>
+                  </a>
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    style={{ alignSelf:'flex-start' }}
+                    onClick={() => router.push(`/patients/${patient_id}/print`)}
+                  >
+                    🖨 Print Pre-filled Form for This Patient
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -637,6 +678,27 @@ export default function PatientDetailPage() {
                   <input className="form-input" type="text" value={doseForm.batch_no}
                     onChange={e => setDoseForm(p => ({...p, batch_no:e.target.value}))}
                     placeholder="Batch No." />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Route</label>
+                  <div className="checkbox-group">
+                    {['Intradermal','Intramuscular'].map(r => (
+                      <label key={r} className="checkbox-item">
+                        <input type="radio" name="dose_route" value={r} checked={doseForm.route===r}
+                          onChange={() => setDoseForm(p => ({...p, route:r}))} />
+                        {r}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Dose Volume</label>
+                  <select className="form-select" value={doseForm.dose_volume}
+                    onChange={e => setDoseForm(p => ({...p, dose_volume:e.target.value}))}>
+                    <option value="0.1 ml">0.1 ml</option>
+                    <option value="0.5 ml">0.5 ml</option>
+                    <option value="1.0 ml">1.0 ml</option>
+                  </select>
                 </div>
               </div>
             </div>

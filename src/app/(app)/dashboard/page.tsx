@@ -77,6 +77,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [year, setYear] = useState(new Date().getFullYear().toString());
+  const [monthFilter, setMonthFilter] = useState<number>(0); // 0 = all
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
   const [sexFilter, setSexFilter] = useState<SexFilter>('all');
   const [animalFilter, setAnimalFilter] = useState<AnimalFilter>('all');
@@ -120,6 +121,7 @@ export default function DashboardPage() {
   });
 
   const filteredRecords = (data.demographics_records || []).filter(record => {
+    if (monthFilter !== 0 && (record as any).consult_month !== monthFilter) return false;
     if (ageFilter !== 'all' && record.age_group !== ageFilter) return false;
     if (sexFilter !== 'all' && record.sex !== sexFilter) return false;
     if (animalFilter !== 'all' && record.animal_type !== animalFilter) return false;
@@ -309,6 +311,17 @@ export default function DashboardPage() {
                   border: '1px solid rgba(148, 163, 184, 0.14)',
                 }}
               >
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
+                    Month
+                  </label>
+                  <select className="form-select" value={monthFilter} onChange={e => setMonthFilter(Number(e.target.value))}>
+                    <option value={0}>All Months</option>
+                    {['January','February','March','April','May','June','July','August','September','October','November','December'].map((m, i) => (
+                      <option key={m} value={i + 1}>{m}</option>
+                    ))}
+                  </select>
+                </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
                     Age Group

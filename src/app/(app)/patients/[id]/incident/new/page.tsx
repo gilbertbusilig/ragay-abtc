@@ -200,9 +200,9 @@ export default function NewIncidentPage() {
                 style={{ maxWidth: 420 }}
               >
                 <option value="PEP:5">PEP - 5 doses (D0, D3, D7, D14, D28/30)</option>
-                <option value="PEP:3">PEP - 3 doses (D0, D7, D21)</option>
-                <option value="PrEP:4">PrEP - 4 doses (D0, D7, D14, D28/30)</option>
-                <option value="PEP:2">Booster - 2 doses (D0, D3)</option>
+                <option value="PEP:4">PEP - 4 doses (D0, D3, D7, D28/30)</option>
+                <option value="PrEP:3">PrEP - 3 doses (D0, D7, D21/28)</option>
+                <option value="PEP:1">Booster - 1 dose (D0)</option>
               </select>
               <div style={{ fontSize:12, color:'var(--slate-500)', marginTop:8 }}>
                 Schedule dates stay blank until the actual date given for D0 is recorded.

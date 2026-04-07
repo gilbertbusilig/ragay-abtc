@@ -99,6 +99,8 @@ export interface Dose {
   brand_name: string;
   batch_no: string;
   administered_by: string;
+  route: string;
+  dose_volume: string;
   status: DoseStatus;
   is_optional: boolean;
 }
@@ -147,6 +149,7 @@ export interface DemographicsRecord {
   animal_type: 'dog' | 'cat' | 'bat' | 'other';
   category: 'I' | 'II' | 'III' | '';
   erig_hrig: 'ERIG' | 'HRIG' | '';
+  consult_month: number;
 }
 
 export interface DueOverduePatient {
