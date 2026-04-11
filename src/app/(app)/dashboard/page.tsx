@@ -136,6 +136,7 @@ export default function DashboardPage() {
 
   const demographicsData = dashboardByYear[demographicsYear] || data;
   const filteredRecords = (demographicsData?.demographics_records || []).filter(record => {
+    if ((record as any).consult_year && (record as any).consult_year !== demographicsYear) return false;
     if (monthFilter !== 0 && (record as any).consult_month !== monthFilter) return false;
     if (ageFilter !== 'all' && record.age_group !== ageFilter) return false;
     if (sexFilter !== 'all' && record.sex !== sexFilter) return false;

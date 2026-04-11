@@ -455,6 +455,45 @@ export default function PrintPage() {
               </table>
             </div>
 
+            {Number(incident.pep_doses_needed) === 1 && (
+              <div style={{ padding:'2px 5px 3px' }}>
+                <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>Booster Schedule Date</div>
+                <table>
+                  <thead><tr>
+                    <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                    <th style={{ width:'5%' }}>PVRV</th>
+                    <th style={{ width:'5%' }}>PCEC</th>
+                    <th style={{ width:'10%' }}>Brand</th>
+                    <th style={{ width:'9%' }}>Batch</th>
+                    <th style={{ width:'9%' }}>Route</th>
+                    <th style={{ width:'7%' }}>Dose</th>
+                    <th style={{ width:'15%' }}>Schedule Date</th>
+                    <th style={{ width:'13%' }}>Date Given</th>
+                    <th>Administered By</th>
+                  </tr></thead>
+                  <tbody>
+                    {(['D0','D3'] as string[]).map((day, i) => {
+                      const d: any = bestDoseByDay(pepDoses, day) || { ...emptyDose, dose_day: day };
+                      return (
+                        <tr key={i} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
+                          <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{day.replace('D','D ')}</td>
+                          <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
+                          <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
+                          <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
+                          <td style={{ fontSize:'7pt' }}>{cleanBatchNo(pickDoseField(d, ['batch_no', 'Batch No.', 'Batch No', 'Batch / Lot Number']))||''}</td>
+                          <td style={{ fontSize:'6.5pt' }}>{doseRoute(d)||''}</td>
+                          <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
+                          <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
+                          <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
+                          <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
             <div style={{ padding:'2px 5px' }}>
               <table>
                 <thead><tr>
