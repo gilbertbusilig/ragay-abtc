@@ -75,8 +75,14 @@ export const api = {
   // Patients
   getPatients: (params?: { search?: string; status?: string; category?: string }) =>
     gasGet('get_patients', (params || {}) as Record<string, string>),
-  getPatient: (patient_id: string) =>
-    gasGet('get_patient', { patient_id }),
+  getPatient: (patient_id: string, bustCache = false) => {
+    if (bustCache) {
+      // Remove any cached entry for this patient before fetching
+      const key = buildCacheKey('get_patient', { patient_id });
+      getCache.delete(key);
+    }
+    return gasGet('get_patient', { patient_id });
+  },
   createPatient: (data: Record<string, unknown>) =>
     gasPost('create_patient', data),
   updatePatient: (data: Record<string, unknown>) =>
