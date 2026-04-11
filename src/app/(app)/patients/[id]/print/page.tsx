@@ -340,7 +340,7 @@ export default function PrintPage() {
 
       {/* ===== PAGE 2 ===== */}
       <div className="page">
-        <div className="page-content">
+        <div className="page-content" style={{ display:'flex', flexDirection:'column' }}>
 
           {/* Section IV — History: A left, B-F right */}
           <div className="section">
@@ -380,10 +380,10 @@ export default function PrintPage() {
             </div>
           </div>
 
-          {/* Section V — bigger notes area */}
-          <div className="section">
+          {/* Section V — grows to fill available vertical space */}
+          <div className="section" style={{ flex:1, display:'flex', flexDirection:'column' }}>
             <div className="section-title" style={{padding:'1px 6px'}}>V. Physician's Order / Notes</div>
-            <div style={{ padding:'3px 6px', minHeight:50, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.physician_notes||''}</div>
+            <div style={{ padding:'3px 6px', flex:1, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.physician_notes||''}</div>
           </div>
 
           {/* Section VI */}
@@ -534,16 +534,15 @@ export default function PrintPage() {
             </div>
           </div>
 
-          {/* VII. Refer If Needed — boxed, same size as Physician Notes */}
-          <div className="section" style={{ marginBottom:4 }}>
+          {/* VII. Refer If Needed — grows to fill remaining space, pushing sigs to bottom */}
+          <div className="section" style={{ flex:1, display:'flex', flexDirection:'column', marginBottom:4 }}>
             <div className="section-title" style={{padding:'1px 6px'}}>VII. Refer If Needed</div>
-            <div style={{ padding:'3px 6px', minHeight:30, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.refer_if_needed||''}</div>
+            <div style={{ padding:'3px 6px', flex:1, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.refer_if_needed||''}</div>
           </div>
 
           {/* Signatures */}
           <div className="sig-row">
             <div className="sig-block">
-              <div style={{ minHeight:12 }} />
               <div>
                 <strong>{getUserName(nurseId) || '________________________________'}</strong>
                 {getUserCred(nurseId) ? `, ${getUserCred(nurseId)}` : ''}<br/>
@@ -553,7 +552,6 @@ export default function PrintPage() {
               </div>
             </div>
             <div className="sig-block">
-              <div style={{ minHeight:12 }} />
               <div>
                 <strong>{getUserName(doctorId) || '________________________________'}</strong>
                 {getUserCred(doctorId) ? `, ${getUserCred(doctorId)}` : ''}<br/>
