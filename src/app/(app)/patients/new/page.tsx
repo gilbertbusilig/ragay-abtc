@@ -74,7 +74,14 @@ export default function NewPatientPage() {
       return;
     }
 
-    const patient_id = patRes.data.patient_id;
+    const patient_id = patRes.data?.patient_id;
+
+    // Safety check: ensure we received a valid patient_id before proceeding
+    if (!patient_id) {
+      setSaving(false);
+      setToast('Error: Could not retrieve new patient ID. Please check patient records.');
+      return;
+    }
 
     // 2. Create incident
     const incRes = await api.createIncident({
@@ -95,10 +102,11 @@ export default function NewPatientPage() {
     setSaving(false);
 
     if (incRes.status === 'ok') {
-      router.push(`/patients/${patient_id}`);
+      // Use window.location for a hard navigate to ensure fresh data load with no stale cache
+      window.location.href = `/patients/${patient_id}`;
     } else {
-      setToast('Patient created but incident failed. Please update from patient page.');
-      setTimeout(() => router.push(`/patients/${patient_id}`), 2000);
+      setToast('Patient saved but incident setup failed: ' + (incRes.message || 'Unknown error') + '. You can add the incident from the patient record.');
+      setTimeout(() => { window.location.href = `/patients/${patient_id}`; }, 3000);
     }
   }
   const genId = `${new Date().getFullYear()}-00000`;
