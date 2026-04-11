@@ -351,6 +351,8 @@ export default function PrintPage() {
                   <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid || incident.malignancy)} /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>
                   <div><Cb checked={!!incident.chloroquine}        /> Chloroquine</div>
                   <div><Cb checked={!!incident.congenital_immuno}  /> Congenital Immuno-deficiency (G6PD)</div>
+                  <div><Cb checked={!!incident.hematologic_condition} /> Hematologic Condition</div>
+                  <div><Cb checked={!!incident.chronic_liver_disease} /> Chronic Liver Disease</div>
                   <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:100 }}>{incident.other_conditions||''}</span></div>
                 </div>
               </div>
@@ -464,7 +466,11 @@ export default function PrintPage() {
                   <td style={{ fontSize:'7pt' }}>{incident.erig_hrig_brand||''}</td>
                   <td style={{ fontSize:'7pt' }}>{incident.erig_hrig_batch||''}</td>
                   <td style={{ fontSize:'7pt' }}>{fullDate(incident.erig_hrig_date)}</td>
-                  <td style={{ fontSize:'7pt' }}>{getUserName(incident.erig_hrig_administered_by)}{getUserCred(incident.erig_hrig_administered_by) ? `, ${getUserCred(incident.erig_hrig_administered_by)}` : ''}</td>
+                  <td style={{ fontSize:'7pt' }}>{
+                    String(incident.erig_hrig_administered_by || '').startsWith('OTHER:')
+                      ? String(incident.erig_hrig_administered_by).slice(6) || '(Other facility)'
+                      : (getUserName(incident.erig_hrig_administered_by) + (getUserCred(incident.erig_hrig_administered_by) ? `, ${getUserCred(incident.erig_hrig_administered_by)}` : ''))
+                  }</td>
                 </tr></tbody>
               </table>
             </div>

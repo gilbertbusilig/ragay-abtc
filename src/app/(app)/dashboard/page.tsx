@@ -332,7 +332,7 @@ export default function DashboardPage() {
                   <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
                     Year
                   </label>
-                  <select className="form-select" value={demographicsYear} onChange={e => setDemographicsYear(e.target.value)}>
+                  <select className="form-select" value={demographicsYear} onChange={e => { setDemographicsYear(e.target.value); setMonthFilter(0); }}>
                     {YEARS.map(y => (
                       <option key={y} value={y}>
                         {y}

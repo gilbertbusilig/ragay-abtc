@@ -56,6 +56,8 @@ export default function IncidentEditPage() {
     chloroquine: false,
     malignancy: false,
     congenital_immuno: false,
+    hematologic_condition: false,
+    chronic_liver_disease: false,
     other_conditions: '',
     anti_tetanus_vaccine: false,
     anti_rabies_completed: false,
@@ -112,6 +114,8 @@ export default function IncidentEditPage() {
           hiv: !!inc.hiv, immunosuppressant: !!inc.immunosuppressant,
           long_term_steroid: !!inc.long_term_steroid, chloroquine: !!inc.chloroquine,
           malignancy: !!inc.malignancy, congenital_immuno: !!inc.congenital_immuno,
+          hematologic_condition: !!inc.hematologic_condition,
+          chronic_liver_disease: !!inc.chronic_liver_disease,
           other_conditions: inc.other_conditions || '',
           anti_tetanus_vaccine: !!inc.anti_tetanus_vaccine,
           anti_rabies_completed: !!inc.anti_rabies_completed,
@@ -342,6 +346,12 @@ export default function IncidentEditPage() {
                   </label>
                   <label className="checkbox-item">
                     <Cb k="congenital_immuno" /> Congenital Immuno-deficiency (G6PD)
+                  </label>
+                  <label className="checkbox-item">
+                    <Cb k="hematologic_condition" /> Hematologic Condition
+                  </label>
+                  <label className="checkbox-item">
+                    <Cb k="chronic_liver_disease" /> Chronic Liver Disease
                   </label>
                 </div>
                 <div style={{ marginTop:10 }}>
@@ -577,10 +587,24 @@ export default function IncidentEditPage() {
                     </div>
                     <div className="form-group">
                       <label className="form-label">Administered By</label>
-                      <select className="form-select" value={f.erig_hrig_administered_by} onChange={e => set('erig_hrig_administered_by', e.target.value)}>
-                        <option value="">-- Select nurse --</option>
+                      <select className="form-select" value={f.erig_hrig_administered_by.startsWith('OTHER:') ? 'OTHER' : f.erig_hrig_administered_by} onChange={e => {
+                        if (e.target.value === 'OTHER') set('erig_hrig_administered_by', 'OTHER:');
+                        else set('erig_hrig_administered_by', e.target.value);
+                      }}>
+                        <option value="">-- Select --</option>
                         {nurses.map(n => <option key={n.user_id} value={n.user_id}>{n.full_name}</option>)}
+                        <option value="OTHER">Others (specify)</option>
                       </select>
+                      {f.erig_hrig_administered_by.startsWith('OTHER:') && (
+                        <input
+                          className="form-input"
+                          type="text"
+                          style={{ marginTop: 6 }}
+                          placeholder="Specify facility / administrator…"
+                          value={f.erig_hrig_administered_by.slice(6)}
+                          onChange={e => set('erig_hrig_administered_by', 'OTHER:' + e.target.value)}
+                        />
+                      )}
                     </div>
                   </div>
                 )}
@@ -600,7 +624,7 @@ export default function IncidentEditPage() {
                   <option value="PEP:5">PEP - 5 doses (D0, D3, D7, D14, D28/30)</option>
                   <option value="PEP:4">PEP - 4 doses (D0, D3, D7, D28/30)</option>
                   <option value="PrEP:3">PrEP - 3 doses (D0, D7, D21/28)</option>
-                  <option value="PEP:1">Booster - 1 dose (D0)</option>
+                  <option value="PEP:1">Booster - 2 doses (D0, D3)</option>
                 </select>
                 <div style={{ fontSize:12, color:'var(--slate-500)', lineHeight:1.5, marginTop:8 }}>
                   Schedule dates stay blank until D0 is actually administered. Once D0 is given, the remaining schedule is auto-calculated.
