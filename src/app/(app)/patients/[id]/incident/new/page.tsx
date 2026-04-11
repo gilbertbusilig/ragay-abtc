@@ -79,7 +79,7 @@ export default function NewIncidentPage() {
     });
     setSaving(false);
     if (res.status === 'ok') {
-      router.push(`/patients/${patient_id}`);
+      window.location.href = `/patients/${patient_id}`;
     } else {
       setToast('Error: ' + (res.message || 'Failed'));
     }
