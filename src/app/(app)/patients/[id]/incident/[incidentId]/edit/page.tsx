@@ -14,6 +14,16 @@ const WOUND_TYPES = [
   { val:'other', label:'Others (specify below)' },
 ];
 
+// Strip apostrophe text guard and ISO date corruption from batch/lot number fields
+function cleanBatch(v: any): string {
+  if (v === null || v === undefined) return '';
+  let s = String(v).trim();
+  if (s.startsWith("'")) s = s.slice(1).trim();
+  // If Sheets coerced it into an ISO date string, extract only the date portion
+  if (/^\d{4}-\d{2}-\d{2}T/.test(s)) return s.split('T')[0];
+  return s;
+}
+
 export default function IncidentEditPage() {
   const { user, activeNurse } = useAuth();
   const router = useRouter();
@@ -101,14 +111,14 @@ export default function IncidentEditPage() {
           antiseptic_applied: inc.antiseptic_applied === true || inc.antiseptic_applied === 'true',
           erig_hrig: inc.erig_hrig || '',
           erig_hrig_brand: inc.erig_hrig_brand || '',
-          erig_hrig_batch: inc.erig_hrig_batch || '',
+          erig_hrig_batch: cleanBatch(inc.erig_hrig_batch),
           erig_hrig_date: inc.erig_hrig_date || '',
           erig_hrig_administered_by: inc.erig_hrig_administered_by || '',
           tetanus_vaccine_status: inc.tetanus_vaccine_status || '',
           tetanus_date: inc.tetanus_date || '',
           tetanus_type: inc.tetanus_type || '',
           tetanus_brand: inc.tetanus_brand || '',
-          tetanus_batch: inc.tetanus_batch || '',
+          tetanus_batch: cleanBatch(inc.tetanus_batch),
           tetanus_units: inc.tetanus_units || '',
           tetanus_admin_by: inc.tetanus_admin_by || '',
           hiv: !!inc.hiv, immunosuppressant: !!inc.immunosuppressant,
