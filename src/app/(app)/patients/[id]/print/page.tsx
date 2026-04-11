@@ -152,7 +152,7 @@ export default function PrintPage() {
         .page { width: 100%; min-height: 277mm; page-break-after: always; display: flex; flex-direction: column; }
         .page:last-child { page-break-after: auto; }
         .page-content { flex: 1; }
-        .section { border: 1px solid #333; margin-bottom: 4px; }
+        .section { border: 1px solid #333; margin-bottom: 3px; }
         .section-title { background: #dce8f5; border-bottom: 1px solid #333; padding: 2px 6px; font-weight: bold; font-size: 8pt; }
         .section-body { padding: 3px 6px; }
         .row { display: flex; gap: 6px; align-items: baseline; margin-bottom: 2px; flex-wrap: wrap; }
@@ -162,12 +162,12 @@ export default function PrintPage() {
         .col { padding: 3px 6px; }
         .col+.col { border-left: 1px solid #333; }
         table { width: 100%; border-collapse: collapse; font-size: 7pt; }
-        th, td { border: 1px solid #333; padding: 2px 3px; vertical-align: middle; }
+        th, td { border: 1px solid #333; padding: 1px 2px; vertical-align: middle; }
         th { background: #dce8f5; font-weight: bold; text-align: center; }
-        .sig-row { display: flex; justify-content: space-between; margin-top: 8px; gap: 20px; }
+        .sig-row { display: flex; justify-content: space-between; margin-top: 4px; gap: 20px; }
         .sig-block { text-align: center; flex: 1; }
         .sig-line { border-top: 1.5px solid #333; padding-top: 3px; }
-        .footer { text-align:center; margin-top:auto; padding-top:5px; border-top:1.5px solid #1d4ed8; }
+        .footer { text-align:center; margin-top:2px; padding-top:3px; border-top:1.5px solid #1d4ed8; }
         @media screen {
           body { background: #ccc; }
           .page { background: white; max-width: 210mm; margin: 16px auto; padding: 10mm; box-shadow: 0 2px 16px rgba(0,0,0,.2); min-height: auto; }
@@ -349,7 +349,7 @@ export default function PrintPage() {
               {/* Left: A */}
               <div className="col" style={{ fontSize:'7.5pt' }}>
                 <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions / On Treatment:</strong></div>
-                <div style={{ lineHeight:1.85 }}>
+                <div style={{ lineHeight:1.6 }}>
                   <div><Cb checked={!!incident.hiv}               /> H.I.V.</div>
                   <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid || incident.malignancy)} /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>
                   <div><Cb checked={!!incident.chloroquine}        /> Chloroquine</div>
@@ -360,7 +360,7 @@ export default function PrintPage() {
                 </div>
               </div>
               {/* Right: B–F */}
-              <div className="col" style={{ fontSize:'7.5pt', lineHeight:1.8 }}>
+              <div className="col" style={{ fontSize:'7.5pt', lineHeight:1.6 }}>
                 <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb checked={incident.anti_tetanus_vaccine===true||incident.anti_tetanus_vaccine==='true'} /> Y &nbsp; <Cb checked={incident.anti_tetanus_vaccine===false||incident.anti_tetanus_vaccine==='false'} /> N &nbsp; {incident.anti_tetanus_vaccine ? `If yes: ${fullDate(incident.tetanus_date)||'____________'}` : ''}</div>
                 <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb checked={incident.anti_rabies_completed} /> Y &nbsp; <Cb checked={!incident.anti_rabies_completed} /> N &nbsp; {incident.anti_rabies_details ? `(${incident.anti_rabies_details})` : ''}</div>
                 <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb checked={incident.folk_remedy} /> Y &nbsp; <Cb checked={!incident.folk_remedy} /> N &nbsp; {incident.folk_remedy_details||''}</div>
@@ -382,16 +382,16 @@ export default function PrintPage() {
 
           {/* Section V — bigger notes area */}
           <div className="section">
-            <div className="section-title">V. Physician's Order / Notes</div>
-            <div style={{ padding:'4px 6px', minHeight:100, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.physician_notes||''}</div>
+            <div className="section-title" style={{padding:'1px 6px'}}>V. Physician's Order / Notes</div>
+            <div style={{ padding:'3px 6px', minHeight:50, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.physician_notes||''}</div>
           </div>
 
           {/* Section VI */}
           <div className="section">
-            <div className="section-title">VI. Treatment</div>
+            <div className="section-title" style={{padding:'1px 6px'}}>VI. Treatment</div>
 
-            <div style={{ padding:'3px 5px 2px' }}>
-              <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PEP Schedule Date</div>
+            <div style={{ padding:'2px 5px 1px' }}>
+              <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:2 }}>PEP Schedule Date</div>
               <table>
                 <thead><tr>
                   <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
@@ -424,8 +424,8 @@ export default function PrintPage() {
               </table>
             </div>
 
-            <div style={{ padding:'2px 5px 3px' }}>
-              <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>PrEP Schedule Date</div>
+            <div style={{ padding:'2px 5px 1px' }}>
+              <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:2 }}>PrEP Schedule Date</div>
               <table>
                 <thead><tr>
                   <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
@@ -458,8 +458,8 @@ export default function PrintPage() {
               </table>
             </div>
 
-            <div style={{ padding:'2px 5px 3px' }}>
-              <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>Booster Dose Schedule</div>
+            <div style={{ padding:'2px 5px 1px' }}>
+              <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:2 }}>Booster Dose Schedule</div>
               <table>
                 <thead><tr>
                   <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
@@ -535,15 +535,15 @@ export default function PrintPage() {
           </div>
 
           {/* VII. Refer If Needed — boxed, same size as Physician Notes */}
-          <div className="section" style={{ marginBottom:8 }}>
-            <div className="section-title">VII. Refer If Needed</div>
-            <div style={{ padding:'4px 6px', minHeight:100, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.refer_if_needed||''}</div>
+          <div className="section" style={{ marginBottom:4 }}>
+            <div className="section-title" style={{padding:'1px 6px'}}>VII. Refer If Needed</div>
+            <div style={{ padding:'3px 6px', minHeight:30, fontSize:'8pt', whiteSpace:'pre-wrap' }}>{incident.refer_if_needed||''}</div>
           </div>
 
           {/* Signatures */}
           <div className="sig-row">
             <div className="sig-block">
-              <div style={{ minHeight:24 }} />
+              <div style={{ minHeight:12 }} />
               <div>
                 <strong>{getUserName(nurseId) || '________________________________'}</strong>
                 {getUserCred(nurseId) ? `, ${getUserCred(nurseId)}` : ''}<br/>
@@ -553,7 +553,7 @@ export default function PrintPage() {
               </div>
             </div>
             <div className="sig-block">
-              <div style={{ minHeight:24 }} />
+              <div style={{ minHeight:12 }} />
               <div>
                 <strong>{getUserName(doctorId) || '________________________________'}</strong>
                 {getUserCred(doctorId) ? `, ${getUserCred(doctorId)}` : ''}<br/>
