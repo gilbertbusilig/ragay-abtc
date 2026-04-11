@@ -234,7 +234,14 @@ export default function PatientDetailPage() {
     setTimeout(() => setToast({ msg:'', type:'' }), 4000);
   }, []);
 
-  useEffect(() => { load(); }, [patient_id]);
+  useEffect(() => {
+    setPatient(null);
+    setIncidents([]);
+    setDoses([]);
+    setMonitors([]);
+    setActiveIncident(null);
+    load();
+  }, [patient_id]);
 
   async function load() {
     setLoading(true);
@@ -953,4 +960,3 @@ export default function PatientDetailPage() {
     </div>
   );
 }
-
