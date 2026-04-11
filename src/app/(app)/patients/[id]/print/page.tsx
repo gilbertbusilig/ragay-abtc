@@ -88,10 +88,12 @@ export default function PrintPage() {
 
   const anatomicalSites: string[] = (() => { try { return JSON.parse(incident.anatomical_positions || '[]'); } catch { return []; }})();
 
-  const pepDoseDays  = ['D0','D3','D7','D14','D28'];
-  const prepDoseDays = ['D0','D7','D14','D28'];
-  const pepDoses  = incDoses.filter((d: any) => d.dose_type !== 'PrEP');
-  const prepDoses = incDoses.filter((d: any) => d.dose_type === 'PrEP');
+  const pepDoseDays     = ['D0','D3','D7','D14','D28'];
+  const prepDoseDays    = ['D0','D7','D14','D28'];
+  const boosterDoseDays = ['D0','D3'];
+  const pepDoses     = incDoses.filter((d: any) => d.dose_type !== 'PrEP' && d.dose_type !== 'Booster');
+  const prepDoses    = incDoses.filter((d: any) => d.dose_type === 'PrEP');
+  const boosterDoses = incDoses.filter((d: any) => d.dose_type === 'Booster');
   const bestDoseByDay = (rows: any[], day: string) => {
     const matches = rows.filter((d: any) => d.dose_day === day);
     if (!matches.length) return null;
@@ -107,8 +109,9 @@ export default function PrintPage() {
     return matches.sort((a, b) => score(b) - score(a))[0];
   };
   const emptyDose = { dose_day: '', vaccine_type:'', brand_name:'', batch_no:'', administered_date:'', administered_by:'', scheduled_date:'', route:'', dose_volume:'', status:'' };
-  const pepRows  = pepDoseDays.map(day  => bestDoseByDay(pepDoses, day)  || { ...emptyDose, dose_day: day });
-  const prepRows = prepDoseDays.map(day => bestDoseByDay(prepDoses, day) || { ...emptyDose, dose_day: day });
+  const pepRows     = pepDoseDays.map(day     => bestDoseByDay(pepDoses,     day) || { ...emptyDose, dose_day: day });
+  const prepRows    = prepDoseDays.map(day    => bestDoseByDay(prepDoses,    day) || { ...emptyDose, dose_day: day });
+  const boosterRows = boosterDoseDays.map(day => bestDoseByDay(boosterDoses, day) || { ...emptyDose, dose_day: day });
 
   const nurseId  = activeNurse?.user_id || incDoses.find((d: any) => d.administered_by)?.administered_by || '';
   const doctorId = incident.referring_doctor || '';
@@ -440,6 +443,40 @@ export default function PrintPage() {
                   {prepRows.map((d: any, i: number) => (
                     <tr key={i} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
                       <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d.dose_day === 'D28' ? 'D 28/30' : d.dose_day.replace('D','D ')}</td>
+                      <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
+                      <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
+                      <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
+                      <td style={{ fontSize:'7pt' }}>{cleanBatchNo(pickDoseField(d, ['batch_no', 'Batch No.', 'Batch No', 'Batch / Lot Number']))||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{doseRoute(d)||''}</td>
+                      <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
+                      <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
+                      <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
+                      <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{ padding:'2px 5px 3px' }}>
+              <div style={{ fontSize:'7pt', fontWeight:'bold', marginBottom:3 }}>Booster Dose Schedule</div>
+              <table>
+                <thead><tr>
+                  <th style={{ width:'8%', textAlign:'left', paddingLeft:4 }}>Dose</th>
+                  <th style={{ width:'5%' }}>PVRV</th>
+                  <th style={{ width:'5%' }}>PCEC</th>
+                  <th style={{ width:'10%' }}>Brand</th>
+                  <th style={{ width:'9%' }}>Batch</th>
+                  <th style={{ width:'9%' }}>Route</th>
+                  <th style={{ width:'7%' }}>Dose</th>
+                  <th style={{ width:'15%' }}>Schedule Date</th>
+                  <th style={{ width:'13%' }}>Date Given</th>
+                  <th>Administered By</th>
+                </tr></thead>
+                <tbody>
+                  {boosterRows.map((d: any, i: number) => (
+                    <tr key={i} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
+                      <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d.dose_day.replace('D','D ')}</td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
