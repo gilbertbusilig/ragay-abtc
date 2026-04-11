@@ -501,7 +501,7 @@ export default function PrintPage() {
                 <tbody><tr>
                   <td><Cb checked={incident.erig_hrig==='ERIG'} /> ERIG &nbsp; <Cb checked={incident.erig_hrig==='HRIG'} /> HRIG</td>
                   <td style={{ fontSize:'7pt' }}>{incident.erig_hrig_brand||''}</td>
-                  <td style={{ fontSize:'7pt' }}>{incident.erig_hrig_batch||''}</td>
+                  <td style={{ fontSize:'7pt' }}>{cleanBatchNo(incident.erig_hrig_batch)}</td>
                   <td style={{ fontSize:'7pt' }}>{fullDate(incident.erig_hrig_date)}</td>
                   <td style={{ fontSize:'7pt' }}>{
                     String(incident.erig_hrig_administered_by || '').startsWith('OTHER:')
@@ -526,7 +526,7 @@ export default function PrintPage() {
                     {incident.tetanus_units ? ` (${incident.tetanus_units})` : ''}
                   </td>
                   <td style={{ fontSize:'7pt' }}>{incident.tetanus_brand||''}</td>
-                  <td style={{ fontSize:'7pt' }}>{incident.tetanus_batch||''}</td>
+                  <td style={{ fontSize:'7pt' }}>{cleanBatchNo(incident.tetanus_batch)}</td>
                   <td style={{ fontSize:'7pt' }}>{fullDate(incident.tetanus_date)}</td>
                   <td style={{ fontSize:'7pt' }}>{getUserName(incident.tetanus_admin_by)}{getUserCred(incident.tetanus_admin_by) ? `, ${getUserCred(incident.tetanus_admin_by)}` : ''}</td>
                 </tr></tbody>
