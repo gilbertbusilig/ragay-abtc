@@ -249,7 +249,7 @@ export default function PatientDetailPage() {
     const now = Date.now();
     const useCached = accountsCache.data && (now - accountsCache.ts) < CACHE_TTL;
 
-    const requests: Promise<any>[] = [api.getPatient(patient_id)];
+    const requests: Promise<any>[] = [api.getPatient(patient_id, true)]; // bustCache=true: always fetch fresh patient data
     if (!useCached) requests.push(api.getInitData());
 
     const results = await Promise.all(requests);
