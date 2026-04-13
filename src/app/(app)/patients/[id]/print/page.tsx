@@ -13,11 +13,13 @@ export default function PrintPage() {
   const [allUsers, setAllUsers] = useState<Record<string,any>>({});
 
   useEffect(() => {
-    Promise.all([api.getPatient(patient_id), api.getAccounts()]).then(([patRes, usersRes]) => {
+    Promise.all([api.getPatient(patient_id), api.getInitData()]).then(([patRes, usersRes]) => {
       if (patRes.status === 'ok') setData(patRes.data);
       if (usersRes.status === 'ok') {
         const map: Record<string,any> = {};
-        usersRes.data.forEach((u: any) => { map[u.user_id] = u; });
+        // Load both accounts AND nurses so all administered_by user_ids resolve to names
+        (usersRes.data.accounts || []).forEach((u: any) => { map[u.user_id] = u; });
+        (usersRes.data.nurses  || []).forEach((u: any) => { if (!map[u.user_id]) map[u.user_id] = u; });
         setAllUsers(map);
       }
     });
@@ -54,11 +56,12 @@ export default function PrintPage() {
     return s;
   };
   const doseRoute = (d: any) => {
-    const raw = pickDoseField(d, ['route', 'Route', 'dose_route', 'vaccine_route']).toLowerCase();
+    const raw = pickDoseField(d, ['route', 'Route', 'dose_route', 'vaccine_route']).toLowerCase().trim();
     if (!raw) return '';
-    if (raw === 'intradermal') return 'Intradermal';
-    if (raw === 'intramuscular') return 'Intramuscular';
-    return '';
+    if (raw === 'intradermal' || raw === 'id') return 'Intradermal';
+    if (raw === 'intramuscular' || raw === 'im') return 'Intramuscular';
+    if (raw.includes('anterolateral') || raw === 'alt') return 'Anterolateral Thigh';
+    return raw;
   };
   const isDoseGiven = (d: any) => !!String(d?.administered_date || '').trim() || String(d?.status || '').toLowerCase() === 'done';
   const doseAmount = (d: any) => {
@@ -82,18 +85,38 @@ export default function PrintPage() {
     <span style={{ marginRight:14, whiteSpace:'nowrap' }}><Cb checked={current === val} /> {label}</span>
   );
 
-  const getUserName = (id: string) => { if (!id) return ''; const u = allUsers[id]; return u ? u.full_name : ''; };
+  // If id is not a user_id in the map, it's a plain-text name (from other facility) — show as-is
+  const getUserName = (id: string) => {
+    if (!id) return '';
+    const u = allUsers[id];
+    if (u) return u.full_name;
+    // Not a known user_id — treat as literal name entered for other-facility doses
+    return id;
+  };
   const getUserCred = (id: string) => { if (!id) return ''; const u = allUsers[id]; return u ? (u.credential || '') : ''; };
   const getUserLic  = (id: string) => { if (!id) return ''; const u = allUsers[id]; return u ? (u.license_no  || '') : ''; };
+  // Resolves administered_by: if it's a known user_id return full name+cred, otherwise treat as plain text name
+  const resolveAdministeredBy = (val: string, users: Record<string,any>) => {
+    if (!val) return '';
+    const u = users[val];
+    if (u) return u.full_name + (u.credential ? `, ${u.credential}` : '');
+    // Plain text name from other facility
+    return val;
+  };
 
   const anatomicalSites: string[] = (() => { try { return JSON.parse(incident.anatomical_positions || '[]'); } catch { return []; }})();
 
   const pepDoseDays     = ['D0','D3','D7','D14','D28'];
-  const prepDoseDays    = ['D0','D7','D14','D28'];
+  const prepDoseDays    = ['D0','D7','D21'];
   const boosterDoseDays = ['D0','D3'];
-  const pepDoses     = incDoses.filter((d: any) => d.dose_type !== 'PrEP' && d.dose_type !== 'Booster');
+  // Filter strictly by dose_type — Booster doses must be dose_type='Booster'
   const prepDoses    = incDoses.filter((d: any) => d.dose_type === 'PrEP');
-  const boosterDoses = incDoses.filter((d: any) => d.dose_type === 'Booster');
+  const boosterDoses = incDoses.filter((d: any) => String(d.dose_type || '').toLowerCase() === 'booster');
+  // PEP = anything that is not PrEP and not Booster
+  const pepDoses     = incDoses.filter((d: any) => {
+    const t = String(d.dose_type || '').toLowerCase();
+    return t !== 'prep' && t !== 'booster';
+  });
   const bestDoseByDay = (rows: any[], day: string) => {
     const matches = rows.filter((d: any) => d.dose_day === day);
     if (!matches.length) return null;
@@ -417,7 +440,7 @@ export default function PrintPage() {
                       <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
-                      <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
+                      <td style={{ fontSize:'7pt' }}>{resolveAdministeredBy(d.administered_by, allUsers)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -442,7 +465,7 @@ export default function PrintPage() {
                 <tbody>
                   {prepRows.map((d: any, i: number) => (
                     <tr key={i} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
-                      <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d.dose_day === 'D28' ? 'D 28/30' : d.dose_day.replace('D','D ')}</td>
+                      <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d.dose_day === 'D28' ? 'D 21/28' : d.dose_day.replace('D','D ')}</td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
@@ -451,7 +474,7 @@ export default function PrintPage() {
                       <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
-                      <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
+                      <td style={{ fontSize:'7pt' }}>{resolveAdministeredBy(d.administered_by, allUsers)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -485,7 +508,7 @@ export default function PrintPage() {
                       <td style={{ fontSize:'6.5pt' }}>{doseAmount(d)||''}</td>
                       <td style={{ fontSize:'7pt' }}>{d.scheduled_date ? fullDate(d.scheduled_date) : ''}</td>
                       <td style={{ fontSize:'7pt', color: d.administered_date ? '#166534' : '#999' }}>{d.administered_date ? fullDate(d.administered_date) : '—'}</td>
-                      <td style={{ fontSize:'7pt' }}>{getUserName(d.administered_by)}{getUserCred(d.administered_by) ? `, ${getUserCred(d.administered_by)}` : ''}</td>
+                      <td style={{ fontSize:'7pt' }}>{resolveAdministeredBy(d.administered_by, allUsers)}</td>
                     </tr>
                   ))}
                 </tbody>
