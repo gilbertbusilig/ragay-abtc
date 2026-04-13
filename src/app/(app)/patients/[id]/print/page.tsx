@@ -109,14 +109,21 @@ export default function PrintPage() {
   const pepDoseDays     = ['D0','D3','D7','D14','D28'];
   const prepDoseDays    = ['D0','D7','D21'];
   const boosterDoseDays = ['D0','D3'];
-  // Filter strictly by dose_type — Booster doses must be dose_type='Booster'
-  const prepDoses    = incDoses.filter((d: any) => d.dose_type === 'PrEP');
-  const boosterDoses = incDoses.filter((d: any) => String(d.dose_type || '').toLowerCase() === 'booster');
-  // PEP = anything that is not PrEP and not Booster
-  const pepDoses     = incDoses.filter((d: any) => {
+  // Separate by dose_type. Also handle legacy records where Booster was stored as
+  // dose_type='PEP' with pep_doses_needed=1 (only D0+D3 days exist).
+  const prepDoses        = incDoses.filter((d: any) => String(d.dose_type || '').toLowerCase() === 'prep');
+  const explicitBoosters = incDoses.filter((d: any) => String(d.dose_type || '').toLowerCase() === 'booster');
+  const pepCandidates    = incDoses.filter((d: any) => {
     const t = String(d.dose_type || '').toLowerCase();
     return t !== 'prep' && t !== 'booster';
   });
+  // Detect legacy booster: all PEP-typed doses only have D0 and/or D3 — no D7/D14/D28
+  const pepCandidateDays = Array.from(new Set(pepCandidates.map((d: any) => String(d.dose_day))));
+  const isLegacyBooster  = explicitBoosters.length === 0
+    && pepCandidates.length > 0
+    && pepCandidateDays.every((day: string) => day === 'D0' || day === 'D3');
+  const pepDoses     = isLegacyBooster ? [] : pepCandidates;
+  const boosterDoses = isLegacyBooster ? pepCandidates : explicitBoosters;
   const bestDoseByDay = (rows: any[], day: string) => {
     const matches = rows.filter((d: any) => d.dose_day === day);
     if (!matches.length) return null;
