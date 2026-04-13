@@ -135,7 +135,12 @@ export default function IncidentEditPage() {
           smoker: !!inc.smoker, alcoholic: !!inc.alcoholic,
           allergy: inc.allergy || '',
           physician_notes: inc.physician_notes || '',
-          dose_type: incidentDoses[0]?.dose_type || 'PEP',
+          dose_type: (() => {
+            const t = String(incidentDoses[0]?.dose_type || 'PEP');
+            // Legacy booster stored as dose_type='PEP' with pep_doses_needed=1 — normalise to 'Booster'
+            if (t === 'PEP' && Number(inc.pep_doses_needed) === 1) return 'Booster';
+            return t;
+          })(),
           pep_doses_needed: inc.pep_doses_needed || 5,
           referring_doctor: inc.referring_doctor || '',
           consult_date: inc.consult_date || '',
@@ -634,7 +639,7 @@ export default function IncidentEditPage() {
                   <option value="PEP:5">PEP - 5 doses (D0, D3, D7, D14, D28/30)</option>
                   <option value="PEP:4">PEP - 4 doses (D0, D3, D7, D28/30)</option>
                   <option value="PrEP:3">PrEP - 3 doses (D0, D7, D21/28)</option>
-                  <option value="PEP:1">Booster - 2 doses (D0, D3)</option>
+                  <option value="Booster:1">Booster - 2 doses (D0, D3)</option>
                 </select>
                 <div style={{ fontSize:12, color:'var(--slate-500)', lineHeight:1.5, marginTop:8 }}>
                   Schedule dates stay blank until D0 is actually administered. Once D0 is given, the remaining schedule is auto-calculated.
