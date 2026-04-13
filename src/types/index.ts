@@ -26,6 +26,8 @@ export interface Patient {
   status: 'active' | 'completed' | 'overdue';
   incident_count?: number;
   latest_category?: string;
+  latest_animal_type?: string;
+  age_group?: string;
 }
 
 export type AnimalType = 'dog' | 'cat' | 'bat' | 'other';
