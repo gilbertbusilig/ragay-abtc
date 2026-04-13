@@ -118,7 +118,7 @@ export default function PrintPage() {
     return t !== 'prep' && t !== 'booster';
   });
   // Detect legacy booster: all PEP-typed doses only have D0 and/or D3 — no D7/D14/D28
-  const pepCandidateDays = Array.from(new Set(pepCandidates.map((d: any) => String(d.dose_day))));
+  const pepCandidateDays = Array.from(new Set(pepCandidates.map((d: any) => String(d.dose_day)))) as string[];
   const isLegacyBooster  = explicitBoosters.length === 0
     && pepCandidates.length > 0
     && pepCandidateDays.every((day: string) => day === 'D0' || day === 'D3');
