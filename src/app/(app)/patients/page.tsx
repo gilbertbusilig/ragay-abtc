@@ -8,11 +8,15 @@ import { useAuth } from '@/lib/auth';
 export default function PatientsPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [allPatients, setAllPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [animalFilter, setAnimalFilter] = useState('');
+  const [ageFilter, setAgeFilter] = useState('');
+  const [sexFilter, setSexFilter] = useState('');
+  const [incidentFilter, setIncidentFilter] = useState('');
   const searchTimer = useRef<NodeJS.Timeout>();
 
   useEffect(() => { load(); }, [statusFilter, categoryFilter]);
@@ -25,7 +29,7 @@ export default function PatientsPage() {
     if (statusFilter) params.status = statusFilter;
     if (categoryFilter) params.category = categoryFilter;
     const res = await api.getPatients(params);
-    if (res.status === 'ok') setPatients(res.data);
+    if (res.status === 'ok') setAllPatients(res.data);
     setLoading(false);
   }
 
@@ -35,9 +39,37 @@ export default function PatientsPage() {
     searchTimer.current = setTimeout(() => load(val), 400);
   }
 
-  function handlePrint() { window.print(); }
+  function clearAllFilters() {
+    setSearch('');
+    setStatusFilter('');
+    setCategoryFilter('');
+    setAnimalFilter('');
+    setAgeFilter('');
+    setSexFilter('');
+    setIncidentFilter('');
+    load('');
+  }
 
-  function handleExport() { api.exportCSV({ status: statusFilter }); }
+  const hasFilters = search || statusFilter || categoryFilter || animalFilter || ageFilter || sexFilter || incidentFilter;
+
+  // Client-side filtering for animal, age, sex, incident count
+  const patients = allPatients.filter(p => {
+    if (animalFilter && String(p.latest_animal_type || '').toLowerCase() !== animalFilter) return false;
+    if (sexFilter && String(p.sex || '').toUpperCase() !== sexFilter) return false;
+    if (ageFilter) {
+      const age = Number(p.age);
+      if (ageFilter === 'under15' && !(age < 15)) return false;
+      if (ageFilter === '15' && age !== 15) return false;
+      if (ageFilter === 'over15' && !(age > 15)) return false;
+    }
+    if (incidentFilter) {
+      const count = Number(p.incident_count || 0);
+      if (incidentFilter === '1' && count !== 1) return false;
+      if (incidentFilter === '2' && count !== 2) return false;
+      if (incidentFilter === '3+' && count < 3) return false;
+    }
+    return true;
+  });
 
   const catBadge = (cat: string) => {
     if (!cat) return null;
@@ -58,8 +90,8 @@ export default function PatientsPage() {
           <p className="page-subtitle">{patients.length} patient{patients.length !== 1 ? 's' : ''} found</p>
         </div>
         <div style={{ display:'flex', gap: 10 }}>
-          <button className="btn btn-secondary btn-sm" onClick={handlePrint}>🖨 Print</button>
-          <button className="btn btn-secondary btn-sm" onClick={handleExport}>📥 Export CSV</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>🖨 Print</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => api.exportCSV({ status: statusFilter })}>📥 Export CSV</button>
           <button className="btn btn-primary" onClick={() => router.push('/patients/new')}>
             + New Patient
           </button>
@@ -70,28 +102,61 @@ export default function PatientsPage() {
         {/* Filter bar */}
         <div className="card" style={{ marginBottom: 16 }}>
           <div className="card-body" style={{ padding: '14px 18px' }}>
-            <div className="filter-bar">
+            {/* Row 1: search + status + category + clear */}
+            <div className="filter-bar" style={{ marginBottom: 10 }}>
               <div className="search-input-wrap" style={{ flex: 2 }}>
                 <span className="search-icon">🔍</span>
-                <input className="form-input" type="text" placeholder="Search by name or Patient ID…" value={search} onChange={e => handleSearch(e.target.value)} />
+                <input
+                  className="form-input"
+                  type="text"
+                  placeholder="Search by name or Patient ID…"
+                  value={search}
+                  onChange={e => handleSearch(e.target.value)}
+                />
               </div>
-              <select className="form-select" style={{ width: 150 }} value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+              <select className="form-select" style={{ width: 140 }} value={statusFilter} onChange={e => { setStatusFilter(e.target.value); }}>
                 <option value="">All Status</option>
                 <option value="active">Active</option>
                 <option value="completed">Completed</option>
                 <option value="overdue">Overdue</option>
               </select>
-              <select className="form-select" style={{ width: 160 }} value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}>
+              <select className="form-select" style={{ width: 150 }} value={categoryFilter} onChange={e => { setCategoryFilter(e.target.value); }}>
                 <option value="">All Categories</option>
                 <option value="I">Category I</option>
                 <option value="II">Category II</option>
                 <option value="III">Category III</option>
               </select>
-              {(search || statusFilter || categoryFilter) && (
-                <button className="btn btn-ghost btn-sm" onClick={() => { setSearch(''); setStatusFilter(''); setCategoryFilter(''); load(''); }}>
-                  ✕ Clear
-                </button>
+              {hasFilters && (
+                <button className="btn btn-ghost btn-sm" onClick={clearAllFilters}>✕ Clear</button>
               )}
+            </div>
+
+            {/* Row 2: animal + age + sex + incidents */}
+            <div className="filter-bar">
+              <select className="form-select" style={{ flex: 1 }} value={animalFilter} onChange={e => setAnimalFilter(e.target.value)}>
+                <option value="">All Animal Types</option>
+                <option value="dog">Dog</option>
+                <option value="cat">Cat</option>
+                <option value="bat">Bat</option>
+                <option value="other">Other</option>
+              </select>
+              <select className="form-select" style={{ flex: 1 }} value={ageFilter} onChange={e => setAgeFilter(e.target.value)}>
+                <option value="">All Age Groups</option>
+                <option value="under15">Under 15</option>
+                <option value="15">15 years old</option>
+                <option value="over15">Over 15</option>
+              </select>
+              <select className="form-select" style={{ flex: 1 }} value={sexFilter} onChange={e => setSexFilter(e.target.value)}>
+                <option value="">All Sex</option>
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+              <select className="form-select" style={{ flex: 1 }} value={incidentFilter} onChange={e => setIncidentFilter(e.target.value)}>
+                <option value="">All Incidents</option>
+                <option value="1">1 Incident</option>
+                <option value="2">2 Incidents</option>
+                <option value="3+">3+ Incidents</option>
+              </select>
             </div>
           </div>
         </div>
