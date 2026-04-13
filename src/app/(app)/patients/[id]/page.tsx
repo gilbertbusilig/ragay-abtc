@@ -93,6 +93,7 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
     const lower = raw.toLowerCase().trim();
     if (lower === 'intramuscular' || lower === 'im') return 'Intramuscular';
     if (lower === 'intradermal' || lower === 'id') return 'Intradermal';
+    if (lower.includes('anterolateral') || lower === 'alt') return 'Anterolateral Thigh';
     return '';
   };
   const isDoseGiven = (d: any) => !!String(d?.administered_date || '').trim() || String(d?.status || '').toLowerCase() === 'done';
@@ -818,7 +819,7 @@ export default function PatientDetailPage() {
                 <div className="form-group">
                   <label className="form-label">Route</label>
                   <div className="checkbox-group">
-                    {['Intradermal','Intramuscular'].map(r => (
+                    {['Intradermal','Intramuscular','Anterolateral Thigh'].map(r => (
                       <label key={r} className="checkbox-item">
                         <input type="radio" name="dose_route" value={r} checked={doseForm.route===r}
                           onChange={() => setDoseForm(p => ({...p, route:r}))} />
