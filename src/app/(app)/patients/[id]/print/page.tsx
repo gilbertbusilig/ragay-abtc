@@ -472,7 +472,7 @@ export default function PrintPage() {
                 <tbody>
                   {prepRows.map((d: any, i: number) => (
                     <tr key={i} style={{ background: i%2===0 ? 'white' : '#f0f4ff' }}>
-                      <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{d.dose_day === 'D28' ? 'D 21/28' : d.dose_day.replace('D','D ')}</td>
+                      <td style={{ fontWeight:'bold', fontSize:'7.5pt', paddingLeft:4 }}>{(d.dose_day === 'D21' || d.dose_day === 'D28') ? 'D 21/28' : d.dose_day.replace('D','D ')}</td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PVRV'} /></td>
                       <td style={{ textAlign:'center' }}><Cb checked={d.vaccine_type==='PCEC'} /></td>
                       <td style={{ fontSize:'7pt' }}>{d.brand_name||''}</td>
