@@ -2,7 +2,7 @@
 
 const GAS_URL = process.env.NEXT_PUBLIC_GAS_URL!;
 const GAS_SECRET = process.env.NEXT_PUBLIC_GAS_SECRET!;
-const GET_CACHE_TTL = 30000; // 30s — GAS responses are slow, cache longer
+const GET_CACHE_TTL = 15000;
 const getCache = new Map<string, { expiresAt: number; value: unknown }>();
 
 function buildCacheKey(action: string, params: Record<string, string>) {
@@ -14,22 +14,6 @@ function buildCacheKey(action: string, params: Record<string, string>) {
 
 function clearGetCache() {
   getCache.clear();
-}
-
-// Invalidate only cache entries that are affected by a write to a specific patient/incident
-// Preserves unrelated cached data (e.g. init_data, dashboard) so navigating back is instant
-function invalidatePatientCache(patient_id?: string) {
-  if (!patient_id) { getCache.clear(); return; }
-  for (const key of getCache.keys()) {
-    // Always clear patient list and dashboard (counts change)
-    if (key.startsWith('get_patients:') || key.startsWith('dashboard:')) {
-      getCache.delete(key);
-    }
-    // Clear this specific patient's cached record
-    if (key.includes(`"patient_id","${patient_id}"`)) {
-      getCache.delete(key);
-    }
-  }
 }
 
 async function gasGet(action: string, params: Record<string, string> = {}) {
@@ -72,11 +56,7 @@ async function gasPost(action: string, body: Record<string, unknown>) {
     let payload;
     try { payload = JSON.parse(text); }
     catch { payload = { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
-    if (payload?.status === 'ok') {
-      // Smart invalidation: only clear caches affected by this write
-      const pid = (body.patient_id || body.patient_id) as string | undefined;
-      invalidatePatientCache(pid);
-    }
+    if (payload?.status === 'ok') clearGetCache();
     return payload;
   } catch (err: any) {
     return { status: 'error', message: err?.message || 'Network error' };
