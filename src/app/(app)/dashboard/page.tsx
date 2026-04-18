@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 import { DashboardData } from '@/types';
 
@@ -93,7 +93,7 @@ export default function DashboardPage() {
     loadAllYears(false);
   }, []);
 
-const loadAllYears = useCallback(async (showRefreshState = true) => {
+  async function loadAllYears(showRefreshState = true) {
     if (showRefreshState) setRefreshing(true);
     else setLoading(true);
 
@@ -105,7 +105,7 @@ const loadAllYears = useCallback(async (showRefreshState = true) => {
     setDashboardByYear(next);
     setLoading(false);
     setRefreshing(false);
-  }, []);
+  }
 
   const data = dashboardByYear[summaryYear] || null;
 
@@ -135,50 +135,44 @@ const loadAllYears = useCallback(async (showRefreshState = true) => {
   });
 
   const demographicsData = dashboardByYear[demographicsYear] || data;
-  const filteredRecords = useMemo(() => {
-    const records = demographicsData?.demographics_records || [];
-    if (monthFilter === 0 && ageFilter === 'all' && sexFilter === 'all' && animalFilter === 'all' && categoryFilter === 'all' && rigFilter === 'all') {
-      return records;
-    }
-    return records.filter(record => {
-      if (monthFilter !== 0 && (record as any).consult_month !== monthFilter) return false;
-      if (ageFilter !== 'all' && record.age_group !== ageFilter) return false;
-      if (sexFilter !== 'all' && record.sex !== sexFilter) return false;
-      if (animalFilter !== 'all' && record.animal_type !== animalFilter) return false;
-      if (categoryFilter !== 'all' && record.category !== categoryFilter) return false;
-      if (rigFilter !== 'all' && record.erig_hrig !== rigFilter) return false;
-      return true;
-    });
-  }, [demographicsData, monthFilter, ageFilter, sexFilter, animalFilter, categoryFilter, rigFilter]);
+  const filteredRecords = (demographicsData?.demographics_records || []).filter(record => {
+    if (monthFilter !== 0 && (record as any).consult_month !== monthFilter) return false;
+    if (ageFilter !== 'all' && record.age_group !== ageFilter) return false;
+    if (sexFilter !== 'all' && record.sex !== sexFilter) return false;
+    if (animalFilter !== 'all' && record.animal_type !== animalFilter) return false;
+    if (categoryFilter !== 'all' && record.category !== categoryFilter) return false;
+    if (rigFilter !== 'all' && record.erig_hrig !== rigFilter) return false;
+    return true;
+  });
 
-  const filteredAgeCounts = useMemo(() => ({
+  const filteredAgeCounts = {
     under15: filteredRecords.filter(record => record.age_group === 'under15').length,
     '15': filteredRecords.filter(record => record.age_group === '15').length,
     over15: filteredRecords.filter(record => record.age_group === 'over15').length,
-  }), [filteredRecords]);
+  };
 
-  const filteredSexCounts = useMemo(() => ({
+  const filteredSexCounts = {
     male: filteredRecords.filter(record => record.sex === 'male').length,
     female: filteredRecords.filter(record => record.sex === 'female').length,
-  }), [filteredRecords]);
+  };
 
-  const filteredAnimalCounts = useMemo(() => ({
+  const filteredAnimalCounts = {
     dog: filteredRecords.filter(record => record.animal_type === 'dog').length,
     cat: filteredRecords.filter(record => record.animal_type === 'cat').length,
     bat: filteredRecords.filter(record => record.animal_type === 'bat').length,
     other: filteredRecords.filter(record => record.animal_type === 'other').length,
-  }), [filteredRecords]);
+  };
 
-  const filteredCategoryCounts = useMemo(() => ({
+  const filteredCategoryCounts = {
     I: filteredRecords.filter(record => record.category === 'I').length,
     II: filteredRecords.filter(record => record.category === 'II').length,
     III: filteredRecords.filter(record => record.category === 'III').length,
-  }), [filteredRecords]);
+  };
 
-  const filteredRigCounts = useMemo(() => ({
+  const filteredRigCounts = {
     ERIG: filteredRecords.filter(record => record.erig_hrig === 'ERIG').length,
     HRIG: filteredRecords.filter(record => record.erig_hrig === 'HRIG').length,
-  }), [filteredRecords]);
+  };
 
   return (
     <div>

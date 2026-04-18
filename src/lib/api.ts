@@ -2,9 +2,8 @@
 
 const GAS_URL = process.env.NEXT_PUBLIC_GAS_URL!;
 const GAS_SECRET = process.env.NEXT_PUBLIC_GAS_SECRET!;
-const GET_CACHE_TTL = 30000;
-const SWR_STALE_TTL = 60000;
-const getCache = new Map<string, { expiresAt: number; value: unknown; staleAt: number }>();
+const GET_CACHE_TTL = 30000; // 30s — GAS responses are slow, cache longer
+const getCache = new Map<string, { expiresAt: number; value: unknown }>();
 
 function buildCacheKey(action: string, params: Record<string, string>) {
   const pairs = Object.entries(params)
@@ -36,10 +35,7 @@ async function gasGet(action: string, params: Record<string, string> = {}) {
   try {
     const cacheKey = buildCacheKey(action, params);
     const cached = getCache.get(cacheKey);
-    const now = Date.now();
-    
-    // Return fresh cache immediately
-    if (cached && cached.expiresAt > now) return cached.value;
+    if (cached && cached.expiresAt > Date.now()) return cached.value;
 
     const url = new URL(GAS_URL);
     url.searchParams.set('action', action);
@@ -52,14 +48,9 @@ async function gasGet(action: string, params: Record<string, string> = {}) {
     let payload;
     try { payload = JSON.parse(text); }
     catch { payload = { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
-    
-    // Cache successful responses; return stale cache on network error
     if (payload?.status === 'ok') {
-      getCache.set(cacheKey, { expiresAt: now + GET_CACHE_TTL, staleAt: now + SWR_STALE_TTL, value: payload });
-      return payload;
+      getCache.set(cacheKey, { expiresAt: Date.now() + GET_CACHE_TTL, value: payload });
     }
-    // On error, return stale cache if available
-    if (cached && cached.staleAt > now) return cached.value;
     return payload;
   } catch (err: any) {
     return { status: 'error', message: err?.message || 'Network error' };

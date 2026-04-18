@@ -1,55 +1,9 @@
 'use client';
-import { useEffect, useState, useRef, useMemo, useCallback, memo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Patient } from '@/types';
 import { useAuth } from '@/lib/auth';
-
-// Memoized row for patient table - only re-render when data changes
-const PatientRow = memo(function PatientRow({ patient, onView, onPrint }: {
-  patient: Patient;
-  onView: () => void;
-  onPrint: () => void;
-}) {
-  const catBadge = (cat: string) => {
-    if (!cat) return null;
-    const cls = cat === 'I' ? 'badge-cat1' : cat === 'II' ? 'badge-cat2' : 'badge-cat3';
-    return <span className={`badge ${cls}`}>Cat {cat}</span>;
-  };
-  const statusBadge = (s: string) => {
-    const cls = s === 'active' ? 'badge-active' : s === 'completed' ? 'badge-completed' : 'badge-overdue';
-    return <span className={`badge ${cls}`}>{s}</span>;
-  };
-  return (
-    <tr style={{ cursor: 'pointer' }} onClick={onView}>
-      <td>
-        <span style={{ fontFamily: 'monospace', fontSize: 13, color: 'var(--blue-700)', fontWeight: 600 }}>{patient.patient_id}</span>
-      </td>
-      <td>
-        <span style={{ fontWeight: 500 }}>{patient.full_name}</span>
-      </td>
-      <td>{patient.age}</td>
-      <td>{patient.sex === 'M' ? '♂ Male' : patient.sex === 'F' ? '♀ Female' : '—'}</td>
-      <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 13, color: 'var(--slate-500)' }}>
-        {patient.address || '—'}
-      </td>
-      <td>
-        <span style={{ background: 'var(--blue-50)', color: 'var(--blue-700)', padding: '2px 8px', borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
-          {patient.incident_count || 0}
-        </span>
-      </td>
-      <td>{catBadge(patient.latest_category || '')}</td>
-      <td>{statusBadge(patient.status)}</td>
-      <td onClick={e => e.stopPropagation()}>
-        <div style={{ display: 'flex', gap: 6 }}>
-          <button className="btn btn-secondary btn-sm" onClick={onView}>View</button>
-          <button className="btn btn-ghost btn-sm" onClick={onPrint}>🖨</button>
-        </div>
-      </td>
-    </tr>
-  );
-});
-PatientRow.displayName = 'PatientRow';
 
 export default function PatientsPage() {
   const { user } = useAuth();
@@ -98,27 +52,24 @@ export default function PatientsPage() {
 
   const hasFilters = search || statusFilter || categoryFilter || animalFilter || ageFilter || sexFilter || incidentFilter;
 
-  // Client-side filtering - memoized to avoid recalculating on every render
-  const patients = useMemo(() => {
-    if (!hasFilters && !animalFilter && !sexFilter && !ageFilter && !incidentFilter) return allPatients;
-    return allPatients.filter(p => {
-      if (animalFilter && String(p.latest_animal_type || '').toLowerCase() !== animalFilter) return false;
-      if (sexFilter && String(p.sex || '').toUpperCase() !== sexFilter) return false;
-      if (ageFilter) {
-        const age = Number(p.age);
-        if (ageFilter === 'under15' && !(age < 15)) return false;
-        if (ageFilter === '15' && age !== 15) return false;
-        if (ageFilter === 'over15' && !(age > 15)) return false;
-      }
-      if (incidentFilter) {
-        const count = Number(p.incident_count || 0);
-        if (incidentFilter === '1' && count !== 1) return false;
-        if (incidentFilter === '2' && count !== 2) return false;
-        if (incidentFilter === '3+' && count < 3) return false;
-      }
-      return true;
-    });
-  }, [allPatients, animalFilter, sexFilter, ageFilter, incidentFilter, hasFilters]);
+  // Client-side filtering for animal, age, sex, incident count
+  const patients = allPatients.filter(p => {
+    if (animalFilter && String(p.latest_animal_type || '').toLowerCase() !== animalFilter) return false;
+    if (sexFilter && String(p.sex || '').toUpperCase() !== sexFilter) return false;
+    if (ageFilter) {
+      const age = Number(p.age);
+      if (ageFilter === 'under15' && !(age < 15)) return false;
+      if (ageFilter === '15' && age !== 15) return false;
+      if (ageFilter === 'over15' && !(age > 15)) return false;
+    }
+    if (incidentFilter) {
+      const count = Number(p.incident_count || 0);
+      if (incidentFilter === '1' && count !== 1) return false;
+      if (incidentFilter === '2' && count !== 2) return false;
+      if (incidentFilter === '3+' && count < 3) return false;
+    }
+    return true;
+  });
 
   const catBadge = (cat: string) => {
     if (!cat) return null;
@@ -239,12 +190,32 @@ export default function PatientsPage() {
                 </tr></thead>
                 <tbody>
                   {patients.map(p => (
-                    <PatientRow
-                      key={p.patient_id}
-                      patient={p}
-                      onView={() => router.push(`/patients/${p.patient_id}`)}
-                      onPrint={() => router.push(`/patients/${p.patient_id}/print`)}
-                    />
+                    <tr key={p.patient_id} style={{ cursor:'pointer' }} onClick={() => router.push(`/patients/${p.patient_id}`)}>
+                      <td>
+                        <span style={{ fontFamily:'monospace', fontSize:13, color:'var(--blue-700)', fontWeight:600 }}>{p.patient_id}</span>
+                      </td>
+                      <td>
+                        <span style={{ fontWeight:500 }}>{p.full_name}</span>
+                      </td>
+                      <td>{p.age}</td>
+                      <td>{p.sex === 'M' ? '♂ Male' : p.sex === 'F' ? '♀ Female' : '—'}</td>
+                      <td style={{ maxWidth: 180, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', fontSize:13, color:'var(--slate-500)' }}>
+                        {p.address || '—'}
+                      </td>
+                      <td>
+                        <span style={{ background:'var(--blue-50)', color:'var(--blue-700)', padding:'2px 8px', borderRadius:12, fontSize:12, fontWeight:600 }}>
+                          {p.incident_count || 0}
+                        </span>
+                      </td>
+                      <td>{catBadge(p.latest_category || '')}</td>
+                      <td>{statusBadge(p.status)}</td>
+                      <td onClick={e => e.stopPropagation()}>
+                        <div style={{ display:'flex', gap:6 }}>
+                          <button className="btn btn-secondary btn-sm" onClick={() => router.push(`/patients/${p.patient_id}`)}>View</button>
+                          <button className="btn btn-ghost btn-sm" onClick={() => router.push(`/patients/${p.patient_id}/print`)}>🖨</button>
+                        </div>
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>

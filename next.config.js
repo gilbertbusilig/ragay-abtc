@@ -1,24 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  // Performance optimizations
   compress: true,
   poweredByHeader: false,
+  // Allow unoptimized local images in public folder
   images: {
     unoptimized: true,
-  },
-  experimental: {
-    optimizePackageImports: ['lucide-react'],
-  },
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    return config;
   },
 };
 
