@@ -82,6 +82,7 @@ export default function DashboardPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [summaryYear, setSummaryYear] = useState(new Date().getFullYear().toString());
   const [demographicsYear, setDemographicsYear] = useState(new Date().getFullYear().toString());
+  const [quarterFilter, setQuarterFilter] = useState<number>(0); // 0 = all, 1-4 = Q1-Q4
   const [monthFilter, setMonthFilter] = useState<number>(0); // 0 = all
   const [ageFilter, setAgeFilter] = useState<AgeFilter>('all');
   const [sexFilter, setSexFilter] = useState<SexFilter>('all');
@@ -135,8 +136,13 @@ export default function DashboardPage() {
   });
 
   const demographicsData = dashboardByYear[demographicsYear] || data;
+  // Quarter → months mapping
+  const quarterMonths: Record<number, number[]> = { 1:[1,2,3], 2:[4,5,6], 3:[7,8,9], 4:[10,11,12] };
+
   const filteredRecords = (demographicsData?.demographics_records || []).filter(record => {
-    if (monthFilter !== 0 && (record as any).consult_month !== monthFilter) return false;
+    const cm = (record as any).consult_month as number;
+    if (quarterFilter !== 0 && !quarterMonths[quarterFilter].includes(cm)) return false;
+    if (monthFilter !== 0 && cm !== monthFilter) return false;
     if (ageFilter !== 'all' && record.age_group !== ageFilter) return false;
     if (sexFilter !== 'all' && record.sex !== sexFilter) return false;
     if (animalFilter !== 'all' && record.animal_type !== animalFilter) return false;
@@ -215,7 +221,6 @@ export default function DashboardPage() {
               { val: data.completed, label: 'Completed', cls: 'green' },
               { val: data.overdue_doses, label: 'Overdue Doses', cls: 'red' },
               { val: data.due_today, label: 'Due Today', cls: '' },
-              { val: data.pet_monitors_active, label: 'Pet Monitors', cls: '' },
             ].map(s => (
               <div
                 key={s.label}
@@ -319,7 +324,7 @@ export default function DashboardPage() {
               <div
                 style={{
                   display: 'grid',
-                  gridTemplateColumns: '1fr 1fr 1fr',
+                  gridTemplateColumns: '1fr 1fr 1fr 1fr',
                   gap: 10,
                   marginTop: 18,
                   padding: 14,
@@ -334,6 +339,7 @@ export default function DashboardPage() {
                   </label>
                   <select className="form-select" value={demographicsYear} onChange={e => {
                     setDemographicsYear(e.target.value);
+                    setQuarterFilter(0);
                     setMonthFilter(0);
                     setAgeFilter('all');
                     setSexFilter('all');
@@ -346,6 +352,21 @@ export default function DashboardPage() {
                         {y}
                       </option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: 'var(--slate-500)', marginBottom: 6 }}>
+                    Quarter
+                  </label>
+                  <select className="form-select" value={quarterFilter} onChange={e => {
+                    setQuarterFilter(Number(e.target.value));
+                    setMonthFilter(0); // reset month when quarter changes
+                  }}>
+                    <option value={0}>All Quarters</option>
+                    <option value={1}>Q1 (Jan – Mar)</option>
+                    <option value={2}>Q2 (Apr – Jun)</option>
+                    <option value={3}>Q3 (Jul – Sep)</option>
+                    <option value={4}>Q4 (Oct – Dec)</option>
                   </select>
                 </div>
                 <div>
