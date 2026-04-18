@@ -11,8 +11,6 @@ function getLocalISODate() {
   const tzOffsetMs = now.getTimezoneOffset() * 60000;
   return new Date(now.getTime() - tzOffsetMs).toISOString().split('T')[0];
 }
-
-// Date helpers
 function toMMDDYYYY(iso: string) {
   if (!iso) return '—';
   const d = iso.includes('T') ? iso.split('T')[0] : iso;
@@ -32,7 +30,7 @@ function addDays(isoDate: string, days: number) {
   const dd = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${dd}`;
 }
-const DAY_OFFSETS: Record<string,number> = { D0:0, D3:3, D7:6, D14:13, D21:20, D28:27 };
+const DAY_OFFSETS: Record<string,number> = { D0:0, D3:3, D7:6, D14:13, D21:20, D28:27 }; 
 
 function BodyDiagram({ selected, onChange }: { selected: string[]; onChange?: (s: string[]) => void }) {
   const toggle = (site: string) => {
@@ -83,7 +81,6 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
     if (v === null || v === undefined) return '';
     let s = stripTextGuard(v);
     if (!s) return '';
-    // Avoid showing raw ISO timestamps in Batch/Lot display.
     if (s.includes('T') && s.endsWith('Z')) return s.split('T')[0];
     return s;
   };
@@ -142,7 +139,6 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
             <tr key={d.dose_id || d.dose_day} style={{ opacity: d.is_optional && d.status === 'scheduled' ? .55 : 1 }}>
               <td style={{ whiteSpace:'nowrap' }}><span style={{ fontWeight:700, color:'var(--blue-700)', fontSize:13 }}>{d.dose_day}</span></td>
               <td style={{ whiteSpace:'nowrap' }}>
-                {/* D0 scheduled date is auto-set to the administered date — never editable */}
                 {d.dose_day === 'D0' ? (
                   <span style={{ fontSize:12, color: d.status === 'done' ? 'inherit' : 'var(--slate-400)' }}>
                     {d.status === 'done' && d.scheduled_date ? toMMDDYYYY(d.scheduled_date) : '—'}
@@ -193,9 +189,8 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
   );
 }
 
-// Session cache for accounts - avoid refetching on every page visit
 const accountsCache: { data: Record<string,User> | null; ts: number } = { data: null, ts: 0 };
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000;
 
 export default function PatientDetailPage() {
   const { user, activeNurse } = useAuth();
@@ -246,11 +241,10 @@ export default function PatientDetailPage() {
 
   async function load() {
     setLoading(true);
-    // Load patient data + use cached accounts if fresh
     const now = Date.now();
     const useCached = accountsCache.data && (now - accountsCache.ts) < CACHE_TTL;
 
-    const requests: Promise<any>[] = [api.getPatient(patient_id, true)]; // bustCache=true: always fetch fresh patient data
+    const requests: Promise<any>[] = [api.getPatient(patient_id, true)];
     if (!useCached) requests.push(api.getInitData());
 
     const results = await Promise.all(requests);
@@ -267,7 +261,6 @@ export default function PatientDetailPage() {
 
     if (!useCached && results[1]?.status === 'ok') {
       const map: Record<string, User> = {};
-      // Include all accounts AND nurses so administered_by resolves to a name
       (results[1].data.accounts || []).forEach((u: any) => { map[u.user_id] = u; });
       (results[1].data.nurses  || []).forEach((u: any) => { if (!map[u.user_id]) map[u.user_id] = u; });
       accountsCache.data = map;
@@ -313,20 +306,18 @@ export default function PatientDetailPage() {
       if (res.data?.dose) {
         const updatedDose = res.data.dose as Dose;
         setDoses(prev => {
-          // Update the dose that was just administered
           let next = prev.map(d =>
             (d.dose_id && updatedDose.dose_id && d.dose_id === updatedDose.dose_id) ||
             (d.incident_id === updatedDose.incident_id && d.dose_day === updatedDose.dose_day)
               ? { ...d, ...updatedDose }
               : d
           );
-          // If D0 was just given, recalculate scheduled dates for all other doses in this incident
           if (updatedDose.dose_day === 'D0' && updatedDose.administered_date) {
             const d0Date = updatedDose.administered_date;
             next = next.map(d => {
               if (d.incident_id !== updatedDose.incident_id) return d;
-              if (d.dose_day === 'D0') return d; // D0 scheduled_date already set
-              if (d.status === 'done') return d;  // never shift a dose already given
+              if (d.dose_day === 'D0') return d;
+              if (d.status === 'done') return d;
               const offset = DAY_OFFSETS[d.dose_day];
               if (offset === undefined) return d;
               return { ...d, scheduled_date: addDays(d0Date, offset) };
@@ -349,7 +340,6 @@ export default function PatientDetailPage() {
       dose_day:    dose.dose_day,
       scheduled_date: newDate,
     });
-    // Update local state immediately - no full reload needed
     setDoses(prev => prev.map(d =>
       (d.dose_id ? d.dose_id === dose.dose_id : d.dose_day === dose.dose_day && d.incident_id === dose.incident_id)
         ? { ...d, scheduled_date: newDate }
@@ -424,8 +414,6 @@ export default function PatientDetailPage() {
               (clearedDose.dose_id && d.dose_id === clearedDose.dose_id) ||
               (d.incident_id === clearedDose.incident_id && d.dose_day === clearedDose.dose_day);
             if (isClearedDose) return { ...d, ...clearedDose };
-
-            // If D0 is deleted, clear scheduled dates of related doses because they are D0-derived.
             if (clearedDose.dose_day === 'D0' && d.incident_id === clearedDose.incident_id) {
               const next: Dose = { ...d, scheduled_date: '' };
               if (!d.administered_date) next.status = 'scheduled';
@@ -539,7 +527,6 @@ export default function PatientDetailPage() {
       <div className="page-body">
         <div style={{ display:'grid', gridTemplateColumns:'300px 1fr', gap:18 }}>
 
-          {/* Left — Patient info */}
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
             <div className="card">
               <div className="card-header">
@@ -572,7 +559,6 @@ export default function PatientDetailPage() {
               </div>
             </div>
 
-            {/* Pet monitor card */}
             {activeMonitor && (
               <div className="card">
                 <div className="card-header">
@@ -604,7 +590,6 @@ export default function PatientDetailPage() {
             )}
           </div>
 
-          {/* Right — Incidents + Doses */}
           <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
             {incidents.length > 0 ? (
@@ -708,7 +693,6 @@ export default function PatientDetailPage() {
               </div>
             )}
 
-            {/* Dose schedule */}
             {activeIncident && incidentDoses.length > 0 && (
               <div className="card">
                 <div className="card-header">
@@ -747,7 +731,6 @@ export default function PatientDetailPage() {
         </div>
       </div>
 
-      {/* ── Administer dose modal ── */}
       {adminModal && (
         <div className="modal-overlay" onClick={() => setAdminModal(null)}>
           <div className="modal" style={{ maxWidth:500 }} onClick={e => e.stopPropagation()}>
@@ -849,7 +832,6 @@ export default function PatientDetailPage() {
         </div>
       )}
 
-      {/* ── Pet outcome modal ── */}
       {petOutcomeModal && (
         <div className="modal-overlay" onClick={() => setPetOutcomeModal(null)}>
           <div className="modal" style={{ maxWidth:440 }} onClick={e => e.stopPropagation()}>
@@ -884,7 +866,6 @@ export default function PatientDetailPage() {
         </div>
       )}
 
-      {/* ── Edit patient info modal ── */}
       {editPatientOpen && patient && (
         <div className="modal-overlay" onClick={() => setEditPatientOpen(false)}>
           <div className="modal" style={{ maxWidth:480 }} onClick={e => e.stopPropagation()}>
@@ -919,14 +900,13 @@ export default function PatientDetailPage() {
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setEditPatientOpen(false)}>Cancel</button>
               <button className="btn btn-primary" onClick={savePatientInfo} disabled={saving}>
-                {saving ? <><span className="spinner"/>  Saving…</> : '✓ Save Changes'}
+                {saving ? <><span className="spinner"/>  Saving���</> : '✓ Save Changes'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Delete confirm ── */}
       {deleteConfirm && (
         <div className="modal-overlay" onClick={() => setDeleteConfirm(null)}>
           <div className="modal" style={{ maxWidth:400 }} onClick={e => e.stopPropagation()}>

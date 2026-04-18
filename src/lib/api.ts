@@ -3,13 +3,32 @@
 const GAS_URL = process.env.NEXT_PUBLIC_GAS_URL!;
 const GAS_SECRET = process.env.NEXT_PUBLIC_GAS_SECRET!;
 const GET_CACHE_TTL = 30000; // 30s — GAS responses are slow, cache longer
-const getCache = new Map<string, { expiresAt: number; value: unknown }>();
+const SWR_STALE_TTL = 60000; // 60s — stale-while-revalidate window
+const getCache = new Map<string, { expiresAt: number; value: unknown; staleAt: number }>();
+const pendingRequests = new Map<string, Promise<unknown>>(); // Deduplicate concurrent requests
 
 function buildCacheKey(action: string, params: Record<string, string>) {
   const pairs = Object.entries(params)
     .filter(([, v]) => v !== undefined && v !== null && v !== '')
     .sort(([a], [b]) => a.localeCompare(b));
   return `${action}:${JSON.stringify(pairs)}`;
+}
+
+function getFromCache(action: string, params: Record<string, string>) {
+  const cacheKey = buildCacheKey(action, params);
+  const cached = getCache.get(cacheKey);
+  const now = Date.now();
+  // Return stale (SWR) or fresh cache only - returns value if available
+  if (cached && (cached.expiresAt > now || cached.staleAt > now)) {
+    return { value: cached.value, stale: cached.staleAt > now && cached.expiresAt <= now };
+  }
+  return null;
+}
+
+function setCacheValue(action: string, params: Record<string, string>, value: unknown) {
+  const cacheKey = buildCacheKey(action, params);
+  const now = Date.now();
+  getCache.set(cacheKey, { expiresAt: now + GET_CACHE_TTL, staleAt: now + SWR_STALE_TTL, value });
 }
 
 function clearGetCache() {
@@ -32,27 +51,56 @@ function invalidatePatientCache(patient_id?: string) {
 }
 
 async function gasGet(action: string, params: Record<string, string> = {}) {
-  try {
-    const cacheKey = buildCacheKey(action, params);
-    const cached = getCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const cacheKey = buildCacheKey(action, params);
+  
+  // Check cache (including stale for SWR)
+  const cached = getCache.get(cacheKey);
+  const now = Date.now();
+  if (cached && cached.expiresAt > now) return cached.value;
 
-    const url = new URL(GAS_URL);
-    url.searchParams.set('action', action);
-    url.searchParams.set('secret', GAS_SECRET);
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
-    });
-    const res = await fetch(url.toString(), { redirect: 'follow' });
-    const text = await res.text();
-    let payload;
-    try { payload = JSON.parse(text); }
-    catch { payload = { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
-    if (payload?.status === 'ok') {
-      getCache.set(cacheKey, { expiresAt: Date.now() + GET_CACHE_TTL, value: payload });
-    }
-    return payload;
+  // Deduplicate concurrent requests to same endpoint
+  const pending = pendingRequests.get(cacheKey) as Promise<unknown> | undefined;
+  if (pending) {
+    // Return cached stale while fetching fresh in background
+    if (cached) return cached.value;
+    return pending;
+  }
+
+  try {
+    // Initiate fetch - use cached value while revalidating (SWR pattern)
+    const fetchPromise = (async () => {
+      try {
+        const url = new URL(GAS_URL);
+        url.searchParams.set('action', action);
+        url.searchParams.set('secret', GAS_SECRET);
+        Object.entries(params).forEach(([k, v]) => {
+          if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+        });
+        const res = await fetch(url.toString(), { redirect: 'follow', cache: 'no-store' });
+        const text = await res.text();
+        let payload;
+        try { payload = JSON.parse(text); }
+        catch { payload = { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
+        
+        if (payload?.status === 'ok') {
+          const cacheEntry = { expiresAt: now + GET_CACHE_TTL, staleAt: now + SWR_STALE_TTL, value: payload };
+          getCache.set(cacheKey, cacheEntry);
+        }
+        return payload;
+      } finally {
+        pendingRequests.delete(cacheKey);
+      }
+    })();
+
+    pendingRequests.set(cacheKey, fetchPromise);
+    
+    // Return stale cache while revalidating if available
+    if (cached) return cached.value;
+    
+    return fetchPromise;
   } catch (err: any) {
+    // On error, return stale cache if available
+    if (cached) return cached.value;
     return { status: 'error', message: err?.message || 'Network error' };
   }
 }

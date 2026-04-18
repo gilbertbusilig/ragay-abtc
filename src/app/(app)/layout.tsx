@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 
@@ -16,6 +16,29 @@ const NAV = [
     { href: '/accounts', label: 'Accounts', icon: '👥', adminOnly: true },
   ]},
 ];
+
+// Memoized nav items - prevent recreation on every render
+const MemoizedNav = ({ pathname, userRole }: { pathname: string; userRole: string }) => (
+  <nav className="sidebar-nav">
+    {NAV.map(section => (
+      <div key={section.section}>
+        <div className="nav-section-label">{section.section}</div>
+        {section.items.map(item => {
+          if ((item as any).adminOnly && userRole !== 'admin') return null;
+          const active = pathname === item.href || pathname.startsWith(item.href + '/');
+          return (
+            <button key={item.href}
+              className={active ? 'nav-item active' : 'nav-item'}
+              onClick={() => window.location.href = item.href}>
+              <span className="nav-icon">{item.icon}</span>
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
+    ))}
+  </nav>
+);
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, activeNurse, nurses, setActiveNurse, logout, initialized } = useAuth();
@@ -55,25 +78,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Nav */}
-        <nav className="sidebar-nav">
-          {NAV.map(section => (
-            <div key={section.section}>
-              <div className="nav-section-label">{section.section}</div>
-              {section.items.map(item => {
-                if ((item as any).adminOnly && user.role !== 'admin') return null;
-                const active = pathname === item.href || pathname.startsWith(item.href + '/');
-                return (
-                  <button key={item.href}
-                    className={active ? 'nav-item active' : 'nav-item'}
-                    onClick={() => router.push(item.href)}>
-                    <span className="nav-icon">{item.icon}</span>
-                    {item.label}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
-        </nav>
+        <MemoizedNav pathname={pathname} userRole={user.role} />
 
         {/* Footer */}
         <div className="sidebar-footer">
