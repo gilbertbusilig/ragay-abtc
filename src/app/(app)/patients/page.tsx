@@ -57,12 +57,6 @@ export default function PatientsPage() {
   }
 
   const hasFilters = search || statusFilter || categoryFilter || animalFilter || ageFilter || sexFilter || incidentFilter;
-  const escapeHtml = (value: string) => value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 
   // Client-side filtering for animal, age, sex, incident count
   const patients = useMemo(() => allPatients.filter(p => {
@@ -94,64 +88,6 @@ export default function PatientsPage() {
     return <span className={`badge ${cls}`}>{s}</span>;
   };
 
-  function handlePrintRecords() {
-    const printWindow = window.open('', '_blank', 'width=1200,height=800');
-    if (!printWindow) return;
-
-    const rows = patients.map(p => `
-      <tr>
-        <td>${escapeHtml(p.patient_id || '-')}</td>
-        <td>${escapeHtml(p.full_name || '-')}</td>
-        <td>${escapeHtml(String(p.age ?? '-'))}</td>
-        <td>${escapeHtml(p.sex === 'M' ? 'Male' : p.sex === 'F' ? 'Female' : '-')}</td>
-        <td>${escapeHtml(p.address || '-')}</td>
-        <td>${escapeHtml(String(p.incident_count || 0))}</td>
-        <td>${escapeHtml(p.latest_category ? `Cat ${p.latest_category}` : '-')}</td>
-        <td>${escapeHtml(p.status || '-')}</td>
-      </tr>
-    `).join('');
-
-    printWindow.document.write(`
-      <!doctype html>
-      <html>
-        <head>
-          <title>Patient Records</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
-            h1 { margin: 0 0 6px; font-size: 24px; }
-            p { margin: 0 0 18px; color: #475569; font-size: 13px; }
-            table { width: 100%; border-collapse: collapse; }
-            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-size: 12px; }
-            th { background: #eff6ff; color: #1d4ed8; text-transform: uppercase; font-size: 10px; letter-spacing: .06em; }
-            @media print { body { padding: 0; } }
-          </style>
-        </head>
-        <body>
-          <h1>Patient Records</h1>
-          <p>${escapeHtml(`${patients.length} patient${patients.length !== 1 ? 's' : ''} found`)}</p>
-          <table>
-            <thead>
-              <tr>
-                <th>Patient ID</th>
-                <th>Full Name</th>
-                <th>Age</th>
-                <th>Sex</th>
-                <th>Address</th>
-                <th>Incidents</th>
-                <th>Category</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-  }
-
   return (
     <div>
       <div className="page-header no-print">
@@ -160,7 +96,7 @@ export default function PatientsPage() {
           <p className="page-subtitle">{patients.length} patient{patients.length !== 1 ? 's' : ''} found</p>
         </div>
         <div style={{ display:'flex', gap: 10 }}>
-          <button className="btn btn-secondary btn-sm" onClick={handlePrintRecords}>🖨 Print</button>
+          <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>🖨 Print</button>
           <button className="btn btn-secondary btn-sm" onClick={() => api.exportCSV({ status: statusFilter })}>📥 Export CSV</button>
           <button className="btn btn-primary" onClick={() => router.push('/patients/new')}>
             + New Patient
@@ -170,7 +106,7 @@ export default function PatientsPage() {
 
       <div className="page-body">
         {/* Filter bar */}
-        <div className="card no-print" style={{ marginBottom: 16 }}>
+        <div className="card" style={{ marginBottom: 16 }}>
           <div className="card-body" style={{ padding: '14px 18px' }}>
             {/* Row 1: search + status + category + clear */}
             <div className="filter-bar" style={{ marginBottom: 10 }}>

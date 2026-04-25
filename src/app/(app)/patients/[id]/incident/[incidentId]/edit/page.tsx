@@ -37,7 +37,7 @@ export default function IncidentEditPage() {
   const [nurses, setNurses] = useState<any[]>([]);
   const [doctors, setDoctors] = useState<any[]>([]);
   const [customSite, setCustomSite] = useState('');
-  const [allergyKnown, setAllergyKnown] = useState<'' | boolean>(false);
+  const [allergyKnown, setAllergyKnown] = useState(false);
 
   const [f, setF] = useState<Record<string, any>>({
     consult_date: '',
@@ -152,16 +152,6 @@ export default function IncidentEditPage() {
   }
 
   const set = (k: string, v: any) => setF(prev => ({ ...prev, [k]: v }));
-  const clearableRadioProps = (current: any, value: any, onSelect: () => void, onClear: () => void) => ({
-    checked: Object.is(current, value),
-    onMouseDown: (e: React.MouseEvent<HTMLInputElement>) => {
-      if (Object.is(current, value)) {
-        e.preventDefault();
-        onClear();
-      }
-    },
-    onChange: onSelect,
-  });
 
   function toggleSite(site: string) {
     const sites = [...f.anatomical_positions];
@@ -206,7 +196,7 @@ export default function IncidentEditPage() {
   );
   const immunosuppressantChecked = !!(f.immunosuppressant || f.long_term_steroid || f.malignancy);
   const lifestyleNotApplicable = !f.smoker && !f.alcoholic;
-  const hasAllergy = allergyKnown === true;
+  const hasAllergy = allergyKnown;
 
   if (loading) return <div className="page-loader"><div className="spinner" style={{ width:28, height:28 }} /></div>;
 
@@ -264,7 +254,7 @@ export default function IncidentEditPage() {
                   <div className="checkbox-group">
                     {[{val:'bleeding',label:'Bleeding'},{val:'non_bleeding',label:'Non-Bleeding'}].map(o => (
                       <label key={o.val} className="checkbox-item">
-                        <input type="radio" name="wound_status" value={o.val} {...clearableRadioProps(f.wound_status, o.val, () => set('wound_status', o.val), () => set('wound_status', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
+                        <input type="radio" name="wound_status" value={o.val} checked={f.wound_status===o.val} onChange={() => set('wound_status', o.val)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
                         {o.label}
                       </label>
                     ))}
@@ -297,7 +287,7 @@ export default function IncidentEditPage() {
                       ]},
                     ].map(cat => (
                       <label key={cat.val} style={{ display:'flex', gap:10, cursor:'pointer', padding:'10px 12px', borderRadius:'var(--radius-md)', border:'1.5px solid', borderColor: f.wound_category===cat.val ? 'var(--blue-500)' : 'var(--slate-200)', background: f.wound_category===cat.val ? 'var(--blue-50)' : 'white', transition:'all .12s' }}>
-                        <input type="radio" name="wound_category" value={cat.val} {...clearableRadioProps(f.wound_category, cat.val, () => set('wound_category', cat.val), () => set('wound_category', ''))} style={{ marginTop:2, width:16, height:16, accentColor:'var(--blue-600)', flexShrink:0 }} />
+                        <input type="radio" name="wound_category" value={cat.val} checked={f.wound_category===cat.val} onChange={() => set('wound_category', cat.val)} style={{ marginTop:2, width:16, height:16, accentColor:'var(--blue-600)', flexShrink:0 }} />
                         <div>
                           <div style={{ fontWeight:600, fontSize:14, color: f.wound_category===cat.val ? 'var(--blue-800)' : 'var(--slate-700)' }}>{cat.label}</div>
                           <div style={{ fontSize:11, color:'var(--slate-500)', marginTop:3, lineHeight:1.5 }}>
@@ -317,7 +307,7 @@ export default function IncidentEditPage() {
                   <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
                     {WOUND_TYPES.map(o => (
                       <label key={o.val} className="checkbox-item">
-                        <input type="radio" name="wound_type" value={o.val} {...clearableRadioProps(f.wound_type, o.val, () => set('wound_type', o.val), () => set('wound_type', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
+                        <input type="radio" name="wound_type" value={o.val} checked={f.wound_type===o.val} onChange={() => set('wound_type', o.val)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
                         {o.label}
                       </label>
                     ))}
@@ -388,8 +378,8 @@ export default function IncidentEditPage() {
                 <div style={{ marginTop:14 }}>
                   <div className="form-label" style={{ marginBottom:8 }}>B. Anti-Tetanus Vaccine</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
-                    <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="true" {...clearableRadioProps(f.anti_tetanus_vaccine, true, () => set('anti_tetanus_vaccine', true), () => set('anti_tetanus_vaccine', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
-                    <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="false" {...clearableRadioProps(f.anti_tetanus_vaccine, false, () => set('anti_tetanus_vaccine', false), () => set('anti_tetanus_vaccine', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
+                    <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="true" checked={f.anti_tetanus_vaccine===true} onChange={() => set('anti_tetanus_vaccine', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
+                    <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="false" checked={f.anti_tetanus_vaccine===false} onChange={() => set('anti_tetanus_vaccine', false)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
                   </div>
                   {f.anti_tetanus_vaccine && (
                     <div className="form-group">
@@ -403,7 +393,7 @@ export default function IncidentEditPage() {
                       <div className="checkbox-group">
                         {['TT','TD','ATS'].map(t => (
                           <label key={t} className="checkbox-item">
-                            <input type="radio" name="tet_type" value={t} {...clearableRadioProps(f.tetanus_type, t, () => set('tetanus_type', t), () => set('tetanus_type', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
+                            <input type="radio" name="tet_type" value={t} checked={f.tetanus_type===t} onChange={() => set('tetanus_type', t)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
                             {t}
                           </label>
                         ))}
@@ -448,8 +438,8 @@ export default function IncidentEditPage() {
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>C. Completed anti-rabies shots previously?</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
-                    <label className="checkbox-item"><input type="radio" name="ar_comp" value="true" {...clearableRadioProps(f.anti_rabies_completed, true, () => set('anti_rabies_completed', true), () => set('anti_rabies_completed', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
-                    <label className="checkbox-item"><input type="radio" name="ar_comp" value="false" {...clearableRadioProps(f.anti_rabies_completed, false, () => set('anti_rabies_completed', false), () => set('anti_rabies_completed', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
+                    <label className="checkbox-item"><input type="radio" name="ar_comp" value="true" checked={f.anti_rabies_completed===true} onChange={() => set('anti_rabies_completed', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
+                    <label className="checkbox-item"><input type="radio" name="ar_comp" value="false" checked={f.anti_rabies_completed===false} onChange={() => set('anti_rabies_completed', false)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
                   </div>
                   {f.anti_rabies_completed && (
                     <input className="form-input" type="text" value={f.anti_rabies_details} onChange={e => set('anti_rabies_details', e.target.value)} placeholder="Specify previous regimen…" />
@@ -460,8 +450,8 @@ export default function IncidentEditPage() {
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>D. Consulted folk healer / tambal first?</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
-                    <label className="checkbox-item"><input type="radio" name="folk" value="true" {...clearableRadioProps(f.folk_remedy, true, () => set('folk_remedy', true), () => set('folk_remedy', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
-                    <label className="checkbox-item"><input type="radio" name="folk" value="false" {...clearableRadioProps(f.folk_remedy, false, () => set('folk_remedy', false), () => set('folk_remedy', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
+                    <label className="checkbox-item"><input type="radio" name="folk" value="true" checked={f.folk_remedy===true} onChange={() => set('folk_remedy', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
+                    <label className="checkbox-item"><input type="radio" name="folk" value="false" checked={f.folk_remedy===false} onChange={() => set('folk_remedy', false)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
                   </div>
                   {f.folk_remedy && (
                     <input className="form-input" type="text" value={f.folk_remedy_details} onChange={e => set('folk_remedy_details', e.target.value)} placeholder="Tambal, Tanduk, etc…" />
@@ -512,10 +502,8 @@ export default function IncidentEditPage() {
                       <input
                         type="radio"
                         name="known_allergy"
-                        {...clearableRadioProps(allergyKnown, true, () => setAllergyKnown(true), () => {
-                          setAllergyKnown('');
-                          set('allergy', '');
-                        })}
+                        checked={hasAllergy}
+                        onChange={() => setAllergyKnown(true)}
                         style={{ width:16, height:16, accentColor:'var(--blue-600)' }}
                       /> Yes
                     </label>
@@ -523,10 +511,11 @@ export default function IncidentEditPage() {
                       <input
                         type="radio"
                         name="known_allergy"
-                        {...clearableRadioProps(allergyKnown, false, () => {
+                        checked={!hasAllergy}
+                        onChange={() => {
                           setAllergyKnown(false);
                           set('allergy', '');
-                        }, () => setAllergyKnown(''))}
+                        }}
                         style={{ width:16, height:16, accentColor:'var(--blue-600)' }}
                       /> No
                     </label>
@@ -592,7 +581,7 @@ export default function IncidentEditPage() {
                 <div className="checkbox-group" style={{ marginBottom:12 }}>
                   {['ERIG','HRIG',''].map((val, i) => (
                     <label key={i} className="checkbox-item">
-                      <input type="radio" name="erig_hrig" value={val} {...clearableRadioProps(f.erig_hrig, val, () => set('erig_hrig', val), () => set('erig_hrig', ''))} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
+                      <input type="radio" name="erig_hrig" value={val} checked={f.erig_hrig===val} onChange={() => set('erig_hrig', val)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
                       {val || 'None'}
                     </label>
                   ))}
