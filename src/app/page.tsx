@@ -11,6 +11,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState<'login' | 'nurse-select'>('login');
+  const topLogos = [
+    { src:'/logos/lgu_logo.jpg', alt:'Municipality of Ragay' },
+    { src:'/logos/rhu_logo.png', alt:'Rural Health Unit' },
+    { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
+  ];
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -56,21 +61,27 @@ export default function LoginPage() {
       }}>
         {/* Three logos in a row — equal size */}
         <div style={{ display:'flex', gap:20, alignItems:'center', justifyContent:'center', marginBottom:28 }}>
-          {[
-            { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
-            { src:'/logos/lgu_logo.jpg',         alt:'Municipality of Ragay' },
-            { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
-          ].map(logo => (
+          {topLogos.map(logo => (
             <div key={logo.alt} style={{
               width: 80, height: 80,
-              background: 'white', borderRadius: 14,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: 5,
-              border: '1px solid rgba(15,23,42,.08)',
               flexShrink: 0,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:8 }} />
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                style={{
+                  width:'100%',
+                  height:'100%',
+                  objectFit:'contain',
+                  borderRadius:8,
+                  mixBlendMode:'multiply',
+                  filter:'drop-shadow(0 6px 12px rgba(15,23,42,.28)) drop-shadow(0 1px 0 rgba(255,255,255,.18))',
+                  transform:'translateY(-1px)',
+                }}
+              />
             </div>
           ))}
         </div>
@@ -121,6 +132,20 @@ export default function LoginPage() {
         <div style={{ width:'100%', maxWidth: 340 }}>
 
           <div style={{ marginBottom: 28 }}>
+            <div style={{ display:'flex', justifyContent:'center', marginBottom:18 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/logos/animal_bite.png"
+                alt="Ragay Animal Bite Treatment Center"
+                style={{
+                  width: 138,
+                  height: 138,
+                  objectFit: 'contain',
+                  mixBlendMode: 'multiply',
+                  filter: 'drop-shadow(0 14px 20px rgba(37,99,235,.18))',
+                }}
+              />
+            </div>
             <h2 style={{ fontSize: 24, fontWeight: 800, color: '#1e3a8a', marginBottom: 6 }}>
               {step === 'login' ? 'Sign in' : "Who's on duty?"}
             </h2>

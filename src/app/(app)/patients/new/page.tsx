@@ -36,6 +36,7 @@ export default function NewPatientPage() {
   const today = getLocalISODate();
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
+  const [saveMode, setSaveMode] = useState<'record' | 'edit'>('record');
 
   // Section I
   const [form, setForm] = useState({
@@ -52,6 +53,9 @@ export default function NewPatientPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.full_name) return;
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const mode = submitter?.dataset.mode === 'edit' ? 'edit' : 'record';
+    setSaveMode(mode);
     setSaving(true);
 
     const creator = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
@@ -102,8 +106,11 @@ export default function NewPatientPage() {
     setSaving(false);
 
     if (incRes.status === 'ok') {
+      const incident_id = incRes.data?.incident_id;
       // Use window.location for a hard navigate to ensure fresh data load with no stale cache
-      window.location.href = `/patients/${patient_id}`;
+      window.location.href = mode === 'edit' && incident_id
+        ? `/patients/${patient_id}/incident/${incident_id}/edit`
+        : `/patients/${patient_id}`;
     } else {
       setToast('Patient saved but incident setup failed: ' + (incRes.message || 'Unknown error') + '. You can add the incident from the patient record.');
       setTimeout(() => { window.location.href = `/patients/${patient_id}`; }, 3000);
@@ -255,8 +262,11 @@ export default function NewPatientPage() {
           {/* Submit */}
           <div style={{ display:'flex', gap:12, justifyContent:'flex-end' }}>
             <button type="button" className="btn btn-secondary" onClick={() => router.back()}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
-              {saving ? <><span className="spinner" style={{ width:16, height:16 }} /> Saving…</> : '✓ Save & Open Patient Record'}
+            <button type="submit" className="btn btn-primary" data-mode="record" disabled={saving}>
+              {saving && saveMode === 'record' ? <><span className="spinner" style={{ width:16, height:16 }} /> Saving…</> : '✓ Save & Open Patient Record'}
+            </button>
+            <button type="submit" className="btn btn-secondary" data-mode="edit" disabled={saving}>
+              {saving && saveMode === 'edit' ? <><span className="spinner" style={{ width:16, height:16 }} /> Saving…</> : 'Edit After Save'}
             </button>
           </div>
         </form>

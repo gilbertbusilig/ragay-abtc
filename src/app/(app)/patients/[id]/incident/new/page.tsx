@@ -37,6 +37,7 @@ export default function NewIncidentPage() {
   const patient_id = params.id as string;
   const today = getLocalISODate();
   const [saving, setSaving] = useState(false);
+  const [saveMode, setSaveMode] = useState<'record' | 'edit'>('record');
   const [patientLoaded, setPatientLoaded] = useState(false);
   const [toast, setToast] = useState('');
   const [patientForm, setPatientForm] = useState({
@@ -86,6 +87,9 @@ export default function NewIncidentPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const mode = submitter?.dataset.mode === 'edit' ? 'edit' : 'record';
+    setSaveMode(mode);
     setSaving(true);
     const creator = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
     const patientUpdateRes = await api.updatePatient({
@@ -112,7 +116,10 @@ export default function NewIncidentPage() {
     });
     setSaving(false);
     if (res.status === 'ok') {
-      window.location.href = `/patients/${patient_id}`;
+      const incident_id = res.data?.incident_id;
+      window.location.href = mode === 'edit' && incident_id
+        ? `/patients/${patient_id}/incident/${incident_id}/edit`
+        : `/patients/${patient_id}`;
     } else {
       setToast('Error: ' + (res.message || 'Failed'));
     }
@@ -243,8 +250,11 @@ export default function NewIncidentPage() {
 
           <div style={{ display:'flex', gap:12, justifyContent:'flex-end' }}>
             <button type="button" className="btn btn-secondary" onClick={() => router.push(`/patients/${patient_id}`)}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={saving || !patientLoaded}>
-              {saving ? <><span className="spinner" style={{ width:16, height:16 }} /> Saving…</> : '✓ Save Incident'}
+            <button type="submit" className="btn btn-primary" data-mode="record" disabled={saving || !patientLoaded}>
+              {saving && saveMode === 'record' ? <><span className="spinner" style={{ width:16, height:16 }} /> Saving…</> : '✓ Save Incident'}
+            </button>
+            <button type="submit" className="btn btn-secondary" data-mode="edit" disabled={saving || !patientLoaded}>
+              {saving && saveMode === 'edit' ? <><span className="spinner" style={{ width:16, height:16 }} /> Saving…</> : 'Edit After Save'}
             </button>
           </div>
         </form>

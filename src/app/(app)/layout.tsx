@@ -21,6 +21,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, activeNurse, nurses, setActiveNurse, logout, initialized } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const topLogos = [
+    { src:'/logos/lgu_logo.jpg', alt:'Municipality of Ragay' },
+    { src:'/logos/rhu_logo.png', alt:'Rural Health Unit' },
+    { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
+  ];
 
   useEffect(() => {
     if (initialized && !user) router.replace('/');
@@ -36,15 +41,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Three logos row */}
         <div style={{ padding:'14px 12px 10px', background:'#172554', borderBottom:'1px solid rgba(255,255,255,.08)', display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/logos/animal_bite.png"
+            alt="Ragay Animal Bite Treatment Center"
+            style={{
+              width: 86,
+              height: 86,
+              objectFit: 'contain',
+              mixBlendMode: 'multiply',
+              filter: 'drop-shadow(0 10px 18px rgba(15,23,42,.36))',
+            }}
+          />
           <div style={{ display:'flex', gap:10, alignItems:'center', justifyContent:'center' }}>
-            {[
-              { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
-              { src:'/logos/lgu_logo.jpg',         alt:'Municipality of Ragay' },
-              { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
-            ].map(logo => (
-              <div key={logo.alt} style={{ width:40, height:40, background:'white', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', padding:3, flexShrink:0, border:'1px solid rgba(15,23,42,.08)' }}>
+            {topLogos.map(logo => (
+              <div key={logo.alt} style={{ width:40, height:40, display:'flex', alignItems:'center', justifyContent:'center', padding:3, flexShrink:0 }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:5 }} />
+                <img
+                  src={logo.src}
+                  alt={logo.alt}
+                  style={{
+                    width:'100%',
+                    height:'100%',
+                    objectFit:'contain',
+                    borderRadius:5,
+                    mixBlendMode:'multiply',
+                    filter:'drop-shadow(0 4px 10px rgba(15,23,42,.28))',
+                  }}
+                />
               </div>
             ))}
           </div>
