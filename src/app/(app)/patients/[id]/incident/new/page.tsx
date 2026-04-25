@@ -4,6 +4,19 @@ import { useRouter, useParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 
+function calculateAge(dateOfBirth: string) {
+  if (!dateOfBirth) return '';
+  const dob = new Date(`${dateOfBirth}T00:00:00`);
+  if (Number.isNaN(dob.getTime())) return '';
+  const now = new Date();
+  let years = now.getFullYear() - dob.getFullYear();
+  const hasNotHadBirthday =
+    now.getMonth() < dob.getMonth() ||
+    (now.getMonth() === dob.getMonth() && now.getDate() < dob.getDate());
+  if (hasNotHadBirthday) years -= 1;
+  return String(Math.max(years, 0));
+}
+
 function formatPhilippineContact(value: string) {
   const digits = value.replace(/\D/g, '').slice(0, 11);
   if (digits.length <= 4) return digits;
@@ -24,8 +37,17 @@ export default function NewIncidentPage() {
   const patient_id = params.id as string;
   const today = getLocalISODate();
   const [saving, setSaving] = useState(false);
+  const [patientLoaded, setPatientLoaded] = useState(false);
   const [toast, setToast] = useState('');
-  const [patientForm, setPatientForm] = useState({ weight: '', address: '', contact_no: '' });
+  const [patientForm, setPatientForm] = useState({
+    full_name: '',
+    date_of_birth: '',
+    sex: '',
+    age: '',
+    weight: '',
+    address: '',
+    contact_no: '',
+  });
 
   const [form, setForm] = useState({
     bite_datetime: '',
@@ -47,10 +69,17 @@ export default function NewIncidentPage() {
       if (res.status === 'ok' && res.data?.patient) {
         const patient = res.data.patient;
         setPatientForm({
+          full_name: patient.full_name || '',
+          date_of_birth: patient.date_of_birth || '',
+          sex: patient.sex || '',
+          age: String(patient.age || ''),
           weight: String(patient.weight || ''),
           address: patient.address || '',
           contact_no: patient.contact_no || '',
         });
+        setPatientLoaded(true);
+      } else {
+        setToast('Error: Could not load patient details');
       }
     });
   }, [patient_id]);
@@ -61,6 +90,10 @@ export default function NewIncidentPage() {
     const creator = user?.role === 'nurse' && activeNurse ? activeNurse.user_id : user?.user_id;
     const patientUpdateRes = await api.updatePatient({
       patient_id,
+      full_name: patientForm.full_name,
+      date_of_birth: patientForm.date_of_birth,
+      sex: patientForm.sex,
+      age: patientForm.age,
       weight: patientForm.weight,
       address: patientForm.address,
       contact_no: patientForm.contact_no,
@@ -98,8 +131,38 @@ export default function NewIncidentPage() {
       <div className="page-body">
         <form onSubmit={handleSubmit}>
           <div className="section-box">
-            <div className="section-box-title">Patient Details To Update</div>
+            <div className="section-box-title">I. Patient Information</div>
             <div className="form-grid form-grid-3">
+              <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                <label className="form-label">Patient's Full Name</label>
+                <input className="form-input" type="text" value={patientForm.full_name} onChange={e => setPatientForm(prev => ({ ...prev, full_name: e.target.value }))} placeholder="Last, First Middle" />
+              </div>
+              <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                <label className="form-label">Address</label>
+                <input className="form-input" type="text" value={patientForm.address} onChange={e => setPatientForm(prev => ({ ...prev, address: e.target.value }))} placeholder="Barangay, Municipality, Province" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Date of Birth</label>
+                <input className="form-input" type="date" value={patientForm.date_of_birth} onChange={e => {
+                  const value = e.target.value;
+                  setPatientForm(prev => ({ ...prev, date_of_birth: value, age: calculateAge(value) }));
+                }} max={today} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Sex</label>
+                <div className="checkbox-group" style={{ paddingTop:8 }}>
+                  {['M','F'].map(s => (
+                    <label key={s} className="checkbox-item">
+                      <input type="radio" name="sex" value={s} checked={patientForm.sex === s} onChange={() => setPatientForm(prev => ({ ...prev, sex: s }))} />
+                      {s === 'M' ? 'Male' : 'Female'}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Age</label>
+                <input className="form-input" type="number" min="0" value={patientForm.age} onChange={e => setPatientForm(prev => ({ ...prev, age: e.target.value }))} placeholder="Auto-calculated or enter age" />
+              </div>
               <div className="form-group">
                 <label className="form-label">Weight (kg)</label>
                 <input className="form-input" type="number" min="0" step="0.1" value={patientForm.weight} onChange={e => setPatientForm(prev => ({ ...prev, weight: e.target.value }))} />
@@ -107,10 +170,6 @@ export default function NewIncidentPage() {
               <div className="form-group">
                 <label className="form-label">Contact No.</label>
                 <input className="form-input" type="tel" inputMode="numeric" maxLength={13} value={patientForm.contact_no} onChange={e => setPatientForm(prev => ({ ...prev, contact_no: formatPhilippineContact(e.target.value) }))} placeholder="09XX XXX XXXX" />
-              </div>
-              <div className="form-group" style={{ gridColumn:'1 / -1' }}>
-                <label className="form-label">Address</label>
-                <input className="form-input" type="text" value={patientForm.address} onChange={e => setPatientForm(prev => ({ ...prev, address: e.target.value }))} placeholder="Barangay, Municipality, Province" />
               </div>
             </div>
           </div>
@@ -184,7 +243,7 @@ export default function NewIncidentPage() {
 
           <div style={{ display:'flex', gap:12, justifyContent:'flex-end' }}>
             <button type="button" className="btn btn-secondary" onClick={() => router.push(`/patients/${patient_id}`)}>Cancel</button>
-            <button type="submit" className="btn btn-primary" disabled={saving}>
+            <button type="submit" className="btn btn-primary" disabled={saving || !patientLoaded}>
               {saving ? <><span className="spinner" style={{ width:16, height:16 }} /> Saving…</> : '✓ Save Incident'}
             </button>
           </div>

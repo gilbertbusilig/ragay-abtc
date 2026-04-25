@@ -67,13 +67,14 @@ export default function AccountsPage() {
   function showToast(msg: string, type = '') { setToast(msg); setTimeout(() => setToast(''), 3000); }
 
   const roleColor: Record<string, string> = { admin: 'var(--red-600)', doctor:'var(--blue-700)', nurse:'#7c3aed' };
+  const roleLabel = (role: string) => role === 'admin' ? 'Administrator' : role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
     <div>
       <div className="page-header">
         <div>
           <h1 className="page-title">Accounts</h1>
-          <p className="page-subtitle">Manage system users — doctors, nurses, and admins</p>
+          <p className="page-subtitle">Manage system users — doctors, nurses, and administrators</p>
         </div>
         <button className="btn btn-primary" onClick={openCreate}>+ New Account</button>
       </div>
@@ -102,7 +103,7 @@ export default function AccountsPage() {
                       <td><span style={{ fontFamily:'monospace', fontSize:13 }}>{a.username}</span></td>
                       <td>
                         <span style={{ display:'inline-block', padding:'2px 10px', borderRadius:12, fontSize:11, fontWeight:700, textTransform:'uppercase', background: a.role === 'admin' ? '#fee2e2' : a.role === 'doctor' ? 'var(--blue-50)' : '#f3e8ff', color: roleColor[a.role] || 'var(--slate-600)', letterSpacing:'.04em' }}>
-                          {a.role}
+                          {roleLabel(a.role)}
                         </span>
                       </td>
                       <td style={{ fontSize:13 }}>{a.credential || '—'}</td>
@@ -159,7 +160,7 @@ export default function AccountsPage() {
                     <select className="form-select" value={form.role} onChange={e => setForm(p=>({...p, role:e.target.value}))}>
                       <option value="nurse">Nurse</option>
                       <option value="doctor">Doctor</option>
-                      <option value="admin">Admin</option>
+                      <option value="admin">Administrator</option>
                     </select>
                   </div>
                 </>}

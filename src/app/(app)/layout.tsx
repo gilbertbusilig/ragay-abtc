@@ -56,11 +56,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         {/* Nav */}
         <nav className="sidebar-nav">
-          {NAV.map(section => (
-            <div key={section.section}>
-              <div className="nav-section-label">{section.section}</div>
-              {section.items.map(item => {
-                if ((item as any).adminOnly && user.role !== 'admin') return null;
+          {NAV.map(section => {
+            const visibleItems = section.items.filter(item => !(item as any).adminOnly || user.role === 'admin');
+            if (visibleItems.length === 0) return null;
+            return (
+              <div key={section.section}>
+                <div className="nav-section-label">{section.section}</div>
+                {visibleItems.map(item => {
                 const active = pathname === item.href || pathname.startsWith(item.href + '/');
                 return (
                   <button key={item.href}
@@ -71,8 +73,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </button>
                 );
               })}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </nav>
 
         {/* Footer */}
@@ -96,7 +99,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <div className="user-avatar">{initials}</div>
             <div className="user-info">
               <div className="name">{displayUser.full_name}{displayUser.credential ? `, ${displayUser.credential}` : ''}</div>
-              <div className="role" style={{ textTransform:'capitalize' }}>{user.role}</div>
+              <div className="role" style={{ textTransform:'capitalize' }}>{user.role === 'admin' ? 'administrator' : user.role}</div>
             </div>
             <button className="logout-btn" onClick={logout} title="Sign out">⏻</button>
           </div>

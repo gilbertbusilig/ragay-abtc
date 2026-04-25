@@ -87,7 +87,7 @@ export default function NewPatientPage() {
     const incRes = await api.createIncident({
       patient_id,
       consult_date: form.consult_date || today,
-      d0_date: form.consult_date || today,
+      d0_date: '',
       bite_datetime: form.bite_datetime,
       place_of_exposure: form.place_of_exposure,
       animal_type: form.animal_type,
@@ -170,7 +170,7 @@ export default function NewPatientPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">E. Age</label>
-                <input className="form-input" type="text" value={form.age} readOnly placeholder="Auto-calculated" style={{ background:'var(--slate-50)' }} />
+                <input className="form-input" type="number" value={form.age} onChange={e => set('age', e.target.value)} min="0" placeholder="Auto-calculated or enter age" />
               </div>
               <div className="form-group">
                 <label className="form-label">F. Weight (kg)</label>

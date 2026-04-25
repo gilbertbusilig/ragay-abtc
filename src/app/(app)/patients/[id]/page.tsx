@@ -120,6 +120,7 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
   };
   const canEdit = userRole === 'nurse' || userRole === 'admin';
   const canDelete = userRole === 'admin';
+  const d0Given = doses.some(d => d.dose_day === 'D0' && isDoseGiven(d));
 
   return (
     <div className="table-wrap">
@@ -138,12 +139,16 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
           {canEdit && <th></th>}
         </tr></thead>
         <tbody>
-          {doses.map(d => (
-            <tr key={d.dose_id || d.dose_day} style={{ opacity: d.is_optional && d.status === 'scheduled' ? .55 : 1 }}>
+          {doses.map(d => {
+            const lockedUntilD0 = d.dose_day !== 'D0' && !d0Given && !isDoseGiven(d);
+            return (
+            <tr key={d.dose_id || d.dose_day} style={{ opacity: lockedUntilD0 ? .42 : d.is_optional && d.status === 'scheduled' ? .55 : 1, background: lockedUntilD0 ? 'var(--slate-50)' : undefined }}>
               <td style={{ whiteSpace:'nowrap' }}><span style={{ fontWeight:700, color:'var(--blue-700)', fontSize:13 }}>{d.dose_day}</span></td>
               <td style={{ whiteSpace:'nowrap' }}>
                 {/* D0 scheduled date is auto-set to the administered date — never editable */}
-                {d.dose_day === 'D0' ? (
+                {lockedUntilD0 ? (
+                  <span style={{ fontSize:12, color:'var(--slate-400)' }}>—</span>
+                ) : d.dose_day === 'D0' ? (
                   <span style={{ fontSize:12, color: d.status === 'done' ? 'inherit' : 'var(--slate-400)' }}>
                     {d.status === 'done' && d.scheduled_date ? toMMDDYYYY(d.scheduled_date) : '—'}
                   </span>
@@ -161,7 +166,9 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
                   <span style={{ fontSize:12 }}>{toMMDDYYYY(d.scheduled_date)}</span>
                 )}
               </td>
-              <td style={{ whiteSpace:'nowrap' }}>{statusBadge(d.status, !!d.is_optional)}</td>
+              <td style={{ whiteSpace:'nowrap' }}>
+                {lockedUntilD0 ? <span className="badge" style={{ background:'#f1f5f9', color:'#94a3b8', border:'1px solid #e2e8f0' }}>Pending D0</span> : statusBadge(d.status, !!d.is_optional)}
+              </td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.vaccine_type || '—'}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.brand_name || '—'}</td>
               <td style={{ fontSize:12, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{cleanBatchNo(pickDoseField(d, ['batch_no', 'Batch No.', 'Batch No', 'Batch / Lot Number'])) || '—'}</td>
@@ -173,7 +180,7 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
                 <td>
                   <div style={{ display:'flex', justifyContent:'flex-end', gap:8 }}>
                     {d.status !== 'done' && (
-                      <button className="btn btn-primary btn-sm" onClick={() => onAdminister(d)}>
+                      <button className="btn btn-primary btn-sm" onClick={() => onAdminister(d)} disabled={lockedUntilD0}>
                         Give Dose
                       </button>
                     )}
@@ -186,7 +193,7 @@ function DoseTable({ doses, allUsers, onAdminister, onDateChange, onDeleteDose, 
                 </td>
               )}
             </tr>
-          ))}
+          );})}
         </tbody>
       </table>
     </div>
