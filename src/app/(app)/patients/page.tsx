@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Patient } from '@/types';
@@ -18,17 +18,23 @@ export default function PatientsPage() {
   const [sexFilter, setSexFilter] = useState('');
   const [incidentFilter, setIncidentFilter] = useState('');
   const searchTimer = useRef<NodeJS.Timeout>();
+  const loadSeq = useRef(0);
 
   useEffect(() => { load(); }, [statusFilter, categoryFilter]);
+  useEffect(() => () => {
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+  }, []);
 
-  async function load(q?: string) {
+  async function load(q?: string, filters = { status: statusFilter, category: categoryFilter }) {
+    const seq = ++loadSeq.current;
     setLoading(true);
     const params: Record<string, string> = {};
     if (q !== undefined) params.search = q;
     else if (search) params.search = search;
-    if (statusFilter) params.status = statusFilter;
-    if (categoryFilter) params.category = categoryFilter;
+    if (filters.status) params.status = filters.status;
+    if (filters.category) params.category = filters.category;
     const res = await api.getPatients(params);
+    if (seq !== loadSeq.current) return;
     if (res.status === 'ok') setAllPatients(res.data);
     setLoading(false);
   }
@@ -47,13 +53,13 @@ export default function PatientsPage() {
     setAgeFilter('');
     setSexFilter('');
     setIncidentFilter('');
-    load('');
+    load('', { status: '', category: '' });
   }
 
   const hasFilters = search || statusFilter || categoryFilter || animalFilter || ageFilter || sexFilter || incidentFilter;
 
   // Client-side filtering for animal, age, sex, incident count
-  const patients = allPatients.filter(p => {
+  const patients = useMemo(() => allPatients.filter(p => {
     if (animalFilter && String(p.latest_animal_type || '').toLowerCase() !== animalFilter) return false;
     if (sexFilter && String(p.sex || '').toUpperCase() !== sexFilter) return false;
     if (ageFilter) {
@@ -69,7 +75,7 @@ export default function PatientsPage() {
       if (incidentFilter === '3+' && count < 3) return false;
     }
     return true;
-  });
+  }), [allPatients, animalFilter, ageFilter, sexFilter, incidentFilter]);
 
   const catBadge = (cat: string) => {
     if (!cat) return null;

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { Dose } from '@/types';
@@ -58,26 +58,34 @@ export default function VaccineSchedulePage() {
     return `${u.full_name}${u.credential ? `, ${u.credential}` : ''}`;
   }
 
-  const activeDoses = doses.filter(d => String(d.status || '').toLowerCase() !== 'skipped');
+  const { activeDoses, filtered, counts } = useMemo(() => {
+    const wk = new Date();
+    wk.setDate(wk.getDate() + 7);
+    const wkStr = `${wk.getFullYear()}-${String(wk.getMonth()+1).padStart(2,'0')}-${String(wk.getDate()).padStart(2,'0')}`;
+    const active: (Dose & { patient_name?: string })[] = [];
+    const nextCounts = { due_today: 0, overdue: 0, done: 0 };
+    const matching: (Dose & { patient_name?: string })[] = [];
 
-  const filtered = activeDoses.filter(d => {
-    if (filter === 'due_today') return d.scheduled_date === today && d.status === 'scheduled';
-    if (filter === 'due_week') {
-      const wk = new Date(); wk.setDate(wk.getDate() + 7);
-      const wkStr = (() => { const y = wk.getFullYear(); const m = String(wk.getMonth()+1).padStart(2,'0'); const d = String(wk.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; })();
-      return d.scheduled_date >= today && d.scheduled_date <= wkStr && d.status === 'scheduled';
+    for (const dose of doses) {
+      if (String(dose.status || '').toLowerCase() === 'skipped') continue;
+      active.push(dose);
+      if (dose.scheduled_date === today && dose.status === 'scheduled') nextCounts.due_today++;
+      if (dose.status === 'overdue') nextCounts.overdue++;
+      if (dose.status === 'done') nextCounts.done++;
+
+      const matches =
+        filter === 'due_today' ? dose.scheduled_date === today && dose.status === 'scheduled' :
+        filter === 'due_week' ? dose.scheduled_date >= today && dose.scheduled_date <= wkStr && dose.status === 'scheduled' :
+        filter === 'overdue' ? dose.status === 'overdue' :
+        filter === 'done' ? dose.status === 'done' :
+        filter === 'scheduled' ? dose.status === 'scheduled' :
+        true;
+      if (matches) matching.push(dose);
     }
-    if (filter === 'overdue') return d.status === 'overdue';
-    if (filter === 'done') return d.status === 'done';
-    if (filter === 'scheduled') return d.status === 'scheduled';
-    return true;
-  }).sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''));
 
-  const counts = {
-    due_today: activeDoses.filter(d => d.scheduled_date === today && d.status === 'scheduled').length,
-    overdue: activeDoses.filter(d => d.status === 'overdue').length,
-    done: activeDoses.filter(d => d.status === 'done').length,
-  };
+    matching.sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''));
+    return { activeDoses: active, filtered: matching, counts: nextCounts };
+  }, [doses, filter, today]);
 
   const statusBadge = (s: string, optional: boolean) => {
     if (optional && s === 'scheduled') return <span className="badge" style={{ background:'#f1f5f9', color:'var(--slate-400)' }}>Optional</span>;

@@ -4,6 +4,7 @@ const GAS_URL = process.env.NEXT_PUBLIC_GAS_URL!;
 const GAS_SECRET = process.env.NEXT_PUBLIC_GAS_SECRET!;
 const GET_CACHE_TTL = 30000; // 30s — GAS responses are slow, cache longer
 const getCache = new Map<string, { expiresAt: number; value: unknown }>();
+const pendingGets = new Map<string, Promise<any>>();
 
 function buildCacheKey(action: string, params: Record<string, string>) {
   const pairs = Object.entries(params)
@@ -14,12 +15,13 @@ function buildCacheKey(action: string, params: Record<string, string>) {
 
 function clearGetCache() {
   getCache.clear();
+  pendingGets.clear();
 }
 
 // Invalidate only cache entries that are affected by a write to a specific patient/incident
 // Preserves unrelated cached data (e.g. init_data, dashboard) so navigating back is instant
 function invalidatePatientCache(patient_id?: string) {
-  if (!patient_id) { getCache.clear(); return; }
+  if (!patient_id) { clearGetCache(); return; }
   const keysToDelete: string[] = [];
   getCache.forEach((_, key) => {
     if (key.startsWith('get_patients:') || key.startsWith('dashboard:')) {
@@ -29,32 +31,43 @@ function invalidatePatientCache(patient_id?: string) {
     }
   });
   keysToDelete.forEach(k => getCache.delete(k));
+  keysToDelete.forEach(k => pendingGets.delete(k));
 }
 
 async function gasGet(action: string, params: Record<string, string> = {}) {
-  try {
-    const cacheKey = buildCacheKey(action, params);
-    const cached = getCache.get(cacheKey);
-    if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const cacheKey = buildCacheKey(action, params);
+  const cached = getCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
 
-    const url = new URL(GAS_URL);
-    url.searchParams.set('action', action);
-    url.searchParams.set('secret', GAS_SECRET);
-    Object.entries(params).forEach(([k, v]) => {
-      if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
-    });
-    const res = await fetch(url.toString(), { redirect: 'follow' });
-    const text = await res.text();
-    let payload;
-    try { payload = JSON.parse(text); }
-    catch { payload = { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
-    if (payload?.status === 'ok') {
-      getCache.set(cacheKey, { expiresAt: Date.now() + GET_CACHE_TTL, value: payload });
+  const pending = pendingGets.get(cacheKey);
+  if (pending) return pending;
+
+  const request = (async () => {
+    try {
+      const url = new URL(GAS_URL);
+      url.searchParams.set('action', action);
+      url.searchParams.set('secret', GAS_SECRET);
+      Object.entries(params).forEach(([k, v]) => {
+        if (v !== undefined && v !== null && v !== '') url.searchParams.set(k, v);
+      });
+      const res = await fetch(url.toString(), { redirect: 'follow' });
+      const text = await res.text();
+      let payload;
+      try { payload = JSON.parse(text); }
+      catch { payload = { status: 'error', message: 'Invalid response: ' + text.slice(0, 100) }; }
+      if (payload?.status === 'ok') {
+        getCache.set(cacheKey, { expiresAt: Date.now() + GET_CACHE_TTL, value: payload });
+      }
+      return payload;
+    } catch (err: any) {
+      return { status: 'error', message: err?.message || 'Network error' };
+    } finally {
+      pendingGets.delete(cacheKey);
     }
-    return payload;
-  } catch (err: any) {
-    return { status: 'error', message: err?.message || 'Network error' };
-  }
+  })();
+
+  pendingGets.set(cacheKey, request);
+  return request;
 }
 
 async function gasPost(action: string, body: Record<string, unknown>) {

@@ -1,17 +1,25 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '@/lib/api';
 import { DashboardData } from '@/types';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const YEARS = [2024, 2025, 2026, 2027];
+const QUARTER_MONTHS: Record<number, number[]> = { 1:[1,2,3], 2:[4,5,6], 3:[7,8,9], 4:[10,11,12] };
 
 type AgeFilter = 'all' | 'under15' | '15' | 'over15';
 type SexFilter = 'all' | 'male' | 'female';
 type AnimalFilter = 'all' | 'dog' | 'cat' | 'bat' | 'other';
 type CategoryFilter = 'all' | 'I' | 'II' | 'III';
 type RigFilter = 'all' | 'ERIG' | 'HRIG';
+type DashboardBreakdown = {
+  filteredAgeCounts: Record<'under15' | '15' | 'over15', number>;
+  filteredSexCounts: Record<'male' | 'female', number>;
+  filteredAnimalCounts: Record<'dog' | 'cat' | 'bat' | 'other', number>;
+  filteredCategoryCounts: Record<'I' | 'II' | 'III', number>;
+  filteredRigCounts: Record<'ERIG' | 'HRIG', number>;
+};
 
 function formatSheetDate(value?: string) {
   if (!value) return '-';
@@ -91,24 +99,90 @@ export default function DashboardPage() {
   const [rigFilter, setRigFilter] = useState<RigFilter>('all');
 
   useEffect(() => {
-    loadAllYears(false);
+    loadInitialYears();
   }, []);
+
+  async function loadDashboardYears(years: number[]) {
+    const responses = await Promise.all(years.map(y => api.getDashboard(String(y))));
+    const next: Record<string, DashboardData> = {};
+    responses.forEach((res, idx) => {
+      if (res.status === 'ok') next[String(years[idx])] = res.data;
+    });
+    return next;
+  }
+
+  async function loadInitialYears() {
+    setLoading(true);
+    const primaryYears = Array.from(new Set([Number(summaryYear), Number(demographicsYear)]));
+    const primary = await loadDashboardYears(primaryYears);
+    setDashboardByYear(prev => ({ ...prev, ...primary }));
+    setLoading(false);
+
+    const remainingYears = YEARS.filter(year => !primaryYears.includes(year));
+    if (remainingYears.length > 0) {
+      const remaining = await loadDashboardYears(remainingYears);
+      setDashboardByYear(prev => ({ ...prev, ...remaining }));
+    }
+  }
 
   async function loadAllYears(showRefreshState = true) {
     if (showRefreshState) setRefreshing(true);
     else setLoading(true);
 
-    const responses = await Promise.all(YEARS.map(y => api.getDashboard(String(y))));
-    const next: Record<string, DashboardData> = {};
-    responses.forEach((res, idx) => {
-      if (res.status === 'ok') next[String(YEARS[idx])] = res.data;
-    });
+    const next = await loadDashboardYears(YEARS);
     setDashboardByYear(next);
     setLoading(false);
     setRefreshing(false);
   }
 
   const data = dashboardByYear[summaryYear] || null;
+
+  const now = new Date().toLocaleDateString('en-PH', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const demographicsData = dashboardByYear[demographicsYear] || data;
+  const {
+    filteredAgeCounts,
+    filteredSexCounts,
+    filteredAnimalCounts,
+    filteredCategoryCounts,
+    filteredRigCounts,
+  } = useMemo<DashboardBreakdown>(() => {
+    const next: DashboardBreakdown = {
+      filteredAgeCounts: { under15: 0, '15': 0, over15: 0 },
+      filteredSexCounts: { male: 0, female: 0 },
+      filteredAnimalCounts: { dog: 0, cat: 0, bat: 0, other: 0 },
+      filteredCategoryCounts: { I: 0, II: 0, III: 0 },
+      filteredRigCounts: { ERIG: 0, HRIG: 0 },
+    };
+
+    for (const record of demographicsData?.demographics_records || []) {
+      const cm = (record as any).consult_month as number;
+      if (quarterFilter !== 0 && !QUARTER_MONTHS[quarterFilter].includes(cm)) continue;
+      if (monthFilter !== 0 && cm !== monthFilter) continue;
+      if (ageFilter !== 'all' && record.age_group !== ageFilter) continue;
+      if (sexFilter !== 'all' && record.sex !== sexFilter) continue;
+      if (animalFilter !== 'all' && record.animal_type !== animalFilter) continue;
+      if (categoryFilter !== 'all' && record.category !== categoryFilter) continue;
+      if (rigFilter !== 'all' && record.erig_hrig !== rigFilter) continue;
+
+      if (record.age_group === 'under15' || record.age_group === '15' || record.age_group === 'over15') {
+        next.filteredAgeCounts[record.age_group]++;
+      }
+      if (record.sex === 'male' || record.sex === 'female') next.filteredSexCounts[record.sex]++;
+      if (record.animal_type === 'dog' || record.animal_type === 'cat' || record.animal_type === 'bat' || record.animal_type === 'other') {
+        next.filteredAnimalCounts[record.animal_type]++;
+      }
+      if (record.category === 'I' || record.category === 'II' || record.category === 'III') next.filteredCategoryCounts[record.category]++;
+      if (record.erig_hrig === 'ERIG' || record.erig_hrig === 'HRIG') next.filteredRigCounts[record.erig_hrig]++;
+    }
+
+    return next;
+  }, [demographicsData, quarterFilter, monthFilter, ageFilter, sexFilter, animalFilter, categoryFilter, rigFilter]);
 
   if (loading) {
     return (
@@ -126,59 +200,21 @@ export default function DashboardPage() {
     );
   }
 
-  if (!data) return null;
-
-  const now = new Date().toLocaleDateString('en-PH', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const demographicsData = dashboardByYear[demographicsYear] || data;
-  // Quarter → months mapping
-  const quarterMonths: Record<number, number[]> = { 1:[1,2,3], 2:[4,5,6], 3:[7,8,9], 4:[10,11,12] };
-
-  const filteredRecords = (demographicsData?.demographics_records || []).filter(record => {
-    const cm = (record as any).consult_month as number;
-    if (quarterFilter !== 0 && !quarterMonths[quarterFilter].includes(cm)) return false;
-    if (monthFilter !== 0 && cm !== monthFilter) return false;
-    if (ageFilter !== 'all' && record.age_group !== ageFilter) return false;
-    if (sexFilter !== 'all' && record.sex !== sexFilter) return false;
-    if (animalFilter !== 'all' && record.animal_type !== animalFilter) return false;
-    if (categoryFilter !== 'all' && record.category !== categoryFilter) return false;
-    if (rigFilter !== 'all' && record.erig_hrig !== rigFilter) return false;
-    return true;
-  });
-
-  const filteredAgeCounts = {
-    under15: filteredRecords.filter(record => record.age_group === 'under15').length,
-    '15': filteredRecords.filter(record => record.age_group === '15').length,
-    over15: filteredRecords.filter(record => record.age_group === 'over15').length,
-  };
-
-  const filteredSexCounts = {
-    male: filteredRecords.filter(record => record.sex === 'male').length,
-    female: filteredRecords.filter(record => record.sex === 'female').length,
-  };
-
-  const filteredAnimalCounts = {
-    dog: filteredRecords.filter(record => record.animal_type === 'dog').length,
-    cat: filteredRecords.filter(record => record.animal_type === 'cat').length,
-    bat: filteredRecords.filter(record => record.animal_type === 'bat').length,
-    other: filteredRecords.filter(record => record.animal_type === 'other').length,
-  };
-
-  const filteredCategoryCounts = {
-    I: filteredRecords.filter(record => record.category === 'I').length,
-    II: filteredRecords.filter(record => record.category === 'II').length,
-    III: filteredRecords.filter(record => record.category === 'III').length,
-  };
-
-  const filteredRigCounts = {
-    ERIG: filteredRecords.filter(record => record.erig_hrig === 'ERIG').length,
-    HRIG: filteredRecords.filter(record => record.erig_hrig === 'HRIG').length,
-  };
+  if (!data) {
+    return (
+      <div>
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Dashboard</h1>
+          </div>
+        </div>
+        <div className="page-loader">
+          <div className="spinner dark" style={{ width: 28, height: 28 }} />
+          <span style={{ color: 'var(--slate-400)' }}>Loading dashboard...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
