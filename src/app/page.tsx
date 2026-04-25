@@ -57,9 +57,9 @@ export default function LoginPage() {
         {/* Three logos in a row — equal size */}
         <div style={{ display:'flex', gap:20, alignItems:'center', justifyContent:'center', marginBottom:28 }}>
           {[
-            { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
             { src:'/logos/lgu_logo.jpg',         alt:'Municipality of Ragay' },
             { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
+            { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
           ].map(logo => (
             <div key={logo.alt} style={{
               width: 80, height: 80,
