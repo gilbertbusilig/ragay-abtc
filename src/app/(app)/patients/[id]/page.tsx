@@ -635,7 +635,7 @@ export default function PatientDetailPage() {
                       {(user?.role === 'doctor' || user?.role === 'admin' || user?.role === 'nurse') && (
                         <button
                           className="btn btn-ghost btn-sm"
-                          onClick={() => router.push(`/patients/${patient_id}/incident/${inc.incident_id}/edit`)}
+                          onClick={() => router.push(`/patients/${patient_id}/incident/${inc.incident_id}/edit-incident`)}
                           style={{ padding:'4px 6px', minWidth:'auto' }}
                           title="Edit incident">
                           ✏️
