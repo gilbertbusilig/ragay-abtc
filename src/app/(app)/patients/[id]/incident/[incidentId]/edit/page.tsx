@@ -35,7 +35,6 @@ export default function IncidentEditPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
   const [nurses, setNurses] = useState<any[]>([]);
-  const [doctors, setDoctors] = useState<any[]>([]);
   const [customSite, setCustomSite] = useState('');
   const [allergyKnown, setAllergyKnown] = useState(false);
 
@@ -93,9 +92,6 @@ export default function IncidentEditPage() {
     ]);
     if (initRes.status === 'ok') {
       setNurses(initRes.data.nurses || []);
-      setDoctors((initRes.data.accounts || []).filter((u: any) =>
-        u.role === 'doctor' && String(u.full_name || '').trim().toLowerCase() !== 'system administrator'
-      ));
     }
     if (patRes.status === 'ok') {
       const inc = patRes.data.incidents?.find((i: any) => i.incident_id === incident_id);
@@ -237,6 +233,7 @@ export default function IncidentEditPage() {
               <div style={{ display:'flex', gap:8, marginTop:10 }}>
                 <input className="form-input" type="text" value={customSite} onChange={e => setCustomSite(e.target.value)} placeholder="Custom / Others" />
                 <button type="button" className="btn btn-secondary btn-sm" onClick={addCustomSite}>Add</button>
+                <button type="button" className="btn btn-ghost btn-sm" onClick={() => setCustomSite('')} style={{ padding:'4px 8px' }}>↻ Redo</button>
               </div>
               {f.anatomical_positions.length > 0 && (
                 <div style={{ marginTop:8, fontSize:13, color:'var(--red-700)', fontWeight:500 }}>
@@ -378,10 +375,36 @@ export default function IncidentEditPage() {
                 <div style={{ marginTop:14 }}>
                   <div className="form-label" style={{ marginBottom:8 }}>B. Anti-Tetanus Vaccine</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
-                    <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="true" checked={f.anti_tetanus_vaccine===true} onChange={() => set('anti_tetanus_vaccine', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
-                    <label className="checkbox-item"><input type="radio" name="anti_tetanus_v" value="false" checked={f.anti_tetanus_vaccine===false} onChange={() => set('anti_tetanus_vaccine', false)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={f.anti_tetanus_vaccine === true}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            set('anti_tetanus_vaccine', true);
+                          } else {
+                            set('anti_tetanus_vaccine', '');
+                          }
+                        }}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> Yes
+                    </label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={f.anti_tetanus_vaccine === false}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            set('anti_tetanus_vaccine', false);
+                          } else {
+                            set('anti_tetanus_vaccine', '');
+                          }
+                        }}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> No
+                    </label>
                   </div>
-                  {f.anti_tetanus_vaccine && (
+                  {f.anti_tetanus_vaccine === true && (
                     <div className="form-group">
                       <label className="form-label">If yes - date given</label>
                       <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
@@ -438,10 +461,36 @@ export default function IncidentEditPage() {
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>C. Completed anti-rabies shots previously?</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
-                    <label className="checkbox-item"><input type="radio" name="ar_comp" value="true" checked={f.anti_rabies_completed===true} onChange={() => set('anti_rabies_completed', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
-                    <label className="checkbox-item"><input type="radio" name="ar_comp" value="false" checked={f.anti_rabies_completed===false} onChange={() => set('anti_rabies_completed', false)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={f.anti_rabies_completed === true}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            set('anti_rabies_completed', true);
+                          } else {
+                            set('anti_rabies_completed', '');
+                          }
+                        }}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> Yes
+                    </label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={f.anti_rabies_completed === false}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            set('anti_rabies_completed', false);
+                          } else {
+                            set('anti_rabies_completed', '');
+                          }
+                        }}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> No
+                    </label>
                   </div>
-                  {f.anti_rabies_completed && (
+                  {f.anti_rabies_completed === true && (
                     <input className="form-input" type="text" value={f.anti_rabies_details} onChange={e => set('anti_rabies_details', e.target.value)} placeholder="Specify previous regimen…" />
                   )}
                 </div>
@@ -450,10 +499,36 @@ export default function IncidentEditPage() {
                 <div>
                   <div className="form-label" style={{ marginBottom:8 }}>D. Consulted folk healer / tambal first?</div>
                   <div className="checkbox-group" style={{ marginBottom:8 }}>
-                    <label className="checkbox-item"><input type="radio" name="folk" value="true" checked={f.folk_remedy===true} onChange={() => set('folk_remedy', true)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> Yes</label>
-                    <label className="checkbox-item"><input type="radio" name="folk" value="false" checked={f.folk_remedy===false} onChange={() => set('folk_remedy', false)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} /> No</label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={f.folk_remedy === true}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            set('folk_remedy', true);
+                          } else {
+                            set('folk_remedy', '');
+                          }
+                        }}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> Yes
+                    </label>
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={f.folk_remedy === false}
+                        onChange={e => {
+                          if (e.target.checked) {
+                            set('folk_remedy', false);
+                          } else {
+                            set('folk_remedy', '');
+                          }
+                        }}
+                        style={{ width:16, height:16, accentColor:'var(--blue-600)', cursor:'pointer' }}
+                      /> No
+                    </label>
                   </div>
-                  {f.folk_remedy && (
+                  {f.folk_remedy === true && (
                     <input className="form-input" type="text" value={f.folk_remedy_details} onChange={e => set('folk_remedy_details', e.target.value)} placeholder="Tambal, Tanduk, etc…" />
                   )}
                 </div>
@@ -537,26 +612,9 @@ export default function IncidentEditPage() {
             </div>{/* end A|C-F grid */}
           </div>
 
-                    {/* Section V — Physician Notes */}
+          {/* Section V — Physician Notes */}
           <div className="section-box">
             <div className="section-box-title">V. Physician's Order / Notes</div>
-            <div className="form-group" style={{ marginBottom:12 }}>
-              <label className="form-label">Assessing / Attending Physician</label>
-              {doctors.length > 0 ? (
-                <select className="form-select" value={f.referring_doctor} onChange={e => set('referring_doctor', e.target.value)}>
-                  <option value="">-- Select physician --</option>
-                  {doctors.map((d: any) => (
-                    <option key={d.user_id} value={d.user_id}>
-                      {d.full_name}{d.credential ? `, ${d.credential}` : ''}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div style={{ fontSize:13, color:'var(--slate-400)', padding:'8px 12px', background:'var(--slate-50)', borderRadius:'var(--radius-sm)', border:'1.5px solid var(--slate-200)' }}>
-                  No physician accounts found. Ask admin to add a doctor account.
-                </div>
-              )}
-            </div>
             <div className="form-group">
               <label className="form-label">Physician's Order / Notes</label>
               <textarea className="form-textarea" style={{ minHeight:90, width:'100%' }} value={f.physician_notes} onChange={e => set('physician_notes', e.target.value)} placeholder="Doctor's orders, clinical notes, referral instructions…" />

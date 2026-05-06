@@ -621,16 +621,27 @@ export default function PatientDetailPage() {
                 </div>
                 <div style={{ padding:'10px 18px', borderBottom:'1px solid #f1f5f9', display:'flex', gap:8, flexWrap:'wrap' }}>
                   {incidents.map((inc, i) => (
-                    <button key={inc.incident_id}
-                      className={activeIncident?.incident_id === inc.incident_id ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}
-                      onClick={() => setActiveIncident(inc)}>
-                      Incident #{i+1} — {inc.consult_date ? toMMDDYYYY(inc.consult_date) : ''}
-                      {inc.wound_category && (
-                        <span className={`badge badge-cat${inc.wound_category==='I'?'1':inc.wound_category==='II'?'2':'3'}`} style={{ marginLeft:6 }}>
-                          Cat {inc.wound_category}
-                        </span>
+                    <div key={inc.incident_id} style={{ display:'flex', gap:4, alignItems:'center' }}>
+                      <button
+                        className={activeIncident?.incident_id === inc.incident_id ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}
+                        onClick={() => setActiveIncident(inc)}>
+                        Incident #{i+1} — {inc.consult_date ? toMMDDYYYY(inc.consult_date) : ''}
+                        {inc.wound_category && (
+                          <span className={`badge badge-cat${inc.wound_category==='I'?'1':inc.wound_category==='II'?'2':'3'}`} style={{ marginLeft:6 }}>
+                            Cat {inc.wound_category}
+                          </span>
+                        )}
+                      </button>
+                      {(user?.role === 'doctor' || user?.role === 'admin' || user?.role === 'nurse') && (
+                        <button
+                          className="btn btn-ghost btn-sm"
+                          onClick={() => router.push(`/patients/${patient_id}/incident/${inc.incident_id}/edit`)}
+                          style={{ padding:'4px 6px', minWidth:'auto' }}
+                          title="Edit incident">
+                          ✏️
+                        </button>
                       )}
-                    </button>
+                    </div>
                   ))}
                 </div>
 

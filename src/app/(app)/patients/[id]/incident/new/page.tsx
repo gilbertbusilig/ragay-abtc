@@ -39,6 +39,7 @@ export default function NewIncidentPage() {
   const [saving, setSaving] = useState(false);
   const [patientLoaded, setPatientLoaded] = useState(false);
   const [toast, setToast] = useState('');
+  const [doctors, setDoctors] = useState<any[]>([]);
   const [patientForm, setPatientForm] = useState({
     full_name: '',
     date_of_birth: '',
@@ -60,14 +61,23 @@ export default function NewIncidentPage() {
     dose_type: 'PEP',
     pep_doses_needed: 5,
     d0_date: '',
+    referring_doctor: '',
   });
 
   const set = (k: string, v: string | number) => setForm(prev => ({ ...prev, [k]: v }));
 
   useEffect(() => {
-    api.getPatient(patient_id).then(res => {
-      if (res.status === 'ok' && res.data?.patient) {
-        const patient = res.data.patient;
+    Promise.all([
+      api.getPatient(patient_id),
+      api.getInitData(),
+    ]).then(([patRes, initRes]) => {
+      if (initRes.status === 'ok') {
+        setDoctors((initRes.data.accounts || []).filter((u: any) =>
+          u.role === 'doctor' && String(u.full_name || '').trim().toLowerCase() !== 'system administrator'
+        ));
+      }
+      if (patRes.status === 'ok' && patRes.data?.patient) {
+        const patient = patRes.data.patient;
         setPatientForm({
           full_name: patient.full_name || '',
           date_of_birth: patient.date_of_birth || '',
@@ -170,6 +180,29 @@ export default function NewIncidentPage() {
               <div className="form-group">
                 <label className="form-label">Contact No.</label>
                 <input className="form-input" type="tel" inputMode="numeric" maxLength={13} value={patientForm.contact_no} onChange={e => setPatientForm(prev => ({ ...prev, contact_no: formatPhilippineContact(e.target.value) }))} placeholder="09XX XXX XXXX" />
+              </div>
+            </div>
+          </div>
+
+          <div className="section-box">
+            <div className="section-box-title">Assessing / Attending Physician</div>
+            <div className="form-grid form-grid-2">
+              <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                <label className="form-label">Physician</label>
+                {doctors.length > 0 ? (
+                  <select className="form-select" value={form.referring_doctor} onChange={e => set('referring_doctor', e.target.value)}>
+                    <option value="">-- Select physician --</option>
+                    {doctors.map((d: any) => (
+                      <option key={d.user_id} value={d.user_id}>
+                        {d.full_name}{d.credential ? `, ${d.credential}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div style={{ fontSize:13, color:'var(--slate-400)', padding:'8px 12px', background:'var(--slate-50)', borderRadius:'var(--radius-sm)', border:'1.5px solid var(--slate-200)' }}>
+                    No physician accounts found. Ask admin to add a doctor account.
+                  </div>
+                )}
               </div>
             </div>
           </div>
