@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -36,6 +36,18 @@ export default function NewPatientPage() {
   const today = getLocalISODate();
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
+  const [doctors, setDoctors] = useState<any[]>([]);
+
+  // Load doctors on mount
+  useEffect(() => {
+    api.getInitData().then(res => {
+      if (res.status === 'ok') {
+        setDoctors((res.data.accounts || []).filter((u: any) =>
+          u.role === 'doctor' && String(u.full_name || '').trim().toLowerCase() !== 'system administrator'
+        ));
+      }
+    });
+  }, []);
 
   // Section I
   const [form, setForm] = useState({
@@ -134,16 +146,12 @@ export default function NewPatientPage() {
               <label className="form-label">Patient ID No.</label>
               <input className="form-input" type="text" value={genId} readOnly style={{ background:'var(--slate-50)', fontFamily:'monospace', color:'var(--slate-500)' }} />
             </div>
-            <div className="form-group" style={{ flex:1 }}>
-              <label className="form-label">Referring Doctor</label>
-              <input className="form-input" type="text" value={form.referring_doctor} onChange={e => set('referring_doctor', e.target.value)} placeholder="Doctor's full name" />
-            </div>
           </div>
 
           {/* Section I */}
           <div className="section-box">
             <div className="section-box-title">I. Patient Information</div>
-            <div className="form-grid form-grid-3" style={{ marginBottom:12 }}>
+            <div className="form-grid form-grid-3">
               <div className="form-group" style={{ gridColumn:'1 / -1' }}>
                 <label className="form-label">A. Patient's Full Name <span style={{color:'var(--red-500)'}}>*</span></label>
                 <input className="form-input" type="text" value={form.full_name} onChange={e => set('full_name', e.target.value)} required placeholder="Last, First Middle" />
@@ -165,14 +173,10 @@ export default function NewPatientPage() {
                   {['M','F'].map(s => (
                     <label key={s} className="checkbox-item">
                       <input type="radio" name="sex" value={s} checked={form.sex === s} onChange={() => set('sex', s)} />
-                      {s === 'M' ? '♂ Male' : '♀ Female'}
+                      {s === 'M' ? 'Male' : 'Female'}
                     </label>
                   ))}
                 </div>
-              </div>
-              <div className="form-group">
-                <label className="form-label">G. Contact No.</label>
-                <input className="form-input" type="tel" inputMode="numeric" maxLength={13} value={form.contact_no} onChange={e => set('contact_no', formatPhilippineContact(e.target.value))} placeholder="09XX XXX XXXX" />
               </div>
               <div className="form-group">
                 <label className="form-label">E. Age</label>
@@ -181,6 +185,34 @@ export default function NewPatientPage() {
               <div className="form-group">
                 <label className="form-label">F. Weight (kg)</label>
                 <input className="form-input" type="number" value={form.weight} onChange={e => set('weight', e.target.value)} min="0" step="0.1" placeholder="kg" />
+              </div>
+              <div className="form-group">
+                <label className="form-label">G. Contact No.</label>
+                <input className="form-input" type="tel" inputMode="numeric" maxLength={13} value={form.contact_no} onChange={e => set('contact_no', formatPhilippineContact(e.target.value))} placeholder="09XX XXX XXXX" />
+              </div>
+            </div>
+          </div>
+
+          {/* Assessing / Attending Physician */}
+          <div className="section-box">
+            <div className="section-box-title">Assessing / Attending Physician</div>
+            <div className="form-grid form-grid-2">
+              <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                <label className="form-label">Physician</label>
+                {doctors.length > 0 ? (
+                  <select className="form-select" value={form.referring_doctor} onChange={e => set('referring_doctor', e.target.value)}>
+                    <option value="">-- Select physician --</option>
+                    {doctors.map((d: any) => (
+                      <option key={d.user_id} value={d.user_id}>
+                        {d.full_name}{d.credential ? `, ${d.credential}` : ''}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div style={{ fontSize:13, color:'var(--slate-400)', padding:'8px 12px', background:'var(--slate-50)', borderRadius:'var(--radius-sm)', border:'1.5px solid var(--slate-200)' }}>
+                    No physician accounts found. Ask admin to add a doctor account.
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -197,8 +229,6 @@ export default function NewPatientPage() {
                 <label className="form-label">B. Place of Exposure</label>
                 <input className="form-input" type="text" value={form.place_of_exposure} onChange={e => set('place_of_exposure', e.target.value)} placeholder="e.g. Home, Road, Farm…" />
               </div>
-
-              {/* Left: type + circumstance */}
               <div>
                 <div className="form-group" style={{ marginBottom:14 }}>
                   <label className="form-label">C. Type of Exposure</label>
@@ -226,8 +256,6 @@ export default function NewPatientPage() {
                   </div>
                 </div>
               </div>
-
-              {/* Right: ownership */}
               <div className="form-group">
                 <label className="form-label">D. Ownership</label>
                 <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
@@ -251,11 +279,6 @@ export default function NewPatientPage() {
                 </div>
               </div>
             </div>
-          </div>
-
-          {/* Info note */}
-          <div style={{ background:'var(--blue-50)', border:'1px solid var(--blue-200)', borderRadius:'var(--radius-md)', padding:'12px 16px', marginBottom:20, fontSize:14, color:'var(--blue-800)' }}>
-            <strong>ℹ️ Note:</strong> Sections III–VII (Wound Description, History, Treatment) can be filled in after saving, by the doctor or nurse. The form can be printed blank for manual input, or updated directly in the system.
           </div>
 
           {/* Submit */}
