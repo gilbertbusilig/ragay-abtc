@@ -107,6 +107,7 @@ export default function PrintPage() {
   const anatomicalSites: string[] = (() => { try { return JSON.parse(incident.anatomical_positions || '[]'); } catch { return []; }})();
 
   const hasClinicalData = !!(incident.wound_category || incident.wound_status || incident.wound_type);
+  const hasHistoryData = !!(incident.hiv || incident.immunosuppressant || incident.long_term_steroid || incident.malignancy || incident.chloroquine || incident.congenital_immuno || incident.hematologic_condition || incident.chronic_liver_disease || incident.other_conditions || incident.anti_tetanus_vaccine === true || incident.anti_tetanus_vaccine === 'true' || incident.anti_tetanus_vaccine === false || incident.anti_tetanus_vaccine === 'false' || incident.anti_rabies_completed || incident.anti_rabies_completed === false || incident.anti_rabies_completed === 'false' || incident.folk_remedy || incident.folk_remedy === false || incident.folk_remedy === 'false' || incident.folk_remedy_details || incident.smoker || incident.alcoholic || incident.allergy);
 
   const pepDoseDays     = ['D0','D3','D7','D14','D28'];
   const prepDoseDays    = ['D0','D7','D21'];
@@ -320,15 +321,21 @@ export default function PrintPage() {
                 <div style={{ paddingRight:6, borderRight:'1px solid #ddd', fontSize:'7.5pt' }}>
                   <div style={{ marginBottom:3 }}>
                     <strong>B. Wound Status: </strong>
-                    <Cb checked={incident.wound_status==='bleeding'}     /> Bleeding &nbsp;
-                    <Cb checked={incident.wound_status==='non_bleeding'} /> Non-Bleeding
+                    {hasClinicalData ? (
+                      <><Cb checked={incident.wound_status==='bleeding'}     /> Bleeding &nbsp;
+                      <Cb checked={incident.wound_status==='non_bleeding'} /> Non-Bleeding</>
+                    ) : (
+                      <span style={{color:'#666'}}>☐ Bleeding &nbsp; ☐ Non-Bleeding</span>
+                    )}
                   </div>
                   <div>
                     <strong>C. Wound Category:</strong>
                     {['I','II','III'].map(cat => (
                       <div key={cat} style={{ marginTop:3, paddingLeft:2 }}>
                         <div style={{ fontWeight:'bold' }}>
-                          <Cb checked={incident.wound_category===cat} /> Category {cat}
+                          {hasClinicalData ? (
+                            <Cb checked={incident.wound_category===cat} />
+                          ) : <span style={{color:'#666'}}>☐</span>} Category {cat}
                         </div>
                         <div style={{ paddingLeft:14, fontSize:'6.5pt', lineHeight:1.5, color:'#333' }}>
                           {catItems(cat).map((item, i) => <div key={i}>{item}</div>)}
@@ -350,13 +357,26 @@ export default function PrintPage() {
                       { val:'mucus',       label:'Contamination of Mucus Membrane' },
                       { val:'other',       label:`Others: ${incident.wound_type_other||'___________'}` },
                     ].map(o => (
-                      <div key={o.val}><Cb checked={incident.wound_type===o.val} /> {o.label}</div>
+                      <div key={o.val}>
+                        {hasClinicalData ? (
+                          <Cb checked={incident.wound_type===o.val} />
+                        ) : <span style={{color:'#666'}}>☐</span>} {o.label}
+                      </div>
                     ))}
                   </div>
                   <div style={{ lineHeight:1.7 }}>
                     <strong>E. Wound Care</strong>
+                    {hasClinicalData ? (
+                      <>
                     <div>e1. Wound Wash with soap and water: &nbsp; <Cb checked={incident.wound_wash===true||incident.wound_wash==='true'} /> Y &nbsp; <Cb checked={incident.wound_wash===false||incident.wound_wash==='false'} /> N</div>
                     <div>e2. Antiseptic Applied (Povidone/Alcohol): &nbsp; <Cb checked={incident.antiseptic_applied===true||incident.antiseptic_applied==='true'} /> Y &nbsp; <Cb checked={incident.antiseptic_applied===false||incident.antiseptic_applied==='false'} /> N</div>
+                      </>
+                    ) : (
+                      <>
+                    <div style={{color:'#666'}}>e1. Wound Wash with soap and water: &nbsp; ☐ Y &nbsp; ☐ N</div>
+                    <div style={{color:'#666'}}>e2. Antiseptic Applied (Povidone/Alcohol): &nbsp; ☐ Y &nbsp; ☐ N</div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -381,6 +401,7 @@ export default function PrintPage() {
               {/* Left: A */}
               <div className="col" style={{ fontSize:'7.5pt' }}>
                 <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions / On Treatment:</strong></div>
+                {hasHistoryData ? (
                 <div style={{ lineHeight:1.6 }}>
                   <div><Cb checked={!!incident.hiv}               /> H.I.V.</div>
                   <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid || incident.malignancy)} /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>
@@ -390,9 +411,18 @@ export default function PrintPage() {
                   <div><Cb checked={!!incident.chronic_liver_disease} /> Chronic Liver Disease</div>
                   <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:100 }}>{incident.other_conditions||''}</span></div>
                 </div>
+                ) : (
+                <div style={{ lineHeight:1.8, color:'#666' }}>
+                  <div>☐ H.I.V. &nbsp;&nbsp; ☐ Immunosuppressant Agent &nbsp;&nbsp; ☐ Chloroquine</div>
+                  <div>☐ Congenital Immuno-deficiency &nbsp;&nbsp; ☐ Hematologic Condition &nbsp;&nbsp; ☐ Chronic Liver Disease</div>
+                  <div>Others: ___________________________</div>
+                </div>
+                )}
               </div>
               {/* Right: B–F */}
               <div className="col" style={{ fontSize:'7.5pt', lineHeight:1.6 }}>
+                {hasHistoryData ? (
+                <>
                 <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb checked={incident.anti_tetanus_vaccine===true||incident.anti_tetanus_vaccine==='true'} /> Y &nbsp; <Cb checked={incident.anti_tetanus_vaccine===false||incident.anti_tetanus_vaccine==='false'} /> N &nbsp; {!hasClinicalData ? 'please specify: _______________' : incident.anti_tetanus_vaccine ? `If yes: ${fullDate(incident.tetanus_date)||'____________'}` : ''}</div>
                 <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb checked={!!incident.anti_rabies_completed} /> Y &nbsp; <Cb checked={incident.anti_rabies_completed===false||incident.anti_rabies_completed==='false'} /> N &nbsp; {!hasClinicalData ? 'please specify: _______________' : incident.anti_rabies_details ? `(${incident.anti_rabies_details})` : ''}</div>
                 <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb checked={!!incident.folk_remedy} /> Y &nbsp; <Cb checked={incident.folk_remedy===false||incident.folk_remedy==='false'} /> N &nbsp; {incident.folk_remedy_details||''}</div>
@@ -408,6 +438,23 @@ export default function PrintPage() {
                   <Cb checked={String(incident.allergy || '').trim() === ''} /> No &nbsp;
                   Specify: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:150 }}>{incident.allergy||''}</span>
                 </div>
+                </>
+                ) : (
+                <>
+                <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; ☐ Y &nbsp; ☐ N &nbsp; please specify: _______________</div>
+                <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; ☐ Y &nbsp; ☐ N &nbsp; please specify: _______________</div>
+                <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; ☐ Y &nbsp; ☐ N</div>
+                <div>
+                  <strong>E. Current Lifestyle:</strong> &nbsp;
+                  ☐ Smoker &nbsp;&nbsp; ☐ Alcohol use &nbsp;&nbsp; ☐ Not Applicable
+                </div>
+                <div>
+                  <strong>F. Do you have any known allergies to medications or foods?</strong> &nbsp;
+                  ☐ Yes &nbsp; ☐ No &nbsp;
+                  Specify: ________________________________
+                </div>
+                </>
+                )}
               </div>
             </div>
           </div>
@@ -531,7 +578,13 @@ export default function PrintPage() {
                   <th>Brand Name</th><th>Batch No.</th><th>Date</th><th>Administered By</th>
                 </tr></thead>
                 <tbody><tr>
-                  <td><Cb checked={incident.erig_hrig==='ERIG'} /> ERIG &nbsp; <Cb checked={incident.erig_hrig==='HRIG'} /> HRIG</td>
+                  <td>
+                    {hasClinicalData ? (
+                      <><Cb checked={incident.erig_hrig==='ERIG'} /> ERIG &nbsp; <Cb checked={incident.erig_hrig==='HRIG'} /> HRIG</>
+                    ) : (
+                      <span style={{color:'#666'}}>☐ ERIG &nbsp; ☐ HRIG</span>
+                    )}
+                  </td>
                   <td style={{ fontSize:'7pt' }}>{incident.erig_hrig_brand||''}</td>
                   <td style={{ fontSize:'7pt' }}>{cleanBatchNo(incident.erig_hrig_batch)}</td>
                   <td style={{ fontSize:'7pt' }}>{fullDate(incident.erig_hrig_date)}</td>
@@ -552,10 +605,14 @@ export default function PrintPage() {
                 </tr></thead>
                 <tbody><tr>
                   <td>
-                    <Cb checked={incident.tetanus_type==='TT'}  /> TT &nbsp;
-                    <Cb checked={incident.tetanus_type==='TD'}  /> TD &nbsp;
-                    <Cb checked={incident.tetanus_type==='ATS'} /> ATS
-                    {incident.tetanus_units ? ` (${incident.tetanus_units})` : ''}
+                    {hasClinicalData ? (
+                      <><Cb checked={incident.tetanus_type==='TT'}  /> TT &nbsp;
+                      <Cb checked={incident.tetanus_type==='TD'}  /> TD &nbsp;
+                      <Cb checked={incident.tetanus_type==='ATS'} /> ATS
+                      {incident.tetanus_units ? ` (${incident.tetanus_units})` : ''}</>
+                    ) : (
+                      <span style={{color:'#666'}}>☐ TT &nbsp; ☐ TD &nbsp; ☐ ATS</span>
+                    )}
                   </td>
                   <td style={{ fontSize:'7pt' }}>{incident.tetanus_brand||''}</td>
                   <td style={{ fontSize:'7pt' }}>{cleanBatchNo(incident.tetanus_batch)}</td>
