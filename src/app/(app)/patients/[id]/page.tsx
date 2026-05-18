@@ -32,7 +32,7 @@ function addDays(isoDate: string, days: number) {
   const dd = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${dd}`;
 }
-const DAY_OFFSETS: Record<string,number> = { D0:0, D3:3, D7:6, D14:13, D21:20, D28:27 };
+const DAY_OFFSETS: Record<string,number> = { D0:0, D3:3, D7:7, D14:14, D21:21, D28:28 };
 
 function BodyDiagram({ selected, onChange }: { selected: string[]; onChange?: (s: string[]) => void }) {
   const toggle = (site: string) => {

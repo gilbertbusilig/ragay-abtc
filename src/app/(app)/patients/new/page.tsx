@@ -40,6 +40,7 @@ export default function NewPatientPage() {
   // Section I
   const [form, setForm] = useState({
     full_name: '', address: '', date_of_birth: '', sex: '', age: '', weight: '', contact_no: '', consult_date: today,
+    referring_doctor: '',
     // Section II
     bite_datetime: '', place_of_exposure: '',
     animal_type: 'dog', animal_other: '',
@@ -95,6 +96,7 @@ export default function NewPatientPage() {
       ownership: form.ownership,
       pet_vaccine_date: form.pet_vaccine_date,
       circumstance: form.circumstance,
+      referring_doctor: form.referring_doctor,
       pep_doses_needed: 5,
       created_by: creator,
     });
@@ -109,7 +111,7 @@ export default function NewPatientPage() {
       setTimeout(() => { window.location.href = `/patients/${patient_id}`; }, 3000);
     }
   }
-  const genId = `${new Date().getFullYear()}-00000`;
+  const genId = `RAGAY-00000`;
 
   return (
     <div>
@@ -131,6 +133,10 @@ export default function NewPatientPage() {
             <div className="form-group" style={{ flex:1 }}>
               <label className="form-label">Patient ID No.</label>
               <input className="form-input" type="text" value={genId} readOnly style={{ background:'var(--slate-50)', fontFamily:'monospace', color:'var(--slate-500)' }} />
+            </div>
+            <div className="form-group" style={{ flex:1 }}>
+              <label className="form-label">Referring Doctor</label>
+              <input className="form-input" type="text" value={form.referring_doctor} onChange={e => set('referring_doctor', e.target.value)} placeholder="Doctor's full name" />
             </div>
           </div>
 

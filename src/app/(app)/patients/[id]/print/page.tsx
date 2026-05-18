@@ -355,8 +355,8 @@ export default function PrintPage() {
                   </div>
                   <div style={{ lineHeight:1.7 }}>
                     <strong>E. Wound Care</strong>
-                    <div>e1. Wound Wash with soap and water: &nbsp; <Cb checked={incident.wound_wash===true||incident.wound_wash==='true'} /> Y &nbsp; <Cb checked={hasClinicalData && (incident.wound_wash===false||incident.wound_wash==='false')} /> N</div>
-                    <div>e2. Antiseptic Applied (Povidone/Alcohol): &nbsp; <Cb checked={incident.antiseptic_applied===true||incident.antiseptic_applied==='true'} /> Y &nbsp; <Cb checked={hasClinicalData && (incident.antiseptic_applied===false||incident.antiseptic_applied==='false')} /> N</div>
+                    <div>e1. Wound Wash with soap and water: &nbsp; <Cb checked={incident.wound_wash===true||incident.wound_wash==='true'} /> Y &nbsp; <Cb checked={incident.wound_wash===false||incident.wound_wash==='false'} /> N</div>
+                    <div>e2. Antiseptic Applied (Povidone/Alcohol): &nbsp; <Cb checked={incident.antiseptic_applied===true||incident.antiseptic_applied==='true'} /> Y &nbsp; <Cb checked={incident.antiseptic_applied===false||incident.antiseptic_applied==='false'} /> N</div>
                   </div>
                 </div>
               </div>
@@ -382,30 +382,30 @@ export default function PrintPage() {
               <div className="col" style={{ fontSize:'7.5pt' }}>
                 <div style={{ marginBottom:2 }}><strong>A. Other Medical Conditions / On Treatment:</strong></div>
                 <div style={{ lineHeight:1.6 }}>
-                  <div><Cb checked={hasClinicalData && !!incident.hiv}               /> H.I.V.</div>
-                  <div><Cb checked={hasClinicalData && !!(incident.immunosuppressant || incident.long_term_steroid || incident.malignancy)} /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>
-                  <div><Cb checked={hasClinicalData && !!incident.chloroquine}        /> Chloroquine</div>
-                  <div><Cb checked={hasClinicalData && !!incident.congenital_immuno}  /> Congenital Immuno-deficiency (G6PD)</div>
-                  <div><Cb checked={hasClinicalData && !!incident.hematologic_condition} /> Hematologic Condition</div>
-                  <div><Cb checked={hasClinicalData && !!incident.chronic_liver_disease} /> Chronic Liver Disease</div>
+                  <div><Cb checked={!!incident.hiv}               /> H.I.V.</div>
+                  <div><Cb checked={!!(incident.immunosuppressant || incident.long_term_steroid || incident.malignancy)} /> Immunosuppressant Agent (Long-Term Steroid, Treatment of Malignancy etc.)</div>
+                  <div><Cb checked={!!incident.chloroquine}        /> Chloroquine</div>
+                  <div><Cb checked={!!incident.congenital_immuno}  /> Congenital Immuno-deficiency (G6PD)</div>
+                  <div><Cb checked={!!incident.hematologic_condition} /> Hematologic Condition</div>
+                  <div><Cb checked={!!incident.chronic_liver_disease} /> Chronic Liver Disease</div>
                   <div style={{ marginTop:2 }}>Others: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:100 }}>{incident.other_conditions||''}</span></div>
                 </div>
               </div>
               {/* Right: B–F */}
               <div className="col" style={{ fontSize:'7.5pt', lineHeight:1.6 }}>
-                <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb checked={hasClinicalData && (incident.anti_tetanus_vaccine===true||incident.anti_tetanus_vaccine==='true')} /> Y &nbsp; <Cb checked={hasClinicalData && (incident.anti_tetanus_vaccine===false||incident.anti_tetanus_vaccine==='false')} /> N &nbsp; {!hasClinicalData ? 'please specify: _______________' : incident.anti_tetanus_vaccine ? `If yes: ${fullDate(incident.tetanus_date)||'____________'}` : ''}</div>
-                <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb checked={hasClinicalData && !!incident.anti_rabies_completed} /> Y &nbsp; <Cb checked={hasClinicalData && !incident.anti_rabies_completed} /> N &nbsp; {!hasClinicalData ? 'please specify: _______________' : incident.anti_rabies_details ? `(${incident.anti_rabies_details})` : ''}</div>
-                <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb checked={hasClinicalData && !!incident.folk_remedy} /> Y &nbsp; <Cb checked={hasClinicalData && !incident.folk_remedy} /> N &nbsp; {incident.folk_remedy_details||''}</div>
+                <div><strong>B. Anti-Tetanus Vaccine:</strong> &nbsp; <Cb checked={incident.anti_tetanus_vaccine===true||incident.anti_tetanus_vaccine==='true'} /> Y &nbsp; <Cb checked={incident.anti_tetanus_vaccine===false||incident.anti_tetanus_vaccine==='false'} /> N &nbsp; {!hasClinicalData ? 'please specify: _______________' : incident.anti_tetanus_vaccine ? `If yes: ${fullDate(incident.tetanus_date)||'____________'}` : ''}</div>
+                <div><strong>C. Completed anti-rabies shots:</strong> &nbsp; <Cb checked={!!incident.anti_rabies_completed} /> Y &nbsp; <Cb checked={incident.anti_rabies_completed===false||incident.anti_rabies_completed==='false'} /> N &nbsp; {!hasClinicalData ? 'please specify: _______________' : incident.anti_rabies_details ? `(${incident.anti_rabies_details})` : ''}</div>
+                <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb checked={!!incident.folk_remedy} /> Y &nbsp; <Cb checked={incident.folk_remedy===false||incident.folk_remedy==='false'} /> N &nbsp; {incident.folk_remedy_details||''}</div>
                 <div>
                   <strong>E. Current Lifestyle:</strong> &nbsp;
-                  <Cb checked={hasClinicalData && !!incident.smoker} /> Smoker &nbsp;&nbsp;
-                  <Cb checked={hasClinicalData && !!incident.alcoholic} /> Alcohol use &nbsp;&nbsp;
-                  <Cb checked={hasClinicalData && !incident.smoker && !incident.alcoholic} /> Not Applicable
+                  <Cb checked={!!incident.smoker} /> Smoker &nbsp;&nbsp;
+                  <Cb checked={!!incident.alcoholic} /> Alcohol use &nbsp;&nbsp;
+                  <Cb checked={!incident.smoker && !incident.alcoholic} /> Not Applicable
                 </div>
                 <div>
                   <strong>F. Do you have any known allergies to medications or foods?</strong> &nbsp;
-                  <Cb checked={hasClinicalData && !!String(incident.allergy || '').trim()} /> Yes &nbsp;
-                  <Cb checked={hasClinicalData && !String(incident.allergy || '').trim()} /> No &nbsp;
+                  <Cb checked={!!String(incident.allergy || '').trim()} /> Yes &nbsp;
+                  <Cb checked={String(incident.allergy || '').trim() === ''} /> No &nbsp;
                   Specify: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:150 }}>{incident.allergy||''}</span>
                 </div>
               </div>
