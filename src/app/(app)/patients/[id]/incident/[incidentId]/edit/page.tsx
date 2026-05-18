@@ -404,52 +404,44 @@ export default function IncidentEditPage() {
                       /> No
                     </label>
                   </div>
-                  {f.anti_tetanus_vaccine === true && (
-                    <div className="form-group">
-                      <label className="form-label">If yes - date given</label>
-                      <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
+                  <div className="form-group">
+                    <label className="form-label">If yes, Administer</label>
+                    <div className="checkbox-group">
+                      {['TT','TD','ATS'].map(t => (
+                        <label key={t} className="checkbox-item">
+                          <input type="radio" name="tet_type" value={t} checked={f.tetanus_type===t} onChange={() => set('tetanus_type', t)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
+                          {t}
+                        </label>
+                      ))}
                     </div>
-                  )}
-                  {f.anti_tetanus_vaccine === false && (
-                    <div className="form-group">
-                      <label className="form-label">Administer</label>
-                      <div className="checkbox-group">
-                        {['TT','TD','ATS'].map(t => (
-                          <label key={t} className="checkbox-item">
-                            <input type="radio" name="tet_type" value={t} checked={f.tetanus_type===t} onChange={() => set('tetanus_type', t)} style={{ width:16, height:16, accentColor:'var(--blue-600)' }} />
-                            {t}
-                          </label>
-                        ))}
+                    <div style={{ marginTop:10, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                      <div className="form-group">
+                        <label className="form-label">Date Given</label>
+                        <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
                       </div>
-                      <div style={{ marginTop:10, display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                      <div className="form-group">
+                        <label className="form-label">Brand</label>
+                        <input className="form-input" type="text" value={f.tetanus_brand} onChange={e => set('tetanus_brand', e.target.value)} />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Batch No.</label>
+                        <input className="form-input" type="text" value={f.tetanus_batch} onChange={e => set('tetanus_batch', e.target.value)} />
+                      </div>
+                      {f.tetanus_type === 'ATS' && (
                         <div className="form-group">
-                          <label className="form-label">Date Given</label>
-                          <input className="form-input" type="date" value={f.tetanus_date} onChange={e => set('tetanus_date', e.target.value)} />
+                          <label className="form-label">ATS Units</label>
+                          <input className="form-input" type="text" value={f.tetanus_units} onChange={e => set('tetanus_units', e.target.value)} placeholder="e.g. 1500 IU" />
                         </div>
-                        <div className="form-group">
-                          <label className="form-label">Brand</label>
-                          <input className="form-input" type="text" value={f.tetanus_brand} onChange={e => set('tetanus_brand', e.target.value)} />
-                        </div>
-                        <div className="form-group">
-                          <label className="form-label">Batch No.</label>
-                          <input className="form-input" type="text" value={f.tetanus_batch} onChange={e => set('tetanus_batch', e.target.value)} />
-                        </div>
-                        {f.tetanus_type === 'ATS' && (
-                          <div className="form-group">
-                            <label className="form-label">ATS Units</label>
-                            <input className="form-input" type="text" value={f.tetanus_units} onChange={e => set('tetanus_units', e.target.value)} placeholder="e.g. 1500 IU" />
-                          </div>
-                        )}
-                        <div className="form-group" style={{ gridColumn:'1 / -1' }}>
-                          <label className="form-label">Administered By</label>
-                          <select className="form-select" value={f.tetanus_admin_by} onChange={e => set('tetanus_admin_by', e.target.value)}>
-                            <option value="">-- Select nurse --</option>
-                            {nurses.map(n => <option key={n.user_id} value={n.user_id}>{n.full_name}{n.credential ? `, ${n.credential}` : ''}</option>)}
-                          </select>
-                        </div>
+                      )}
+                      <div className="form-group" style={{ gridColumn:'1 / -1' }}>
+                        <label className="form-label">Administered By</label>
+                        <select className="form-select" value={f.tetanus_admin_by} onChange={e => set('tetanus_admin_by', e.target.value)}>
+                          <option value="">-- Select nurse --</option>
+                          {nurses.map(n => <option key={n.user_id} value={n.user_id}>{n.full_name}{n.credential ? `, ${n.credential}` : ''}</option>)}
+                        </select>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
 
               </div>

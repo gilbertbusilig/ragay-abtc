@@ -428,14 +428,14 @@ export default function PrintPage() {
                 <div><strong>D. Consulted traditional/folk healers:</strong> &nbsp; <Cb checked={!!incident.folk_remedy} /> Y &nbsp; <Cb checked={incident.folk_remedy===false||incident.folk_remedy==='false'} /> N &nbsp; {incident.folk_remedy_details||''}</div>
                 <div>
                   <strong>E. Current Lifestyle:</strong> &nbsp;
-                  <Cb checked={!!incident.smoker} /> Smoker &nbsp;&nbsp;
-                  <Cb checked={!!incident.alcoholic} /> Alcohol use &nbsp;&nbsp;
-                  <Cb checked={!incident.smoker && !incident.alcoholic} /> Not Applicable
+                  <Cb checked={incident.smoker===true||incident.smoker==='true'} /> Smoker &nbsp;&nbsp;
+                  <Cb checked={incident.alcoholic===true||incident.alcoholic==='true'} /> Alcohol use &nbsp;&nbsp;
+                  <Cb checked={(incident.smoker===false||incident.smoker==='false') && (incident.alcoholic===false||incident.alcoholic==='false')} /> Not Applicable
                 </div>
                 <div>
                   <strong>F. Do you have any known allergies to medications or foods?</strong> &nbsp;
-                  <Cb checked={!!String(incident.allergy || '').trim()} /> Yes &nbsp;
-                  <Cb checked={String(incident.allergy || '').trim() === ''} /> No &nbsp;
+                  <Cb checked={incident.allergy!==null && incident.allergy!==undefined && String(incident.allergy).trim() !== ''} /> Yes &nbsp;
+                  <Cb checked={incident.allergy!==null && incident.allergy!==undefined && String(incident.allergy).trim() === ''} /> No &nbsp;
                   Specify: <span style={{ borderBottom:'1px solid #333', display:'inline-block', minWidth:150 }}>{incident.allergy||''}</span>
                 </div>
                 </>
