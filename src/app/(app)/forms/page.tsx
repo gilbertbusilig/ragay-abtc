@@ -4,7 +4,7 @@ const FORMS = [
   {
     id: 'abtc-patient-record',
     title: 'ABTC Patient Record Form',
-    description: 'Standard 2-page patient intake and treatment record for the Ragay Animal Bite Treatment Center.',
+    description: 'Standard 2-page patient intake and treatment record for the RHU Ragay Animal Bite Treatment Center.',
     pages: 2,
     href: '/forms/blank-abtc-form',
   },

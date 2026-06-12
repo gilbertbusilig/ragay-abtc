@@ -12,7 +12,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'Ragay ABTC — Animal Bite Treatment Center',
+  title: 'RHU Ragay — Animal Bite Treatment Center',
   description: 'Patient management system — Ragay, Camarines Sur',
 };
 

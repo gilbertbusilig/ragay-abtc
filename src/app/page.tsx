@@ -78,7 +78,7 @@ export default function LoginPage() {
         {/* Title block */}
         <div style={{ textAlign:'center', color:'white' }}>
           <h1 style={{ fontSize:30, fontWeight:800, lineHeight:1.25, marginBottom:10, letterSpacing:'-.01em' }}>
-            Ragay Animal Bite<br/>Treatment Center
+            RURAL HEALTH UNIT RAGAY<br/>ANIMAL BITE TREATMENT CENTER
           </h1>
           <div style={{ width:56, height:3, background:'#60a5fa', borderRadius:2, margin:'0 auto 14px' }} />
           <p style={{ fontSize:14, color:'#bfdbfe', lineHeight:1.7 }}>

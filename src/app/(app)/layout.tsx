@@ -38,9 +38,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div style={{ padding:'14px 12px 10px', background:'#172554', borderBottom:'1px solid rgba(255,255,255,.08)', display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
           <div style={{ display:'flex', gap:10, alignItems:'center', justifyContent:'center' }}>
             {[
-              { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
               { src:'/logos/lgu_logo.jpg',         alt:'Municipality of Ragay' },
               { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
+              { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
             ].map(logo => (
               <div key={logo.alt} style={{ width:40, height:40, background:'white', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', padding:3, flexShrink:0, border:'1px solid rgba(15,23,42,.08)' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -49,8 +49,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             ))}
           </div>
           <div style={{ textAlign:'center' }}>
-            <div style={{ fontSize:12, fontWeight:700, color:'white', lineHeight:1.3 }}>Ragay ABTC</div>
-            <div style={{ fontSize:10, color:'#93c5fd', lineHeight:1.3, marginTop:2 }}>Animal Bite Treatment Center</div>
+            <div style={{ fontSize:12, fontWeight:700, color:'white', lineHeight:1.3 }}>RURAL HEALTH UNIT RAGAY</div>
+            <div style={{ fontSize:10, color:'#93c5fd', lineHeight:1.3, marginTop:2 }}>ANIMAL BITE TREATMENT CENTER</div>
           </div>
         </div>
 
