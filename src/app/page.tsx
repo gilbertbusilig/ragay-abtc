@@ -70,7 +70,7 @@ export default function LoginPage() {
               flexShrink: 0,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:8 }} />
+              <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:8, mixBlendMode:'multiply' }} />
             </div>
           ))}
         </div>
