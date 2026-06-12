@@ -61,10 +61,11 @@ export default function LoginPage() {
             { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit',     title:'Rural Health Unit' },
             { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas',       title:'Bagong Pilipinas' },
           ].map(logo => (
-            <div key={logo.alt} style={{ background:'#1e3a8a', borderRadius:10, boxShadow:'0 6px 16px rgba(0,0,0,.2)', display:'flex', alignItems:'center', justifyContent:'center', width:80, height:80, flexShrink:0 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logo.src} alt={logo.alt} title={logo.title} style={{ width:'100%', height:'100%', objectFit:'contain', mixBlendMode:'multiply', filter:'brightness(1.5) saturate(1.2)' }} />
-            </div>
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={logo.alt} src={logo.src} alt={logo.alt} title={logo.title} style={{
+              width: 80, height: 80,
+              objectFit: 'contain',
+            }} />
           ))}
         </div>
 
