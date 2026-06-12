@@ -42,10 +42,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
               { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
             ].map(logo => (
-              <div key={logo.alt} style={{ width:40, height:40, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', padding:3, flexShrink:0, boxShadow:'0 3px 8px rgba(0,0,0,.3)' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:5, mixBlendMode:'multiply', filter:'brightness(1.3)' }} />
-              </div>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img key={logo.alt} src={logo.src} alt={logo.alt} style={{
+                width: 40, height: 40,
+                objectFit: 'contain',
+                borderRadius: 6,
+                boxShadow: '0 3px 8px rgba(0,0,0,.3)',
+              }} />
             ))}
           </div>
           <div style={{ textAlign:'center' }}>
