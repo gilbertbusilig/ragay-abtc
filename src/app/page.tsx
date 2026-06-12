@@ -57,15 +57,21 @@ export default function LoginPage() {
         {/* Three logos in a row — equal size */}
         <div style={{ display:'flex', gap:20, alignItems:'center', justifyContent:'center', marginBottom:28 }}>
           {[
-            { src:'/logos/lgu_logo.jpg',         alt:'Municipality of Ragay', title:'Municipality of Ragay' },
-            { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit',     title:'Rural Health Unit' },
-            { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas',       title:'Bagong Pilipinas' },
+            { src:'/logos/lgu_logo.png',         alt:'Municipality of Ragay' },
+            { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
+            { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
           ].map(logo => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={logo.alt} src={logo.src} alt={logo.alt} title={logo.title} style={{
+            <div key={logo.alt} style={{
               width: 80, height: 80,
-              objectFit: 'contain',
-            }} />
+              background: 'white', borderRadius: 14,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              padding: 5,
+              border: '1px solid rgba(15,23,42,.08)',
+              flexShrink: 0,
+            }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:8 }} />
+            </div>
           ))}
         </div>
 

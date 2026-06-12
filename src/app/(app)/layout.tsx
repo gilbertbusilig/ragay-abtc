@@ -38,15 +38,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div style={{ padding:'14px 12px 10px', background:'#172554', borderBottom:'1px solid rgba(255,255,255,.08)', display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
           <div style={{ display:'flex', gap:10, alignItems:'center', justifyContent:'center' }}>
             {[
-              { src:'/logos/lgu_logo.jpg',         alt:'Municipality of Ragay', title:'Municipality of Ragay' },
-              { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit',     title:'Rural Health Unit' },
-              { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas',       title:'Bagong Pilipinas' },
+              { src:'/logos/lgu_logo.png',         alt:'Municipality of Ragay' },
+              { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
+              { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
             ].map(logo => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img key={logo.alt} src={logo.src} alt={logo.alt} title={logo.title} style={{
-                width: 40, height: 40,
-                objectFit: 'contain',
-              }} />
+              <div key={logo.alt} style={{ width:40, height:40, background:'white', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', padding:3, flexShrink:0, border:'1px solid rgba(15,23,42,.08)' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:5 }} />
+              </div>
             ))}
           </div>
           <div style={{ textAlign:'center' }}>
