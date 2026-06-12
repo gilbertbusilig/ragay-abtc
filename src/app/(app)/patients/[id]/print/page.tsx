@@ -223,7 +223,7 @@ export default function PrintPage() {
               <div style={{ fontSize:'12pt', fontWeight:900, letterSpacing:'.02em', color:'#1e3a8a' }}>RHU RAGAY ANIMAL BITE TREATMENT CENTER</div>
               <div style={{ fontSize:'8pt', marginTop:1 }}>Poblacion, Ragay, Camarines Sur · Municipal Health Office</div>
             </div>
-            <img src="/logos/bagong_pilipinas.jpg" alt="" style={{ width:46, height:46, objectFit:'contain' }} />
+            <img src="/logos/bagong_pilipinas.png" alt="" style={{ width:46, height:46, objectFit:'contain' }} />
           </div>
 
           <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4, fontSize:'8pt' }}>

@@ -59,14 +59,13 @@ export default function LoginPage() {
           {[
             { src:'/logos/lgu_logo.png',         alt:'Municipality of Ragay' },
             { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
-            { src:'/logos/bagong_pilipinas.jpg', alt:'Bagong Pilipinas' },
+            { src:'/logos/bagong_pilipinas.png', alt:'Bagong Pilipinas' },
           ].map(logo => (
             <div key={logo.alt} style={{
               width: 80, height: 80,
-              background: 'white', borderRadius: 14,
+              borderRadius: 14,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               padding: 5,
-              border: '1px solid rgba(15,23,42,.08)',
               flexShrink: 0,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
