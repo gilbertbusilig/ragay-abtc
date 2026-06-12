@@ -217,13 +217,13 @@ export default function PrintPage() {
       <div className="page">
         <div className="page-content">
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:10, marginBottom:5, paddingBottom:5, borderBottom:'2px solid #1d4ed8' }}>
-            <img src="/logos/lgu_logo.jpg"         alt="" style={{ width:46, height:46, objectFit:'contain', borderRadius:8, boxShadow:'0 3px 8px rgba(0,0,0,.25)' }} />
-            <img src="/logos/rhu_logo.png"          alt="" style={{ width:46, height:46, objectFit:'contain', borderRadius:8, boxShadow:'0 3px 8px rgba(0,0,0,.25)' }} />
+            <img src="/logos/lgu_logo.jpg"         alt="" title="Municipality of Ragay" style={{ width:46, height:46, objectFit:'contain' }} />
+            <img src="/logos/rhu_logo.png"          alt="" title="Rural Health Unit"     style={{ width:46, height:46, objectFit:'contain' }} />
             <div style={{ textAlign:'center', flex:1 }}>
               <div style={{ fontSize:'12pt', fontWeight:900, letterSpacing:'.02em', color:'#1e3a8a' }}>RHU RAGAY ANIMAL BITE TREATMENT CENTER</div>
               <div style={{ fontSize:'8pt', marginTop:1 }}>Poblacion, Ragay, Camarines Sur · Municipal Health Office</div>
             </div>
-            <img src="/logos/bagong_pilipinas.jpg" alt="" style={{ width:46, height:46, objectFit:'contain', borderRadius:8, boxShadow:'0 3px 8px rgba(0,0,0,.25)' }} />
+            <img src="/logos/bagong_pilipinas.jpg" alt="" title="Bagong Pilipinas"       style={{ width:46, height:46, objectFit:'contain' }} />
           </div>
 
           <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4, fontSize:'8pt' }}>
