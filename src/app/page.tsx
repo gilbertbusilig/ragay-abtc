@@ -63,11 +63,7 @@ export default function LoginPage() {
           ].map(logo => (
             <div key={logo.alt} style={{
               width: 110, height: 110,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.08)',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.18)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              padding: 12,
               flexShrink: 0,
             }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
