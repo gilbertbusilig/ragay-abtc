@@ -39,12 +39,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div style={{ display:'flex', gap:10, alignItems:'center', justifyContent:'center' }}>
             {[
               { src:'/logos/lgu_logo.png',         alt:'Municipality of Ragay' },
-              { src:'/logos/rhu_logo.png',          alt:'Rural Health Unit' },
-              { src:'/logos/bagong_pilipinas.png', alt:'Bagong Pilipinas' },
+              { src:'/logos/rhu_logo_white.png',          alt:'Rural Health Unit' },
+              { src:'/logos/bagong_pilipinas_white.png', alt:'Bagong Pilipinas' },
             ].map(logo => (
-              <div key={logo.alt} style={{ width:40, height:40, borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', padding:3, flexShrink:0 }}>
+              <div key={logo.alt} style={{
+                width: 44, height: 44,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.08)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.25), inset 0 0 0 1px rgba(255,255,255,0.15)',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                padding: 5, flexShrink:0,
+              }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', borderRadius:5 }} />
+                <img src={logo.src} alt={logo.alt} style={{ width:'100%', height:'100%', objectFit:'contain', filter:'drop-shadow(0 1px 3px rgba(0,0,0,0.35))' }} />
               </div>
             ))}
           </div>
